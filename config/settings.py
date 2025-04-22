@@ -25,11 +25,11 @@ SECRET_KEY = "django-insecure-av@)*#e)xhl9gochkez7l4@(cu$r(_!7)3$8&fx*xx%5jf--zi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+#  배포 시엔 도메인도 넣어야 함
 
 # Application definition
-
+# startapp 해서 만든 앱을 여기에 등록
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "main", # main 화면 추가
 ]
 
 MIDDLEWARE = [
@@ -63,6 +64,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
             ],
         },
+        "DIRS": [BASE_DIR / "templates"],  # templates/home.html 이런 식으로 사용 가능
     },
 ]
 
@@ -102,19 +104,27 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = "UTC"
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False  # 시간 문제 피하려면 해당 옵션도 추가 (True > False)
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+# 정적 파일 설정
+# 나중에 css/js 사용 시 필요
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Django 기본 로그인 뷰 쓸 때 필요, 나중에 @login_required 쓸 때 자동 이동
+LOGIN_URL = '/login/'              # 추가
+LOGIN_REDIRECT_URL = '/'           # 추가
+LOGOUT_REDIRECT_URL = '/'          # 추가
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
