@@ -21,4 +21,5 @@ from django.urls import path, include
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('main.urls')),  # main 앱 연결
+    path('lyrics/', include('lyricsgen.urls')),  # http://127.0.0.1:8000/lyrics/
 ]

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "main", # main 화면 추가
+    'lyricsgen', #openapi
 ]
 
 MIDDLEWARE = [

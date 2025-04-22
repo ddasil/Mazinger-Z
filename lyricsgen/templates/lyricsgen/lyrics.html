@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 가사 생성기</title>
+</head>
+<body>
+    <h1>🎵 AI 가사 생성기</h1>
+
+    <form method="POST" action="{% url 'generate_lyrics' %}">
+        {% csrf_token %}
+        <input type="text" name="prompt" placeholder="노래 주제 입력" required style="width:300px; padding:5px;">
+        <button type="submit">가사 생성</button>
+    </form>
+
+    {% if lyrics %}
+        <hr>
+        <h2>🎤 생성된 가사:</h2>
+        <pre style="background:#f0f0f0; padding:10px;">{{ lyrics }}</pre>
+    {% endif %}
+</body>
+</html>
