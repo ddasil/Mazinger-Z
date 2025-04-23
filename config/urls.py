@@ -17,9 +17,15 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('', include('main.urls')),  # main 앱 연결
-    path('lyrics/', include('lyricsgen.urls')),  # http://127.0.0.1:8000/lyrics/
+    path('', include('main.urls')),            # 메인 화면
+    path('lyrics/', include('lyricsgen.urls')), # 가사 생성 앱
 ]
+
+# 👇 이 부분이 이미지(= media 파일) 접근을 가능하게 함
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

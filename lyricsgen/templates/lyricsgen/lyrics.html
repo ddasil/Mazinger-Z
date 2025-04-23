@@ -3,20 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <title>AI 가사 생성기</title>
+    <style>
+        .modal {
+          position: fixed;
+          top: 10%;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 500px;
+          max-height: 80vh;
+          overflow-y: auto;
+          padding: 20px;
+          background: white;
+          border: 1px solid #999;
+          box-shadow: 0 0 20px rgba(0,0,0,0.3);
+          z-index: 1000;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+      
+        .modal.show {
+          opacity: 1;
+        }
+      
+        #modalBackdrop {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: rgba(0,0,0,0.4);
+          z-index: 999;
+          display: none;
+        }
+      </style>
+      
 </head>
 <body>
     <h1>🎵 AI 가사 생성기</h1>
 
+    <!-- 입력 폼 -->
     <form method="POST" action="{% url 'generate_lyrics' %}">
         {% csrf_token %}
         <input type="text" name="prompt" placeholder="노래 주제 입력" required style="width:300px; padding:5px;">
+
+        <!-- 🎼 스타일 선택 -->
+        <select name="style" required>
+            <option value="ballad">발라드</option>
+            <option value="hip-hop">힙합</option>
+            <option value="rock">록</option>
+            <option value="pop">팝</option>
+            <option value="indie">인디</option> 
+            <option value="jazz">재즈</option>
+        </select>
+
+        <select name="language" required>
+            <option value="none">상관없음</option>
+            <option value="korean">한국어 위주</option>
+            <option value="english">영어 위주</option>
+            <option value="japanese">일본어 위주</option>
+            <option value="chinese">중국어 위주</option>
+            <option value="thai">태국어 위주</option>
+        </select>
+        
+
         <button type="submit">가사 생성</button>
     </form>
 
     {% if lyrics %}
-        <hr>
-        <h2>🎤 생성된 가사:</h2>
+<hr>
+
+<!-- 좌우 정렬 컨테이너 -->
+<div style="display: flex; gap: 40px; align-items: flex-start;">
+
+    <!-- 🎤 왼쪽: 가사 출력 -->
+    <div style="flex: 1;">
+        <h2>🎤 "{{ title }}"</h2>
+        <p><strong>주제:</strong> {{ prompt }} / <strong>스타일:</strong> {{ style }} / <strong>언어:</strong> {{ language }}</p>
         <pre style="background:#f0f0f0; padding:10px;">{{ lyrics }}</pre>
-    {% endif %}
+    </div>
+
+
+    <!-- 🎨 오른쪽: 앨범 이미지 + 다운로드 -->
+    <div style="flex: 1; text-align: center;">
+        <h3>🎨 앨범 이미지</h3>
+        <img src="{{ new_lyrics.image_file.url }}" width="256" style="border-radius: 8px;"><br>
+        <a href="{{ new_lyrics.image_file.url }}" download style="color:blue;">📥 이미지 다운로드</a>
+        <p>⏱ 생성 시간: {{ elapsed_time }}초</p>
+    </div>
+
+</div>
+{% endif %}
+
+{% if all_lyrics %}
+    <hr>
+    <h2>🗂 이전에 만든 가사들</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        {% for item in all_lyrics %}
+            <div onclick="showLyricsModal(`{{ item.prompt }}`, `{{ item.lyrics|escapejs }}`)"
+                 style="width: 200px; border: 1px solid #ccc; border-radius: 10px; padding: 10px; background: #fdfdfd;
+                        box-shadow: 2px 2px 5px #ddd; cursor: pointer; text-align: center;">
+    
+                <!-- 앨범 썸네일 -->
+                <img src="{{ item.image_file.url }}" alt="앨범 이미지" style="width: 100%; border-radius: 8px; margin-bottom: 8px;">
+    
+                <strong>{{ item.prompt }}</strong><br>
+                <small>
+                    {{ item.style }} /
+                    {% if item.language == "korean" %}
+                      🇰🇷 한국어
+                    {% elif item.language == "english" %}
+                      🇺🇸 영어
+                    {% elif item.language == "japanese" %}
+                      🇯🇵 일본어
+                    {% elif item.language == "chinese" %}
+                      🇨🇳 중국어
+                    {% elif item.language == "thai" %}
+                      🇹🇭 태국어
+                    {% else %}
+                      🌍 언어무관
+                    {% endif %}
+                  </small><br>
+                  
+                <small>{{ item.created_at|date:"Y-m-d H:i" }}</small>
+            </div>
+        {% endfor %}
+    </div>
+    
+{% endif %}
+<!-- 모달창 -->
+<!-- 모달창 -->
+<div id="lyricsModal" class="modal" style="display:none;">
+    <h3 id="modalTitle">🎵 제목</h3>
+    <pre id="modalLyrics" style="white-space: pre-wrap; background:#f9f9f9; padding:10px;"></pre>
+    <button onclick="closeModal()">닫기</button>
+</div>
+
+<!-- 배경 어둡게 -->
+<div id="modalBackdrop" style="display:none;" onclick="closeModal()"></div>
+
+<script>
+    function showLyricsModal(title, lyrics) {
+      const modal = document.getElementById("lyricsModal");
+      const backdrop = document.getElementById("modalBackdrop");
+  
+      document.getElementById("modalTitle").innerText = `🎵 ${title}`;
+      document.getElementById("modalLyrics").innerText = lyrics;
+  
+      backdrop.style.display = "block";
+      modal.style.display = "block";
+  
+      // 애니메이션 클래스 부여 (fade in)
+      setTimeout(() => {
+        modal.classList.add("show");
+      }, 10);
+    }
+  
+    function closeModal() {
+      const modal = document.getElementById("lyricsModal");
+      const backdrop = document.getElementById("modalBackdrop");
+  
+      modal.classList.remove("show"); // fade-out 시작
+      setTimeout(() => {
+        modal.style.display = "none";
+        backdrop.style.display = "none";
+      }, 300); // 애니메이션 시간과 맞춰야 함 (0.3s)
+    }
+  
+    // ⌨️ ESC 키로 닫기
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") {
+        closeModal();
+      }
+    });
+  </script>
+  
+
+
 </body>
 </html>
