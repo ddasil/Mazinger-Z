@@ -15,7 +15,7 @@ client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 # /lyrics/ 메인 페이지 (입력 폼 + 최근 생성된 가사 목록)
 def lyrics_home(request):
     all_lyrics = GeneratedLyrics.objects.order_by('-created_at')[:5]
-    return render(request, 'lyricsgen/lyrics.html', {
+    return render(request, 'lyrics.html', {
         'all_lyrics': all_lyrics
     })
 
@@ -111,7 +111,7 @@ Please provide the result in the format:
         new_lyrics.save()
 
         # 6. 결과를 템플릿에 넘겨서 출력
-        return render(request, 'lyricsgen/lyrics.html', {
+        return render(request, 'lyrics.html', {
             'prompt': prompt,              # 입력 주제
             'style': style,                # 입력 스타일
             'lyrics': lyrics,              # 생성 가사
@@ -126,4 +126,4 @@ Please provide the result in the format:
         })
 
     # GET 요청이면 입력 폼만 보여줌
-    return render(request, 'lyricsgen/lyrics.html')
+    return render(request, 'lyrics.html')
