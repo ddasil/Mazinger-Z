@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>음악 검색 with YouTube + Apple Music</title>
+  <link rel="stylesheet" href="{% static 'search.css' %}">
+</head>
+<body>
+  <h1>음악 검색</h1>
+
+  <div class="search-container">
+    <div class="input-wrapper">
+      <!-- ✅ onfocus → 최근 검색어 표시 / oninput → 자동완성 전환 -->
+      <input type="text" id="searchInput" placeholder="검색"
+             onfocus="showRecentKeywords()" oninput="handleInputChange()" onblur="hideSuggestions()">
+
+      <!-- ✅ 최근 검색어 박스 (JS에서 보여줌) -->
+      <div id="recentKeywords" style="display: none;"></div>
+
+      <!-- ✅ 자동완성 박스 (기존 유지) -->
+      <div id="suggestions"></div>
+    </div>
+    <button onclick="searchMusic()">🔍</button>
+  </div>
+
+  <div id="results"></div>
+
+  <div id="sidePanel">
+    <span id="closePanel" onclick="closePanel()">✖</span>
+    <div id="panelContent"></div>
+  </div>
+
+  <script src="{% static 'search.js' %}"></script>
+  <script>
+    const API_KEY = "{{ youtube_api_key }}";
+  </script>
+</body>
+</html>

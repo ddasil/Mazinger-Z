@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtualenv
+venv/
+env/
+
+# 환경변수
+.env
