@@ -1,7 +1,9 @@
 
 from django.db import models
+from django.contrib.auth import get_user_model  # 🔹 유저 모델 가져오기
 
 class GeneratedLyrics(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)  
     prompt = models.CharField(max_length=255)
     style = models.CharField(max_length=50)
     lyrics = models.TextField()

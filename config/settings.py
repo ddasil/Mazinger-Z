@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "main", # main 화면 추가
     'lyricsgen', #openapi를 활용한 가사생성
+    'accounts', #로그인 및 회원가입 관련
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,5 @@ import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+AUTH_USER_MODEL = 'accounts.CustomUser'

@@ -2,4 +2,6 @@
 from django.contrib import admin
 from .models import GeneratedLyrics
 
-admin.site.register(GeneratedLyrics)
+@admin.register(GeneratedLyrics)
+class GeneratedLyricsAdmin(admin.ModelAdmin):
+    list_display = ('prompt', 'style', 'language', 'user', 'created_at')

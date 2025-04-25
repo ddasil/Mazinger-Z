@@ -201,6 +201,26 @@
     .mic-btn:hover {
       color: #60a5fa;
     }
+    .auth-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-right: 20px;
+    }
+
+    .auth-link {
+      color: white;
+      text-decoration: none;
+      padding: 6px 10px;
+      border: 1px solid white;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .auth-link:hover {
+      background: #60a5fa;
+    }
+
 
   </style>
   <!-- 마이크 아이콘 -->
@@ -209,7 +229,7 @@
 </head>
 <body>
 
-  <!-- ✅ 고정 상단바 -->
+  <!--  고정 상단바 -->
   <header>
     <div class="logo-box">
       <a href="#">
@@ -246,6 +266,16 @@
         </select>
         <button type="submit">가사 생성</button>
       </form>
+    </div>
+    <!-- ✅ 요기 위치! nav-icon 위에 넣자 -->
+    <div class="auth-buttons">
+      {% if user.is_authenticated %}
+        <span style="margin-right: 10px;">{{ user.username }}님</span>
+        <a href="{% url 'logout' %}" class="auth-link">로그아웃</a>
+      {% else %}
+        <a href="{% url 'login' %}" class="auth-link">로그인</a>
+        <a href="{% url 'signup' %}" class="auth-link">회원가입</a>
+      {% endif %}
     </div>
 
     <div class="nav-icon" id="navIcon">

@@ -24,6 +24,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('main.urls')),            # 메인 화면
     path('lyrics/', include('lyricsgen.urls')), # 가사 생성 앱
+    path('accounts/', include('accounts.urls')), # 회원가입 로그인 로그아웃
+
 ]
 
 # 👇 이 부분이 이미지(= media 파일) 접근을 가능하게 함
