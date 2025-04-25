@@ -69,13 +69,31 @@ def get_lyrics(request):
             if not song or not song.url:
                 return JsonResponse({"error": "No song found on Genius"}, status=404)
 
-            # 크롤링
+            # 🕸️ 크롤링
             res = requests.get(song.url)
             soup = BeautifulSoup(res.text, 'html.parser')
             lyrics_divs = soup.find_all("div", attrs={"data-lyrics-container": "true"})
-            lyrics = "\n".join(div.get_text(separator="\n").strip() for div in lyrics_divs)
+            raw_lyrics = "\n".join(div.get_text(separator="\n").strip() for div in lyrics_divs)
 
-            return JsonResponse({"lyrics": lyrics.strip() or "가사를 찾을 수 없습니다."})
+            # 🧼 메타데이터 제거 함수
+            def clean_lyrics(raw: str) -> str:
+                skip_keywords = [
+                    "Contributors", "Translations", "Romanization",
+                    "English", "Français", "Deutsch", "Español"
+                ]
+                lines = raw.splitlines()
+                filtered = [
+                    line.strip() for line in lines
+                    if line.strip() and not any(kw in line for kw in skip_keywords)
+                ]
+                return "\n".join(filtered).strip()
+
+            cleaned_lyrics = clean_lyrics(raw_lyrics)
+
+            return JsonResponse({
+                "lyrics": cleaned_lyrics or "가사를 찾을 수 없습니다."
+            })
+
         except Exception as e:
             print("🔥 get_lyrics 예외 발생:", e)
             return JsonResponse({"error": str(e)}, status=500)

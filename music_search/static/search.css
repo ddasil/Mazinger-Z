@@ -4,6 +4,7 @@ body {
   padding: 20px;
   margin: 0;
   text-align: center;
+  overflow: hidden; /* 스크롤 방지 */
 }
 
 /* 검색창과 버튼을 묶는 컨테이너 */
@@ -15,12 +16,10 @@ body {
   margin: 40px 0;
 }
 
-/* input과 자동완성 박스를 같이 묶는 박스 */
 .input-wrapper {
   position: relative;
 }
 
-/* 검색어 입력창 스타일 */
 input[type="text"] {
   font-size: 18px;
   padding: 10px;
@@ -31,7 +30,6 @@ input[type="text"] {
   background-color: #f4f4f4;
 }
 
-/* 검색 버튼 스타일 */
 button {
   font-size: 18px;
   padding: 10px 16px;
@@ -69,7 +67,6 @@ button:active {
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* 자동완성/최근검색어 항목 */
 #suggestions div, #recentKeywords div {
   padding: 8px;
   cursor: pointer;
@@ -84,6 +81,9 @@ button:active {
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-y: auto;
+  max-height: 80vh;
+  position: relative;
 }
 
 .video {
@@ -115,19 +115,21 @@ button:active {
   text-overflow: ellipsis;
 }
 
-/* 슬라이딩 패널 */
+/* 슬라이딩 패널 (오른쪽) */
 #sidePanel {
   position: fixed;
   top: 0;
-  right: -500px;
-  width: 400px;
+  right: -800px;
+  width: 30%;            /* 📌 줄였음 */
+  min-width: 360px;      /* 📌 최소폭 추가 */
   height: 100%;
   background: #fff;
   box-shadow: -4px 0 10px rgba(0,0,0,0.3);
   padding: 20px;
-  overflow-y: auto;
+  overflow: hidden;
   transition: right 0.3s ease-in-out;
   z-index: 999;
+  box-sizing: border-box;
 }
 
 #sidePanel.open {
@@ -156,4 +158,127 @@ audio {
   width: 100%;
   max-width: 300px;
   margin-top: 10px;
+}
+
+#panelContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: calc(100vh - 80px); /* 전체 높이에서 패딩 감안 */
+  overflow: hidden;
+  padding-bottom: 30px;
+  position: relative;
+}
+
+.left-panel, .right-panel {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.left-panel {
+  padding-right: 10px;
+  text-align: center;
+}
+
+.right-panel {
+  padding-left: 10px;
+  text-align: left;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* 가사 패널 */
+#lyricsPanel {
+  position: absolute;
+  top: 0;
+  left: -400px;
+  width: 400px;
+  height: 100%;
+  background: #fefefe;
+  border-right: 1px solid #ddd;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+  transition: left 0.3s ease-in-out;
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+#lyricsPanel.open {
+  left: 0;
+}
+
+#toggleLyrics {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 14px;
+  padding: 8px 12px;
+  cursor: pointer;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 1001;
+}
+
+#toggleLyrics:hover {
+  background: #ddd;
+}
+
+#lyricsBox {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  padding-bottom: 40px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.lyrics-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  padding: 10px;
+  padding-bottom: 80px;  /* 📌 가사 아래 공간 확보 */
+}
+
+/* 숨김 클래스 */
+.hidden {
+  display: none;
+}
+
+#recentKeywords {
+  display: none;
+}
+
+
+#recentPanel {
+  position: absolute;
+  top: 0;
+  left: -400px;
+  width: 400px;
+  height: 100%;
+  background: #fefefe;
+  border-right: 1px solid #ddd;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+  transition: left 0.3s ease-in-out;
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+#recentPanel.open {
+  left: 0;
+}
+
+.recent-item {
+  cursor: pointer;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.recent-item:hover {
+  background-color: #f0f0f0;
 }

@@ -11,14 +11,15 @@
 
   <div class="search-container">
     <div class="input-wrapper">
-      <!-- ✅ onfocus → 최근 검색어 표시 / oninput → 자동완성 전환 -->
-      <input type="text" id="searchInput" placeholder="검색"
-             onfocus="showRecentKeywords()" oninput="handleInputChange()" onblur="hideSuggestions()">
-
-      <!-- ✅ 최근 검색어 박스 (JS에서 보여줌) -->
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="검색어를 입력하세요"
+        onfocus="showRecentKeywords()" 
+        oninput="handleInputChange()" 
+        onblur="hideSuggestions()"
+      >
       <div id="recentKeywords" style="display: none;"></div>
-
-      <!-- ✅ 자동완성 박스 (기존 유지) -->
       <div id="suggestions"></div>
     </div>
     <button onclick="searchMusic()">🔍</button>
@@ -26,8 +27,23 @@
 
   <div id="results"></div>
 
+  <!-- 📄 가사 패널 -->
+  <div id="lyricsPanel" class="hidden">
+    <h3>📄 가사</h3>
+    <div id="lyricsContent">가사 로딩 중...</div>
+  </div>
+
+  <!-- 🕘 최근 시청 패널 -->
+  <div id="recentPanel" class="hidden">
+    <h3>🕘 최근 시청</h3>
+    <div id="recentList"></div>
+  </div>
+
+  <!-- ▶️ 오른쪽 슬라이딩 패널 -->
   <div id="sidePanel">
     <span id="closePanel" onclick="closePanel()">✖</span>
+    <button id="toggleLyrics">📄 가사</button>
+    <button id="toggleRecent">🕘 최근 시청</button>
     <div id="panelContent"></div>
   </div>
 
