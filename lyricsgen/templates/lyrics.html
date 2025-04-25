@@ -174,7 +174,38 @@
       display: none;
     }
 
+    .input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .input-wrapper input {
+      padding-right: 32px;  /* 마이크 아이콘 공간 */
+      height: 32px;
+      background-color: #222;
+      border: 1px solid #555;
+      color: white;
+    }
+
+    .mic-icon {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      pointer-events: all;
+    }
+
+    .mic-btn:hover {
+      color: #60a5fa;
+    }
+
   </style>
+  <!-- 마이크 아이콘 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 </head>
 <body>
 
@@ -191,7 +222,12 @@
       <h1 class="fixed-title">AI 뮤즈</h1>
       <form method="POST" action="{% url 'generate_lyrics' %}" class="header-form">
         {% csrf_token %}
-        <input type="text" name="prompt" placeholder="노래 주제 입력" required>
+        <div class="input-wrapper">
+          <input type="text" name="prompt" id="prompt-input" placeholder="노래 주제 입력" required>
+          <i class="fa-solid fa-microphone mic-icon" id="mic-btn" title="음성인식 시작"></i>
+          <i class="fa-solid fa-stop mic-icon" id="stop-recognition" style="display: none;" title="음성인식 종료"></i> <!-- ⏹ 중단 버튼 -->
+        </div>
+        
         <select name="style" required>
           <option value="ballad">발라드</option>
           <option value="hip-hop">힙합</option>
@@ -313,6 +349,62 @@
         wrapper.classList.remove('nav-open');
       });
     });
-  </script>
+
+    const micBtn = document.getElementById('mic-btn'); 
+    const stopBtn = document.getElementById('stop-recognition');
+    const promptInput = document.getElementById('prompt-input');
+
+    let recognition = null;
+    let isManuallyStopped = false;
+
+    micBtn.addEventListener('click', () => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("이 브라우저는 음성 인식을 지원하지 않습니다.");
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ko-KR';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.start();
+      micBtn.style.display = "none";
+      stopBtn.style.display = "inline";
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        promptInput.value = transcript;
+        stopMicRecognitionUI();
+      };
+
+      recognition.onerror = (event) => {
+        if (!isManuallyStopped) {
+          alert("음성 인식 오류: " + event.error);
+        }
+        stopMicRecognitionUI();
+      };
+
+      recognition.onend = () => {
+        stopMicRecognitionUI();
+        isManuallyStopped = false;  // 사용자가 중단한 경우 초기화
+      };
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if (recognition) {
+        isManuallyStopped = true;
+        recognition.stop();
+      }
+      stopMicRecognitionUI();
+    });
+
+    function stopMicRecognitionUI() {
+      micBtn.style.display = "inline";
+      stopBtn.style.display = "none";
+    }
+</script>
+
 </body>
 </html>
