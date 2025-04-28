@@ -121,7 +121,7 @@ USE_TZ = False  # 시간 문제 피하려면 해당 옵션도 추가 (True > Fal
 # 정적 파일 설정
 # 나중에 css/js 사용 시 필요
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR/ 'static']
 
 # Django 기본 로그인 뷰 쓸 때 필요, 나중에 @login_required 쓸 때 자동 이동
 LOGIN_URL = '/login/'              # 추가

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from django.core.files.base import ContentFile
 from .models import GeneratedLyrics
 
+
 # 환경 변수에서 OpenAI API 키 로딩
 load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))

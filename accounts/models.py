@@ -1,5 +1,20 @@
+import random
+import string
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+def generate_random_nickname(length=8):
+    # 랜덤한 문자열로 닉네임 생성 (알파벳과 숫자 혼합)
+    letters_and_digits = string.ascii_letters + string.digits
+    return ''.join(random.choice(letters_and_digits) for i in range(length))
 
 class CustomUser(AbstractUser):
-    # 필요한 필드 추가 가능 (예: 닉네임, 생년월일 등)
-    pass
+    nickname = models.CharField(max_length=50, unique=True, blank=True, null=True)  # 닉네임은 자동 생성으로 설정
+
+    def save(self, *args, **kwargs):
+        if not self.nickname:  # 만약 nickname이 비어있다면
+            self.nickname = generate_random_nickname()  # 랜덤으로 닉네임 생성
+        super().save(*args, **kwargs)  # 기존 save 메서드 호출
+
+    def __str__(self):
+        return self.username  # 사용자 이름을 반환
