@@ -44,6 +44,13 @@ function fetchLyrics(artist, title) {
           <h3>📄 가사</h3>
           <div class="lyrics-content">${data.lyrics.replace(/\n/g, '<br>')}</div>
         `;
+
+        // 글씨 크기 조정
+        const lyricsContent = document.querySelector('.lyrics-content');
+        if (lyricsContent) {
+          lyricsContent.style.fontSize = '20px';  // 원하는 글씨 크기로 설정
+        }
+
       } else {
         lyricsPanel.innerHTML = "❌ 가사를 불러올 수 없습니다.";
       }
@@ -57,8 +64,16 @@ function fetchLyrics(artist, title) {
 // ▶️ 가사 패널 토글
 function toggleLyricsPanel() {
   const lyricsPanel = document.getElementById('lyricsPanel');
-  if (!lyricsPanel) return;
-  lyricsPanel.classList.toggle('open');
+  const recentPanel = document.getElementById('recentPanel');
+  if (!lyricsPanel || !recentPanel) return;
+
+  if (lyricsPanel.classList.contains('open')) {
+    lyricsPanel.classList.remove('open');
+  } else {
+    lyricsPanel.classList.add('open');
+    recentPanel.classList.remove('open');
+    
+  }
 }
 
 // 🔍 검색창 자동완성 (JSONP 중복 방지)
@@ -271,11 +286,11 @@ function fetchTrackFromApple(query) {
       if (data.results && data.results.length > 0) {
         const track = data.results[0];
         trackInfoDiv.innerHTML = `
-          <h3>${track.trackName}</h3>
-          <p>👤 ${track.artistName}</p>
-          <p>💼 ${track.collectionName}</p>
-          <p>📅 ${new Date(track.releaseDate).toLocaleDateString()}</p>
-          <p>🎧 ${track.primaryGenreName}</p>
+          <h3>노래 제목 : ${track.trackName}</h3>
+          <p><strong>아티스트 :</strong> ${track.artistName}</p>
+          <p><strong>앨범 :</strong> ${track.collectionName}</p>
+          <p><strong>발매일 :</strong> ${new Date(track.releaseDate).toLocaleDateString()}</p>
+          <p><strong>장르 :</strong> ${track.primaryGenreName}</p>
           <img src="${track.artworkUrl100.replace('100x100', '300x300')}" alt="앨범 커버">
         `;
       } else {
@@ -314,3 +329,84 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ✅ 가사 번역 기능
+const translatedLyrics = {
+  ko: "",
+  en: "",
+  ja: "",
+  zh: ""
+};
+
+function translateLyrics(lang) {
+  const lyricsContent = document.getElementById('lyricsContent');
+  if (translatedLyrics[lang]) {
+    lyricsContent.innerHTML = translatedLyrics[lang];
+  } else {
+    lyricsContent.innerHTML = "⚠️ 번역본이 없습니다.";
+  }
+}
+
+// ✅ 가사 가져오고 자동번역하는 함수
+async function fetchLyrics(artist, title) {
+  const lyricsPanel = document.getElementById('lyricsPanel');
+  if (!lyricsPanel) return;
+  
+  lyricsPanel.innerHTML = `
+    <h3>📄 가사</h3>
+    <div class="translation-buttons">
+      <button onclick="translateLyrics('ko')">한국어</button>
+      <button onclick="translateLyrics('en')">영어</button>
+      <button onclick="translateLyrics('ja')">일본어</button>
+      <button onclick="translateLyrics('zh')">중국어</button>
+    </div>
+    <div id="lyricsContent">🎤 가사 로딩 중...</div>
+  `;
+  lyricsPanel.classList.remove('hidden');
+  lyricsPanel.classList.add('open');
+
+  try {
+    // 1. 가사 가져오기
+    const res = await fetch('/music/lyrics/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ artist, title })
+    });
+    const data = await res.json();
+
+    if (!data.lyrics) {
+      document.getElementById('lyricsContent').innerHTML = "❌ 가사를 불러올 수 없습니다.";
+      return;
+    }
+
+    const originalLyrics = data.lyrics.replace(/\n/g, '<br>');
+
+    // 2. 번역 요청
+    const translationRes = await fetch('/music/translate-lyrics/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lyrics: data.lyrics })
+    });
+
+    const translations = await translationRes.json();
+
+    // 3. 감지된 언어 저장
+    const detectedLang = translations.detected; // 감지된 언어 (ko, en, ja, zh)
+
+    // 4. 가져온 가사 저장
+    translatedLyrics[detectedLang] = `<p class="lyrics-content">${originalLyrics}</p>`;
+
+    // 5. 번역된 가사 저장
+    if (translations.en) translatedLyrics['en'] = `<p class="lyrics-content">${translations.en.replace(/\n/g, '<br>')}</p>`;
+    if (translations.ja) translatedLyrics['ja'] = `<p class="lyrics-content">${translations.ja.replace(/\n/g, '<br>')}</p>`;
+    if (translations.zh) translatedLyrics['zh'] = `<p class="lyrics-content">${translations.zh.replace(/\n/g, '<br>')}</p>`;
+    if (translations.ko) translatedLyrics['ko'] = `<p class="lyrics-content">${translations.ko.replace(/\n/g, '<br>')}</p>`;
+
+    // 6. 감지된 원본 가사 기본 표시
+    document.getElementById('lyricsContent').innerHTML = translatedLyrics[detectedLang];
+
+  } catch (err) {
+    console.error("🔥 가사 또는 번역 요청 실패:", err);
+    document.getElementById('lyricsContent').innerHTML = "⚠️ 가사 로딩 중 오류 발생!";
+  }
+}

@@ -54,6 +54,56 @@ button:active {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+#leftNavBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 100vh;
+  background: #333;
+  border-right: 1px solid #444;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  z-index: 1002;
+}
+
+/* 📌 왼쪽 고정 네비게이션 바 버튼 스타일 */
+#leftNavBar button {
+  transform: rotate(0deg);
+  margin-bottom: 20px;
+  background: #333; /* 어두운 배경 */
+  color: #fff; /* 흰색 글씨 */
+  border: 1px solid #444; /* 어두운 테두리 */
+  cursor: pointer;
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 10px 0; /* 상하 여백 조정 */
+  border-radius: 6px; /* 둥근 모서리 */
+  transition: all 0.3s ease; /* 부드러운 전환 효과 */
+  white-space: nowrap;
+  width: 100%; /* 버튼 너비를 nav bar에 맞춤 */
+  text-align: center; /* 버튼 텍스트 가운데 정렬 */
+}
+#leftNavBar button:hover {
+  background: #555; /* 호버 시 배경 밝기 증가 */
+  border-color: #666; /* 호버 시 테두리 색상 변화 */
+  transform: scale(1.05); /* 호버 시 약간의 확대 효과 */
+}
+
+#leftNavBar button:active {
+  background: #444; /* 클릭 시 더 어두운 배경 */
+  transform: scale(1); /* 클릭 시 크기 복원 */
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); /* 클릭 효과 */
+}
+
+/* 버튼 텍스트 */
+#leftNavBar button {
+  font-weight: bold;
+  text-transform: uppercase; /* 글씨를 대문자로 */
+}
+
 /* 자동완성 목록 박스 */
 #suggestions, #recentKeywords {
   position: absolute;
@@ -191,22 +241,24 @@ audio {
 
 /* 가사 패널 */
 #lyricsPanel {
-  position: absolute;
+  position: fixed;
   top: 0;
-  left: -400px;
-  width: 400px;
+  left: -400px; /* nav bar 오른쪽에서 시작하도록 */
+  width: 400px; /* 원하는 너비로 설정 */
   height: 100%;
   background: #fefefe;
-  border-right: 1px solid #ddd;
+  border-left: 1px solid #ddd; /* 왼쪽 경계선 */
+  /* border-right: 1px solid #ddd; */
   box-shadow: 4px 0 10px rgba(0,0,0,0.1);
   transition: left 0.3s ease-in-out;
   padding: 20px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 1001;
+  
 }
 
 #lyricsPanel.open {
-  left: 0;
+  left: 100px; /* 패널이 화면에 나타날 때 이동 위치 */
 }
 
 #toggleLyrics {
@@ -255,22 +307,22 @@ audio {
 
 
 #recentPanel {
-  position: absolute;
+  position: fixed;
   top: 0;
-  left: -400px;
-  width: 400px;
+  left: -400px; /* nav bar 오른쪽에서 시작하도록 */
+  width: 400px; /* 원하는 너비로 설정 */
   height: 100%;
-  background: #fefefe;
-  border-right: 1px solid #ddd;
+  background: #fff;
+  border-right: 1px solid #ccc;
   box-shadow: 4px 0 10px rgba(0,0,0,0.1);
   transition: left 0.3s ease-in-out;
   padding: 20px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 1001;
 }
 
 #recentPanel.open {
-  left: 0;
+  left: 100px; /* 패널이 화면에 나타날 때 이동 위치 */
 }
 
 .recent-item {
@@ -282,3 +334,27 @@ audio {
 .recent-item:hover {
   background-color: #f0f0f0;
 }
+
+/* 번역버튼 css */
+.translation-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+
+.translation-buttons button {
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #f4f4f4;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.translation-buttons button:hover {
+  background-color: #ddd;
+}
+
+

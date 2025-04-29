@@ -27,9 +27,24 @@
 
   <div id="results"></div>
 
+  <!-- 📌 왼쪽 고정 네비게이션 바 추가 -->
+  <div id="leftNavBar">
+    <button onclick="toggleLyricsPanel()">📄 가사</button>
+    <button onclick="toggleRecentPanel()">🕘 최근 시청</button>
+  </div>
+
   <!-- 📄 가사 패널 -->
   <div id="lyricsPanel" class="hidden">
     <h3>📄 가사</h3>
+
+      <!-- ✅ 번역 버튼들 추가 -->
+    <div class="translation-buttons">
+      <button onclick="translateLyrics('ko')">한국어</button>
+      <button onclick="translateLyrics('en')">영어</button>
+      <button onclick="translateLyrics('ja')">일본어</button>
+      <button onclick="translateLyrics('zh')">중국어</button>
+    </div>
+
     <div id="lyricsContent">가사 로딩 중...</div>
   </div>
 
@@ -42,8 +57,6 @@
   <!-- ▶️ 오른쪽 슬라이딩 패널 -->
   <div id="sidePanel">
     <span id="closePanel" onclick="closePanel()">✖</span>
-    <button id="toggleLyrics">📄 가사</button>
-    <button id="toggleRecent">🕘 최근 시청</button>
     <div id="panelContent"></div>
   </div>
 

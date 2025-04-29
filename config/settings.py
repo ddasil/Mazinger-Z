@@ -23,6 +23,8 @@ load_dotenv(BASE_DIR / '.env')
 # 환경변수 사용
 YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
 
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/

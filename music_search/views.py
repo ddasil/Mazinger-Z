@@ -6,12 +6,15 @@ from django.views.decorators.csrf import csrf_exempt
 import os
 import json
 from openai import OpenAI
+import openai
 import requests
 from bs4 import BeautifulSoup
 import lyricsgenius
 
+
 # ✅ API 키 세팅
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 GENIUS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
 genius = lyricsgenius.Genius(GENIUS_TOKEN, skip_non_songs=True, excluded_terms=["(Remix)", "(Live)"])
 
@@ -99,3 +102,82 @@ def get_lyrics(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
+
+@csrf_exempt
+def translate_lyrics(request):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        original_lyrics = body.get('lyrics', '')
+
+        if not original_lyrics:
+            return JsonResponse({"error": "No lyrics provided"}, status=400)
+
+        try:
+            # 언어 감지
+            detect_prompt = f"""
+            다음 가사의 주된 언어가 무엇인지 알려줘. 답변은 Korean, English, Japanese, Chinese 중 하나로만.
+            가사:
+            {original_lyrics}
+            """
+
+            detect_response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": detect_prompt}],
+                temperature=0
+            )
+            detected_language = detect_response.choices[0].message.content.strip()
+
+            all_languages = {
+                'Korean': 'ko',
+                'English': 'en',
+                'Japanese': 'ja',
+                'Chinese': 'zh'
+            }
+            target_languages = {k: v for k, v in all_languages.items() if k != detected_language}
+
+            # 번역 요청
+            translate_prompt = f"""
+            다음 가사를 {', '.join(target_languages.keys())}로 번역해줘.
+
+            **주의사항**:
+            - 반드시 JSON 포맷으로만 출력해.
+            - JSON 이외에 다른 텍스트(예: 설명, 인사말)는 절대 추가하지 마.
+            - 키는 "{list(target_languages.values())[0]}","{list(target_languages.values())[1]}","{list(target_languages.values())[2]}" 형태여야 해.
+
+            가사:
+            {original_lyrics}
+            """
+
+            translate_response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": translate_prompt}],
+                temperature=0.3
+            )
+
+            # 📌 추가할 부분
+            print("🔥 detect_response:", detect_response.choices[0].message.content)
+            print("🔥 translate_response:", translate_response.choices[0].message.content)
+
+            translations = json.loads(translate_response.choices[0].message.content)
+
+            # 📌 여기 추가해
+            if isinstance(translations.get('en'), dict):
+                translations['en'] = "\n".join(translations['en'].values())
+
+            if isinstance(translations.get('ja'), dict):
+                translations['ja'] = "\n".join(translations['ja'].values())
+
+            if isinstance(translations.get('zh'), dict):
+                translations['zh'] = "\n".join(translations['zh'].values())
+
+
+            response_data = {
+                'detected': all_languages.get(detected_language, 'unknown'),
+                **translations
+            }
+            return JsonResponse(response_data)
+
+        except Exception as e:
+            print(f"🔥 번역 에러 발생: {e}")
+            return JsonResponse({"error": "번역 실패", "detail": str(e)}, status=500)
