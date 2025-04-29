@@ -24,6 +24,31 @@ def search_view(request):
         'youtube_api_key': settings.YOUTUBE_API_KEY
     })
 
+# 자동완성(django 서버가 구글 sugges api 호출하는 방법)
+def autocomplete(request):
+    query = request.GET.get('q', '')
+    if not query:
+        return JsonResponse({'suggestions': []})
+
+    try:
+        # 구글 Suggest API 요청
+        response = requests.get(
+            'https://suggestqueries.google.com/complete/search',
+            params={
+                'client': 'firefox',  # 여기는 그대로 둬도 됨
+                'ds': 'yt',           # 유튜브 전용 데이터소스
+                'q': query
+            },
+            timeout=5
+        )
+        result = response.json()
+        suggestions = result[1] if len(result) > 1 else []
+        return JsonResponse({'suggestions': suggestions})
+
+    except Exception as e:
+        print(f"Autocomplete Error: {e}")
+        return JsonResponse({'suggestions': []})
+
 # ✅ GPT로 영상 제목 분석: 가수 / 곡명 추출
 @csrf_exempt
 def analyze_title(request):

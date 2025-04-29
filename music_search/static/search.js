@@ -76,24 +76,26 @@ function toggleLyricsPanel() {
   }
 }
 
-// 🔍 검색창 자동완성 (JSONP 중복 방지)
+// 🔍 검색창 자동완성 (django 서버가 구글 sugges api 호출하는 방법)
 function handleInputChange() {
   const query = document.getElementById('searchInput').value;
   const recentDiv = document.getElementById('recentKeywords');
-
+  
   if (!query.trim()) {
     showRecentKeywords();
     return;
   }
   recentDiv.style.display = 'none';
 
-  const oldScript = document.getElementById('jsonpScript');
-  if (oldScript) oldScript.remove();
-
-  const script = document.createElement('script');
-  script.id = 'jsonpScript';
-  script.src = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(query)}&callback=handleSuggestions`;
-  document.body.appendChild(script);
+  // ✅ Django 서버로 요청
+  fetch(`/music/autocomplete/?q=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(data => {
+      handleSuggestions(["", data.suggestions]);
+    })
+    .catch(err => {
+      console.error("🔥 자동완성 요청 실패:", err);
+    });
 }
 
 // 🔍 유튜브 검색 실행
