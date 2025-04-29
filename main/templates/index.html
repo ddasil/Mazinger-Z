@@ -1,0 +1,207 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MUSICTASTE</title>
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+
+<body>
+
+  <svg style="position: absolute; width: 0; height: 0;" width="0" height="0" version="1.1"
+    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="svg-sprite">
+    <defs>
+      <filter id="filter">
+        <feTurbulence type="fractalNoise" baseFrequency="0.000001 0.000001" numOctaves="1" result="warp" seed="1">
+        </feTurbulence>
+        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="30" in="SourceGraphic" in2="warp">
+        </feDisplacementMap>
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="wrapper">
+    <div class="nav-bar">
+      <div class="logo-box" id="logoBox">
+        <a href="#section1">
+          <img id="logo-image" src="{% static 'images/logo-white.png' %}">
+          <span id="logo-text">SOSIC</span>
+        </a>
+      </div>
+      <div class="right-box">
+        <div class="sign-box">
+          <div class="sign-btn btn-glitch" id="signInBtn">
+            <a href="#">
+              Sign in
+            </a>
+          </div>
+          <div class="sign-btn btn-glitch" id="signUpBtn">
+            <a href="#">
+              Sign up
+            </a>
+          </div>
+        </div>
+
+        <div class="nav-icon" id="navIcon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+
+      <div id="lp">
+        <img src="{% static 'images/lp_no_shadow.png' %}">
+      </div>
+
+      <div id="tonearm">
+        <img src="{% static 'images/tonearm.png' %}">
+      </div>
+
+      <section class="section" id="section1">
+        <div class="main-content">
+          <div class="main-image" id="mainImage">
+            <img src="{% static 'images/main.jpg' %}">
+          </div>
+          <div class="main-text" id="mainText">
+            <div class="text-mask">
+              <h1><span id="yellow">S</span>HOW<br>Y<span id="yellow">O</span>UR<br>MU<span id="yellow">SIC</span>TASTE
+              </h1>
+            </div>
+          </div>
+        </div>
+        <div class="search-box" id="searchBox">
+          <input type="search" placeholder="와 씨 그냥 집에 가고 싶다" />
+          <button><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+      </section>
+
+      <section class="section" id="section2">
+        <div class="card-container">
+          <div class="card" data-index="0" data-link="page1.html" style="background-image: url('static/images/apple.png');">
+          </div>
+          <div class="card" data-index="1" data-link="https://naver.com"
+            style="background-image: url('static/images/apple.png');"></div>
+          <div class="card" data-index="2" data-link="page3.html" style="background-image: url('static/images/apple.png');">
+          </div>
+          <div class="card" data-index="3" data-link="page4.html" style="background-image: url('static/images/apple.png');">
+          </div>
+          <div class="card" data-index="4" data-link="page5.html" style="background-image: url('static/images/apple.png');">
+          </div>
+          <div class="card" data-index="5" data-link="page6.html" style="background-image: url('static/images/apple.png');">
+          </div>
+          <div class="card" data-index="6" data-link="page7.html" style="background-image: url('static/images/apple.png');">
+          </div>
+          <div class="card" data-index="7" data-link="page8.html" style="background-image: url('static/images/apple.png');">
+          </div>
+          <div class="card" data-index="8" data-link="page9.html" style="background-image: url('static/images/apple.png');">
+          </div>
+          <div class="card" data-index="9" data-link="page10.html" style="background-image: url('static/images/apple.png');">
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section3">
+        <!-- <p><i class="fa-solid fa-angles-down"></i>click</p> -->
+        <!-- 자동차 이미지 -->
+        <img id="carTrigger" src="{% static 'images/microbus.png' %}" alt="car" />
+
+        <!-- 섹션3 콘텐츠 중 등장하는 슬라이딩 요소 -->
+        <div class="car-slide-content" id="carSlideContent">
+          <div class="schedule-wrapper">
+            <!-- 좌측: 달력 -->
+            <div class="calendar-box">
+              <div class="calendar-header">
+                <h2>2024년 4월</h2>
+              </div>
+              <div class="day-names">
+                <div>일</div>
+                <div>월</div>
+                <div>화</div>
+                <div>수</div>
+                <div>목</div>
+                <div>금</div>
+                <div>토</div>
+              </div>
+              <div class="calendar-grid" id="calendarBox">
+                <!-- 날짜들 생성됨 -->
+              </div>
+            </div>
+
+            <!-- 우측: 공연 포스터 -->
+            <div class="poster-box" id="posterBox">
+              <h2>날짜를 선택해 주세요</h2>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="section" id="section4">
+        <div id="modal" class="modal">
+          <div class="modal-content">
+            <span id="closeModalBtn" class="close">&times;</span>
+            <h1>CONTACT</h1>
+            <h2><br></h2>
+            <h2><br></h2>
+            <form id="contactForm">
+              <div class="card-box">
+                <a href="https://www.naver.com">
+                  <div class="contact-card" id="dayoung"></div>
+                </a>
+                <a href="#">
+                  <div class="contact-card" id="jinseop"></div>
+                </a>
+                <a href="#">
+                  <div class="contact-card" id="sanghun"></div>
+                </a>
+                <a href="#">
+                  <div class="contact-card" id="donggun"></div>
+                </a>
+                <a href="#">
+                  <div class="contact-card" id="minsu"></div>
+                </a>
+                <a href="#">
+                  <div class="contact-card" id="yonghwan"></div>
+                </a>
+              </div>
+
+              <button class="btn-glitch" type="submit">HOME</button>
+            </form>
+          </div>
+        </div>
+        <button class="btn-glitch" id="openModalBtn">CONTACT</button>
+      </section>
+
+    </div>
+
+    <nav class="side-menu">
+      <ul>
+        <li data-target="section1">Home</li>
+        <li data-target="section2">Works</li>
+        <li data-target="section3">About</li>
+        <li data-target="section4">Contact</li>
+        <li data-target="section5">Hire us</li>
+      </ul>
+    </nav>
+  </div>
+
+  <script src="{% static 'js/main.js' %}"></script>
+</body>
+
+</html>
