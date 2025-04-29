@@ -45,12 +45,12 @@
       <div class="right-box">
         <div class="sign-box">
           <div class="sign-btn btn-glitch" id="signInBtn">
-            <a href="#">
+            <a href="{% url 'login' %}">
               Sign in
             </a>
           </div>
           <div class="sign-btn btn-glitch" id="signUpBtn">
-            <a href="#">
+            <a href="{% url 'signup' %}">
               Sign up
             </a>
           </div>
@@ -95,7 +95,7 @@
         <div class="card-container">
           <div class="card" data-index="0" data-link="page1.html" style="background-image: url('static/images/apple.png');">
           </div>
-          <div class="card" data-index="1" data-link="https://naver.com"
+          <div class="card" data-index="1" data-link="{% url 'lyrics' %}"
             style="background-image: url('static/images/apple.png');"></div>
           <div class="card" data-index="2" data-link="page3.html" style="background-image: url('static/images/apple.png');">
           </div>
@@ -161,7 +161,7 @@
             <h2><br></h2>
             <form id="contactForm">
               <div class="card-box">
-                <a href="https://www.naver.com">
+                <a href="{% url 'lyrics' %}"">
                   <div class="contact-card" id="dayoung"></div>
                 </a>
                 <a href="#">

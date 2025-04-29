@@ -1,6 +1,9 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
     path('', views.main, name='main'),
+    path('accounts/', include('accounts.urls')),  # accounts 앱의 URL을 포함시킴
+    path('lyricsgen/', include('lyricsgen.urls')),  # accounts 앱의 URL을 포함시킴
+    path('mypage/', include('mypage.urls')),  # accounts 앱의 URL을 포함시킴
 ]
