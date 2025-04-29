@@ -25,9 +25,10 @@ urlpatterns = [
     path('', include('main.urls')),            # 메인 화면
     path('lyrics/', include('lyricsgen.urls')), # 가사 생성 앱
     path('accounts/', include('accounts.urls')), # 회원가입 로그인 로그아웃
+    path('mypage/', include('mypage.urls')),  # mypage 앱의 URL을 포함
 
 ]
 
-# 👇 이 부분이 이미지(= media 파일) 접근을 가능하게 함
+# 이미지(= media 파일) 접근을 가능하게 함
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

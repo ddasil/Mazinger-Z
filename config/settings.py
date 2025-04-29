@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     "main", # main 화면 추가
     'lyricsgen', #openapi를 활용한 가사생성
     'accounts', #로그인 및 회원가입 관련
+    'mypage',  # 새로 만든 마이페이지 앱 추가
 ]
 
 MIDDLEWARE = [
@@ -57,10 +59,11 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                'django.template.context_processors.debug',
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -124,7 +127,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR/ 'static']
 
 # Django 기본 로그인 뷰 쓸 때 필요, 나중에 @login_required 쓸 때 자동 이동
-LOGIN_URL = '/login/'              # 추가
+LOGIN_URL = '/login/'              # 로그인 URL 설정
 LOGIN_REDIRECT_URL = '/'           # 추가
 LOGOUT_REDIRECT_URL = '/'          # 추가
 

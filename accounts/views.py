@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 
 def signup_view(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST,request.FILES)
         if form.is_valid():
             user = form.save()
             login(request, user)  # 회원가입 후 바로 로그인

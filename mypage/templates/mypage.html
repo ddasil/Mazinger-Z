@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>마이페이지</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-group input[type="file"] {
+            padding: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .profile-picture {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>마이페이지</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- 아이디 -->
+            <div class="form-group">
+                <label for="id_username">아이디 (변경 불가)</label>
+                <input type="text" id="id_username" value="{{ form.username.value }}" readonly />
+            </div>
+
+            <!-- 닉네임 -->
+            <div class="form-group">
+                <label for="id_nickname">닉네임</label>
+                {{ form.nickname }}
+            </div>
+
+            <!-- 생일 -->
+            <div class="form-group">
+                <label for="id_birthday">생일</label>
+                {{ form.birthday }}
+            </div>
+
+            <!-- 전화번호 -->
+            <div class="form-group">
+                <label for="id_phone_number">전화번호</label>
+                {{ form.phone_number }}
+            </div>
+
+            <!-- 프로필 사진 -->
+            <div class="form-group profile-picture">
+                <label for="id_profile_picture">프로필 사진</label>
+                {{ form.profile_picture }}
+                {% if user.profile_picture %}
+                    <div>
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%;" />
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit">저장</button>
+        </form>
+
+        <p><a href="{% url 'home' %}">홈으로 돌아가기</a></p>
+    </div>
+</body>
+</html>

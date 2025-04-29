@@ -108,9 +108,7 @@
         <span id="logo-text">MUSICTASTE</span>
       </a>
     </div>
-    <div class="header-center">
-      <h1 class="fixed-title">AI 뮤즈</h1>
-    </div>
+
     <div class="nav-icon" id="navIcon">
       <span></span>
       <span></span>
@@ -118,10 +116,9 @@
     </div>
   </header>
 
-  <!-- 로그인 폼 -->
-  <div class="login-form">
+  <div class="login-form" >
     <h2>회원가입</h2>
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       {{ form.as_p }}
       <button type="submit">가입하기</button>
