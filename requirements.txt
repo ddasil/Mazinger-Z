@@ -1,0 +1,7 @@
+python-dotenv
+django
+openai
+requests
+beautifulsoup4
+lyricsgenius
+

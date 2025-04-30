@@ -272,6 +272,7 @@
       {% if user.is_authenticated %}
         <span style="margin-right: 10px;">{{ user.username }}님</span>
         <a href="{% url 'logout' %}" class="auth-link">로그아웃</a>
+        <a href="{% url 'mypage' %}" class="auth-link">마이페이지</a>
       {% else %}
         <a href="{% url 'login' %}" class="auth-link">로그인</a>
         <a href="{% url 'signup' %}" class="auth-link">회원가입</a>

@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mypage</title>
+
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+
+<body>
+  <svg class="svg-sprite" style="position: absolute; width: 0; height: 0;">
+    <defs>
+      <filter id="filter">
+        <feTurbulence type="fractalNoise" baseFrequency="0.000001 0.000001" numOctaves="1" result="warp" seed="1" />
+        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="30" in="SourceGraphic" in2="warp" />
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="wrapper">
+    <div class="nav-bar">
+      <div class="logo-box" id="logoBox">
+        <a href="#section1">
+          <img id="logo-image" src="{% static 'images/logo-white.png' %}">
+          <span id="logo-text">SOSIC</span>
+        </a>
+      </div>
+      <div class="right-box">
+        <div class="sign-box">
+          <div class="sign-btn btn-glitch" id="signInBtn">
+            <a href="{% url 'login' %}">Sign in</a>
+          </div>
+          <div class="sign-btn btn-glitch" id="signUpBtn">
+            <a href="{% url 'signup' %}">Sign up</a>
+          </div>
+        </div>
+        <div class="nav-icon" id="navIcon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div id="lp"><img src="{% static 'images/lp_no_shadow.png' %}"></div>
+      <div id="tonearm"><img src="{% static 'images/tonearm.png' %}"></div>
+
+      <!-- 마이페이지 콘텐츠 시작 -->
+      <h2>마이페이지</h2>
+
+      <div class="profile-header">
+        {% if user.profile_picture and user.profile_picture.name %}
+          <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-pic" />
+        {% else %}
+          <img src="{% static 'images/logo-black.png' %}" alt="Default Profile Picture" class="profile-pic" />
+        {% endif %}
+        <div>
+          <span>{{ user.username }}님</span>
+          <div class="auth-buttons">
+            {% if user.is_authenticated %}
+              <a href="{% url 'logout' %}" class="auth-link">로그아웃</a>
+              <a href="{% url 'mypage' %}" class="auth-link">마이페이지</a>
+            {% else %}
+              <a href="{% url 'login' %}" class="auth-link">로그인</a>
+              <a href="{% url 'signup' %}" class="auth-link">회원가입</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- 프로필 수정 폼 (옵션) -->
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">수정</button>
+      </form>
+      <!-- 마이페이지 콘텐츠 끝 -->
+    </div>
+
+    <nav class="side-menu">
+      <ul>
+        <li data-target="section1">Home</li>
+        <li data-target="section2">Works</li>
+        <li data-target="section3">About</li>
+        <li data-target="section4">Contact</li>
+        <li data-target="section5">Hire us</li>
+      </ul>
+    </nav>
+  </div>
+
+  <script src="{% static 'js/main.js' %}"></script>
+</body>
+
+</html>

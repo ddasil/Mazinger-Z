@@ -44,17 +44,32 @@
       </div>
       <div class="right-box">
         <div class="sign-box">
-          <div class="sign-btn btn-glitch" id="signInBtn">
-            <a href="{% url 'login' %}">
-              Sign in
-            </a>
-          </div>
-          <div class="sign-btn btn-glitch" id="signUpBtn">
-            <a href="{% url 'signup' %}">
-              Sign up
-            </a>
-          </div>
-        </div>
+          {% if user.is_authenticated %}
+              <!-- 로그인된 경우에만 로그아웃 및 마이페이지 버튼을 표시 -->
+              <div class="sign-btn btn-glitch" id="logOutBtn">
+                <a href="{% url 'logout' %}">
+                    Log out
+                </a>
+              </div>
+              <div class="sign-btn btn-glitch" id="myPageBtn">
+                  <a href="{% url 'mypage' %}">
+                      My Page
+                  </a>
+              </div>
+          {% else %}
+              <!-- 로그인 안 된 경우 로그인 및 회원가입 버튼을 표시 -->
+              <div class="sign-btn btn-glitch" id="signInBtn">
+                  <a href="{% url 'login' %}">
+                      Sign in
+                  </a>
+              </div>
+              <div class="sign-btn btn-glitch" id="signUpBtn">
+                  <a href="{% url 'signup' %}">
+                      Sign up
+                  </a>
+              </div>
+          {% endif %}
+      </div>
 
         <div class="nav-icon" id="navIcon">
           <span></span>
@@ -161,7 +176,7 @@
             <h2><br></h2>
             <form id="contactForm">
               <div class="card-box">
-                <a href="{% url 'lyrics' %}"">
+                <a href="{% url 'lyrics' %}">
                   <div class="contact-card" id="dayoung"></div>
                 </a>
                 <a href="#">
