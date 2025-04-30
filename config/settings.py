@@ -12,16 +12,20 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-av@)*#e)xhl9gochkez7l4@(cu$r(_!7)3$8&fx*xx%5jf--zi"
+GENIUS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -42,6 +46,7 @@ INSTALLED_APPS = [
     'lyricsgen', #openapi를 활용한 가사생성
     'accounts', #로그인 및 회원가입 관련
     'mypage',  # 새로 만든 마이페이지 앱 추가
+    "analyze", # analyze 화면 추가
 ]
 
 MIDDLEWARE = [

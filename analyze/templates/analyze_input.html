@@ -1,0 +1,27 @@
+<!-- analyze_input.html -->
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>분석 입력</title>
+  <link rel="stylesheet" href="{% static 'CSS/analyze_input.css' %}">
+  <script defer src="{% static 'JS/analyze_input.js' %}"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h1>노래 제목을 입력하세요</h1>
+    
+    <form method="POST" action="{% url 'analyze' %}">
+      {% csrf_token %}
+      <input type="text" name="title" placeholder="노래 제목을 입력" required><br><br>
+      <input type="text" name="artist" placeholder="가수 이름을 입력" required><br><br>
+      <button type="submit">분석하기</button>
+    </form>
+    
+  </div>
+</body>
+</html>

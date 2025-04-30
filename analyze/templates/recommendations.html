@@ -1,0 +1,42 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ tag }} 감정 기반 추천곡</title>
+  <link rel="stylesheet" href="{% static 'CSS/recommendations.css' %}">
+  <script defer src="{% static 'JS/recommendations.js' %}"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🎧 "{{ tag }}" 감정을 가진 추천 곡</h1>
+
+    <ul class="song-list">
+      {% for song in songs %}
+        <li class="song-item">
+          <span class="title">{{ song.title }}</span>
+          <span class="artist">- {{ song.artist }}</span>
+          <span class="tags">감정 태그: {{ song.emotion_tags }}</span>
+        </li>
+      {% empty %}
+        <li>해당 감정을 가진 곡이 아직 없습니다.</li>
+      {% endfor %}
+    </ul>
+
+<div class="back-button">
+  <!-- 돌아가기 버튼: 현재 페이지를 분석 결과 페이지로 리디렉션 -->
+  <button onclick="window.history.back()" class="button go-back">
+    ⬅ 돌아가기
+</button>
+
+
+  <!-- 다른 노래 분석하기 버튼: 처음 입력을 받는 페이지로 이동 -->
+  <a href="{% url 'analyze' %}" class="button retry">
+    🔁 다른 노래 분석하기
+  </a>
+</div>
+  </div>
+</body>
+</html>

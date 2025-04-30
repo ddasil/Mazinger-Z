@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title }} 감성 분석 결과</title>
+  <link rel="stylesheet" href="{% static 'CSS/analyze_result.css' %}">
+  <script defer src="{% static 'JS/analyze_result.js' %}"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h1>"{{ title }}" 감성 분석 결과</h1>
+
+    <div class="analysis-section">
+      <div class="emotion-list">
+        <h2>🎯 감성 점수</h2>
+        <ul>
+          {% for emotion, score in result.items %}
+            <li>{{ emotion }}: {{ score }}%</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="top3-box">
+        <h3>🔥 상위 감정 TOP 3</h3>
+        {% for emotion, score in top3 %}
+          <p>🏅 {{ emotion }}: {{ score }}%</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 📌 추천 보기 버튼 -->
+    <!-- 추천 및 재분석 버튼 영역 -->
+    <div class="button-group">
+      <!-- 유사 감정 추천 보기 버튼 수정 -->
+      {% for emotion, _ in top3 %}
+        <a href="{% url 'recommend_by_emotion' emotion %}" class="button recommend">
+          🔍 {{ emotion }} 감정 추천 보기
+        </a>
+      {% endfor %}
+
+      <a href="{% url 'analyze' %}" class="button retry">
+        🔁 다른 노래 분석하기
+      </a>
+    </div>
+
+    <div class="lyrics-section">
+      <h2>📃 가사</h2>
+      <pre>{{ lyrics }}</pre>
+    </div>
+  </div>
+</body>
+</html>
+
