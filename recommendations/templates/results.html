@@ -1,0 +1,262 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>추천 결과</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background-color: #000;
+            color: white;
+            padding-top: 80px;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: black;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 20px;
+            height: 60px;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+        }
+
+        #logo-image {
+            height: 36px;
+        }
+
+        #logo-text {
+            font-size: 1.6rem;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .nav-icon {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            cursor: pointer;
+            padding-right: 30px;
+        }
+
+        .nav-icon span {
+            display: block;
+            height: 4px;
+            background: white;
+            margin: 4px 0;
+            width: 25px;
+        }
+
+        .side-menu {
+            position: fixed;
+            right: -50%;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: #000;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            transition: right 0.5s ease;
+            z-index: 999;
+        }
+
+        .wrapper.nav-open .side-menu {
+            right: 0;
+        }
+
+        .side-menu ul {
+            list-style: none;
+            text-align: right;
+            padding: 0;
+        }
+
+        .side-menu li {
+            font-size: 2rem;
+            padding: 20px 0;
+            cursor: pointer;
+        }
+
+        .side-menu li:hover {
+            color: #60a5fa;
+        }
+
+        .result-box {
+            max-width: 900px;
+            margin: 40px auto;
+            background-color: #1e1e1e;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .items {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .item {
+            width: 160px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .item img {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #555;
+        }
+
+        .item p {
+            margin-top: 8px;
+            font-size: 15px;
+            line-height: 1.4;
+            min-height: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .retry-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: #6c63ff;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .retry-button:hover {
+            background-color: #574fd6;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 40px auto;
+        }
+
+        h2 {
+            margin-bottom: 16px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 998;
+            display: none;
+        }
+
+        .wrapper.nav-open .overlay {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="overlay"></div>
+        <header>
+            <div class="logo-box">
+                <a href="/"><img id="logo-image" src="{% static 'apple.png' %}" alt="logo"><span
+                        id="logo-text">MUSICTASTE</span></a>
+            </div>
+            <div class="nav-icon" id="navIcon">
+                <span></span><span></span><span></span>
+            </div>
+        </header>
+
+        <nav class="side-menu">
+            <ul>
+                <li>Home</li>
+                <li>About</li>
+                <li>Contact</li>
+            </ul>
+        </nav>
+
+        <h1>🎵 '{{ song }}'에 대한 추천</h1>
+
+        <div class="result-box">
+            <!-- 책 추천 -->
+            <div class="section">
+                <h2>📚 책 추천</h2>
+                <div class="items">
+                    {% for book in books %}
+                    <div class="item">
+                        <img src="{{ book.image }}" alt="책 이미지">
+                        <p>{{ book.title }}<br><small>{{ book.author }}</small></p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 여행지 추천 -->
+            <div class="section">
+                <h2>🧳 여행지 추천</h2>
+                <div class="items">
+                    {% for travel in travels %}
+                    <div class="item">
+                        <img src="{{ travel.image }}" alt="여행지 이미지">
+                        <p>{{ travel.place }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="section">
+                <a href="/recommend/" class="retry-button">🔁 다시 검색하기</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const navIcon = document.getElementById('navIcon');
+        const wrapper = document.querySelector('.wrapper');
+        const overlay = document.querySelector('.overlay');
+        navIcon.addEventListener('click', () => {
+            wrapper.classList.toggle('nav-open');
+        });
+
+        overlay.addEventListener('click', () => {
+        wrapper.classList.remove('nav-open');
+    });
+    </script>
+</body>
+
+</html>

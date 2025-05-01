@@ -1,0 +1,305 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>노래 추천 검색</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #000;
+            margin: 0;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: black;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            height: 60px;
+        }
+
+        .logo-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        #logo-image {
+            height: 36px;
+        }
+
+        #logo-text {
+            font-size: 1.6rem;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .header-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            gap: 10px;
+        }
+
+        .fixed-title {
+            font-size: 1.8rem;
+            color: white;
+            margin: 0;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input[type="text"] {
+            padding: 10px 40px 10px 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            background-color: #222;
+            color: white;
+            width: 280px;
+        }
+
+        .input-wrapper .mic-icon {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            background-color: #222;
+            color: white;
+            width: 90px;
+        }
+
+        button[type="submit"] {
+            padding: 10px 16px;
+            background-color: #6c63ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #574fd6;
+        }
+
+        .nav-icon {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            cursor: pointer;
+            padding-right: 30px;
+        }
+
+        .nav-icon span {
+            display: block;
+            height: 4px;
+            background: white;
+            margin: 5px 0;
+            width: 25px;
+        }
+
+        .side-menu {
+            position: fixed;
+            right: -50%;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: #000000;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: right 0.5s ease;
+            z-index: 999;
+        }
+
+        .wrapper.nav-open .side-menu {
+            right: 0;
+        }
+
+        .side-menu ul {
+            list-style: none;
+            text-align: right;
+            padding: 0;
+        }
+
+        .side-menu li {
+            font-size: 2rem;
+            padding: 20px 0;
+            cursor: pointer;
+        }
+
+        .side-menu li:hover {
+            color: #60a5fa;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 998;
+            display: none;
+        }
+
+        .wrapper.nav-open .overlay {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo-box">
+            <a href="/"><img id="logo-image" src="{% static 'apple.png' %}"><span id="logo-text">MUSICTASTE</span></a>
+        </div>
+        <div class="nav-icon" id="navIcon">
+            <span></span><span></span><span></span>
+        </div>
+    </header>
+
+    <div class="header-center">
+        <h1 class="fixed-title">🎵 추천 시스템(책, 여행지)</h1>
+        <form method="get" action="/recommend/" class="form-row">
+            <div class="input-wrapper">
+                <input type="text" name="q" id="prompt-input" placeholder="ex) 노래제목 - 가수" required>
+                <button type="button" class="mic-icon" id="mic-btn" title="음성인식 시작"><i
+                        class="fa-solid fa-microphone"></i></button>
+                <button type="button" class="mic-icon" id="stop-recognition"
+                    style="display: none; position: absolute; right: 10px;" title="음성인식 종료"><i
+                        class="fa-solid fa-stop"></i></button>
+            </div>
+            <select name="count">
+                <option value="1">1개</option>
+                <option value="2">2개</option>
+                <option value="3" selected>3개</option>
+                <option value="4">4개</option>
+                <option value="5">5개</option>
+            </select>
+            <button type="submit">검색</button>
+        </form>
+    </div>
+
+    <div class="wrapper">
+        <div class="overlay"></div>
+        <nav class="side-menu">
+            <ul>
+                <li>Home</li>
+                <li>About</li>
+                <li>Contact</li>
+            </ul>
+        </nav>
+    </div>
+
+    <script>
+        const navIcon = document.getElementById('navIcon');
+        const wrapper = document.querySelector('.wrapper');
+        const overlay = document.querySelector('.overlay');
+        navIcon.addEventListener('click', () => {
+            wrapper.classList.toggle('nav-open');
+        });
+
+        overlay.addEventListener('click', () => {
+            wrapper.classList.remove('nav-open');
+        });
+
+        const micBtn = document.getElementById('mic-btn');
+        const stopBtn = document.getElementById('stop-recognition');
+        const promptInput = document.getElementById('prompt-input');
+
+        let recognition = null;
+        let isManuallyStopped = false;
+
+        micBtn.addEventListener('click', () => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("이 브라우저는 음성 인식을 지원하지 않습니다.");
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ko-KR';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.start();
+            micBtn.style.display = "none";
+            stopBtn.style.display = "inline-block";
+
+            recognition.onresult = (event) => {
+                promptInput.value = event.results[0][0].transcript;
+                stopMicRecognitionUI();
+            };
+
+            recognition.onerror = (event) => {
+                if (!isManuallyStopped) {
+                    alert("음성 인식 오류: " + event.error);
+                }
+                stopMicRecognitionUI();
+            };
+
+            recognition.onend = () => {
+                stopMicRecognitionUI();
+                isManuallyStopped = false;
+            };
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (recognition) {
+                isManuallyStopped = true;
+                recognition.stop();
+            }
+            stopMicRecognitionUI();
+        });
+
+        function stopMicRecognitionUI() {
+            micBtn.style.display = "inline-block";
+            stopBtn.style.display = "none";
+        }
+    </script>
+</body>
+
+</html>
