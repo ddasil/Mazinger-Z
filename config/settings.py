@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "analyze", # analyze 화면 추가
     "music_search", 
     "recommendations", #추천
+    "chartsongs", # 인기차트 크롤링
 ]
 
 MIDDLEWARE = [
