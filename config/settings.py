@@ -24,7 +24,11 @@ load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-av@)*#e)xhl9gochkez7l4@(cu$r(_!7)3$8&fx*xx%5jf--zi"
+
+# 환경변수 사용
 GENIUS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -47,6 +51,7 @@ INSTALLED_APPS = [
     'accounts', #로그인 및 회원가입 관련
     'mypage',  # 새로 만든 마이페이지 앱 추가
     "analyze", # analyze 화면 추가
+    "music_search", 
 ]
 
 MIDDLEWARE = [

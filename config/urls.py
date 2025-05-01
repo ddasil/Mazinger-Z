@@ -27,6 +27,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')), # 회원가입 로그인 로그아웃
     path('mypage/', include('mypage.urls')),  # mypage 앱의 URL을 포함
     path('analyze/', include('analyze.urls')),  # analyze 앱 연결
+    path('music/', include('music_search.urls')), # music_search 앱 연결
 
 ]
 
