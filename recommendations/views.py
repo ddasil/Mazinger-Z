@@ -107,4 +107,4 @@ def search_song(request): # gpt 이용 검색
                 "travels": travels,
             })
 
-    return render(request, "search.html")
+    return render(request, "search1.html")

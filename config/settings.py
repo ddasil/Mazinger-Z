@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'mypage',  # 새로 만든 마이페이지 앱 추가
     "analyze", # analyze 화면 추가
     "music_search", 
+    "recommendations", #추천
 ]
 
 MIDDLEWARE = [
