@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "analyze", # analyze 화면 추가
     "music_search", 
     "recommendations", #추천
+    "chartsongs", # 인기차트 크롤링
 ]
 
 MIDDLEWARE = [
@@ -78,6 +79,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'django.template.context_processors.csrf',
             ],
         },
         "DIRS": [BASE_DIR / "templates"],  # templates/home.html 이런 식으로 사용 가능

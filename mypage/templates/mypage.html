@@ -5,14 +5,118 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/mypage.css' %}">
 {% endblock %}
+
 {% block content %}
+<div class="mypage-container">
 
-<!-- 여기에 컨텐츠 넣으면 됩니다. -->
+  <!-- 프로필 박스 -->
+  <div class="profile-box">
+    {% if user.profile_picture %}
+      <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+    {% else %}
+      <img src="{% static 'images/logo-black.png' %}" alt="Default Picture" class="profile-picture">
+    {% endif %}
+    <h2>{{ user.username }}</h2>
+    <button onclick="openPasswordModal()" class="edit-profile-btn">프로필 수정</button>
+  </div>
 
+  <!-- 이동 버튼들 -->
+  <div class="link-buttons">
+    <a href="{% url 'lyrics' %}" class="mypage-link-btn">내가 만든 가사</a>
+    <a href="{% url 'music_search' %}" class="mypage-link-btn">내 플레이 리스트</a>
+  </div>
+</div>
 
+<!-- 🔒 비밀번호 확인 모달 -->
+<div id="passwordModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closePasswordModal()">&times;</span>
+    <h3>비밀번호 확인</h3>
+    <input type="password" id="confirmPassword" placeholder="비밀번호를 입력하세요">
+    <button class="save-btn" onclick="verifyPassword()">확인</button>
+  </div>
+</div>
+
+<!-- ✏️ 프로필 수정 모달 -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <h3>프로필 수정</h3>
+    <form method="POST" enctype="multipart/form-data" class="profile-form">
+      {% csrf_token %}
+      <label>ID</label>
+      <input type="text" value="{{ user.username }}" readonly>
+
+      <label for="id_nickname">닉네임</label>
+      <input type="text" name="nickname" value="{{ user.nickname }}">
+
+      <label for="id_birthday">생일</label>
+      <input type="date" name="birthday" value="{{ user.birthday|date:'Y-m-d' }}">
+
+      <label for="id_phone_number">전화번호</label>
+      <input type="text" name="phone_number" value="{{ user.phone_number }}">
+
+      <label for="id_profile_picture">프로필 사진</label>
+      <input type="file" name="profile_picture">
+
+      <input type="hidden" name="password" id="hiddenPassword">
+      
+      <button type="submit" class="save-btn">저장</button>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_script %}
 <script src="{% static 'js/base.js' %}"></script>
+<script>
+  function openPasswordModal() {
+    document.getElementById("passwordModal").classList.add("show");
+  }
+
+  function closePasswordModal() {
+    document.getElementById("passwordModal").classList.remove("show");
+  }
+
+  function openModal() {
+    document.getElementById("editModal").classList.add("show");
+  }
+
+  function closeModal() {
+    document.getElementById("editModal").classList.remove("show");
+  }
+
+  async function verifyPassword() {
+    const password = document.getElementById("confirmPassword").value;
+    if (password.trim() === "") {
+      alert("비밀번호를 입력하세요.");
+      return;
+    }
+
+    try {
+      const response = await fetch("{% url 'verify_password' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ password: password })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        document.getElementById("hiddenPassword").value = password;
+        closePasswordModal();
+        openModal();
+      } else {
+        alert("비밀번호가 올바르지 않습니다.");
+      }
+    } catch (error) {
+      console.error("비밀번호 검증 오류:", error);
+      alert("서버 오류가 발생했습니다.");
+    }
+  }
+</script>
 {% endblock %}
