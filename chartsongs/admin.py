@@ -11,4 +11,4 @@ class ChartSongAdmin(admin.ModelAdmin):
         if obj.lylics:
             return obj.lylics[:30] + '...' if len(obj.lylics) > 30 else obj.lylics
         return ""
-    short_lylics.short_description = '가사 요약'
+    short_lylics.short_description = '가사 미리보기'
