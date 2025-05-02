@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 
@@ -18,13 +18,14 @@ def signup_view(request):
 # 로그인뷰
 def login_view(request):
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
+        form = CustomAuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('/')
+            return redirect('main')  # 또는 '/'
+
     else:
-        form = AuthenticationForm()
+        form = CustomAuthenticationForm()
     return render(request, 'login.html', {'form': form})
 
 # 로그아웃 뷰

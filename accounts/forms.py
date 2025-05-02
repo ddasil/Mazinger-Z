@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django import forms  # ✅ 2번에 필요한 추가 import
 from .models import CustomUser
 from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.forms import AuthenticationForm
+
 
 class CustomUserCreationForm(UserCreationForm):
     # 추가된 필드: 생일과 전화번호
@@ -30,3 +32,10 @@ class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = CustomUser
         fields = ['username', 'nickname', 'birthday', 'phone_number', 'profile_picture']
+
+
+class CustomAuthenticationForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].label = 'ID'
+        self.fields['password'].label = 'PASSWORD'
