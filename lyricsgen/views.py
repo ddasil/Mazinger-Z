@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from openai import OpenAI
 import os
 import requests
@@ -9,24 +8,20 @@ from dotenv import load_dotenv
 from django.core.files.base import ContentFile
 from .models import GeneratedLyrics
 
-
 # 환경 변수에서 OpenAI API 키 로딩
 load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# 메인 페이지 뷰
 def lyrics_home(request):
     if request.user.is_authenticated:
         all_lyrics = GeneratedLyrics.objects.filter(user=request.user).order_by('-created_at')[:5]
     else:
-        all_lyrics = None
+        temp_user_id = request.session.session_key
+        all_lyrics = GeneratedLyrics.objects.filter(temp_user_id=temp_user_id).order_by('-created_at')[:5] if temp_user_id else None
     return render(request, 'lyrics.html', {
         'all_lyrics': all_lyrics
     })
 
-
-# 가사 생성 및 이미지 생성 뷰
-@login_required
 def generate_lyrics(request):
     if request.method == 'POST':
         prompt = request.POST.get('prompt')
@@ -34,21 +29,14 @@ def generate_lyrics(request):
         language = request.POST.get('language')
         start_time = time.time()
 
-        # 언어 조건 생성
-        if language == 'english':
-            lang_phrase = " in English"
-        elif language == 'korean':
-            lang_phrase = " in Korean"
-        elif language == 'japanese':
-            lang_phrase = " in Japanese"
-        elif language == 'chinese':
-            lang_phrase = " in Chinese"
-        elif language == 'thai':
-            lang_phrase = " in Thai"
-        else:
-            lang_phrase = ""
+        lang_phrase = {
+            'english': " in English",
+            'korean': " in Korean",
+            'japanese': " in Japanese",
+            'chinese': " in Chinese",
+            'thai': " in Thai"
+        }.get(language, "")
 
-        # GPT 가사 생성 요청
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{
@@ -71,7 +59,6 @@ Please provide the result in the format:
             title = f"{prompt}의 노래"
             lyrics = full_text
 
-        # 이미지 프롬프트 생성
         clean_prompt = prompt.replace("'", "").replace('"', '').strip()
         clean_style = style.replace("'", "").replace('"', '').strip()
         dalle_prompt = f"A {clean_style} style album cover for a song about {clean_prompt}"
@@ -96,17 +83,29 @@ Please provide the result in the format:
 
         elapsed_time = round(time.time() - start_time, 2)
 
-        # 생성된 데이터 DB 저장
+        # ✅ 세션 키 생성 (비로그인 사용자용 임시 ID)
+        if not request.session.session_key:
+            request.session.create()
+        temp_user_id = request.session.session_key
+
+        # ✅ DB 저장: 로그인 사용자는 user, 비로그인은 temp_user_id로 구분
         new_lyrics = GeneratedLyrics(
             prompt=prompt,
             style=style,
             lyrics=lyrics,
             duration=elapsed_time,
             language=language,
-            user=request.user  # ✅ 로그인한 사용자 저장
+            user=request.user if request.user.is_authenticated else None,
+            temp_user_id=None if request.user.is_authenticated else temp_user_id
         )
         new_lyrics.image_file.save(image_filename, ContentFile(image_content))
         new_lyrics.save()
+
+        all_lyrics = (
+            GeneratedLyrics.objects.filter(user=request.user).order_by('-created_at')[:5]
+            if request.user.is_authenticated
+            else GeneratedLyrics.objects.filter(temp_user_id=temp_user_id).order_by('-created_at')[:5]
+        )
 
         return render(request, 'lyrics.html', {
             'prompt': prompt,
@@ -115,7 +114,7 @@ Please provide the result in the format:
             'language': language,
             'elapsed_time': elapsed_time,
             'new_lyrics': new_lyrics,
-            'all_lyrics': GeneratedLyrics.objects.filter(user=request.user).order_by('-created_at')[:5],
+            'all_lyrics': all_lyrics,
             'title': title
         })
 

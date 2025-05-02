@@ -1,441 +1,99 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>AI 가사 생성기</title>
-  <style>
-    body {
-      background-color: #000;
-      padding-top: 140px; /* 헤더 높이만큼 본문 아래로 밀기 */
-      padding-bottom: 80px;  /* ✅ 하단 여백 추가 */
-      margin: 0;
-    }
 
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: black;
-      z-index: 1000;
-      display: flex;
-      align-items: flex-start; /* ✅ 위로 정렬 */
-      padding: 10px 20px;
-      height: 120px; /* ✅ 높이 줄이기 */
-    }
+{% block title %}가사생성 페이지{% endblock %}
 
-    .logo-box {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      height: 60px;
-    }
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+{% endblock %}
+{% block content %}
 
-    .logo-box a {
-      color: #fff;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-    }
-
-    #logo-image {
-      height: 40px;
-    }
-
-    #logo-text {
-      font-size: 1.8rem;
-      margin-left: 10px;
-      color: white;
-    }
-
-    .header-center {
-      position: absolute;
-      top: 10px; /* ✅ 더 위로 */
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 999;
-      gap: 10px;
-    }
-
-    .fixed-title {
-      font-size: 1.8rem;
-      color: white;
-      margin: 0;
-    }
-
-    .header-form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    .header-form input,
-    .header-form select,
-    .header-form button {
-      color: white;
-      background-color: #222;
-      border: 1px solid #555;
-      padding: 5px;
-    }
-
-    .nav-icon {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: flex-end;
-      margin-left: auto;
-      padding-right: 30px;
-      height: 60px;
-    }
-
-    .nav-icon span {
-      display: block;
-      height: 4px;
-      background: white;
-      margin: 5px 0;
-      width: 25px;
-    }
-
-    .side-menu {
-      position: fixed;
-      right: -50%;
-      top: 0;
-      width: 50%;
-      height: 100%;
-      background: #000;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: right 0.5s ease;
-      z-index: 999;
-    }
-
-    .wrapper {
-      max-width: 1200px;
-      margin: 0 auto 80px;
-      padding: 0 20px;
-    }
-
-    .wrapper.nav-open .side-menu {
-      right: 0;
-    }
-
-    .side-menu ul {
-      list-style: none;
-      text-align: right;
-      padding: 0;
-    }
-
-    .side-menu li {
-      font-size: 2rem;
-      padding: 20px 0;
-      cursor: pointer;
-    }
-
-    .side-menu li:hover {
-      color: #60a5fa;
-    }
-
-    .modal {
-      position: fixed;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 500px;
-      max-height: 80vh;
-      overflow-y: auto;
-      padding: 20px;
-      background: white;
-      border: 1px solid #999;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .modal.show {
-      opacity: 1;
-    }
-
-    #modalBackdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.4);
-      z-index: 999;
-      display: none;
-    }
-
-    .input-wrapper {
-      position: relative;
-      display: inline-block;
-    }
-
-    .input-wrapper input {
-      padding-right: 32px;  /* 마이크 아이콘 공간 */
-      height: 32px;
-      background-color: #222;
-      border: 1px solid #555;
-      color: white;
-    }
-
-    .mic-icon {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      pointer-events: all;
-    }
-
-    .mic-btn:hover {
-      color: #60a5fa;
-    }
-    .auth-buttons {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-right: 20px;
-    }
-
-    .auth-link {
-      color: white;
-      text-decoration: none;
-      padding: 6px 10px;
-      border: 1px solid white;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-
-    .auth-link:hover {
-      background: #60a5fa;
-    }
-
-
-  </style>
-  <!-- 마이크 아이콘 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-</head>
-<body>
-
-  <!--  고정 상단바 -->
-  <header>
-    <div class="logo-box">
-      <a href="{% url 'main' %}">
-        <img id="logo-image" src="{% static 'apple.png' %}">
-        <span id="logo-text">MUSICTASTE</span>
-      </a>
+<div class="header-center">
+  <h1 class="fixed-title">AI 뮤즈</h1>
+  <form method="POST" action="{% url 'generate_lyrics' %}" class="header-form">
+    {% csrf_token %}
+    <div class="input-wrapper">
+      <input type="text" name="prompt" id="prompt-input" placeholder="노래 주제 입력" required>
+      <i class="fa-solid fa-microphone mic-icon" id="mic-btn" title="음성인식 시작"></i>
+      <i class="fa-solid fa-stop mic-icon" id="stop-recognition" style="display: none;" title="음성인식 종료"></i>
+      <!-- ⏹ 중단 버튼 -->
     </div>
 
-    <div class="header-center">
-      <h1 class="fixed-title">AI 뮤즈</h1>
-      <form method="POST" action="{% url 'generate_lyrics' %}" class="header-form">
-        {% csrf_token %}
-        <div class="input-wrapper">
-          <input type="text" name="prompt" id="prompt-input" placeholder="노래 주제 입력" required>
-          <i class="fa-solid fa-microphone mic-icon" id="mic-btn" title="음성인식 시작"></i>
-          <i class="fa-solid fa-stop mic-icon" id="stop-recognition" style="display: none;" title="음성인식 종료"></i> <!-- ⏹ 중단 버튼 -->
-        </div>
-        
-        <select name="style" required>
-          <option value="ballad">발라드</option>
-          <option value="hip-hop">힙합</option>
-          <option value="rock">록</option>
-          <option value="pop">팝</option>
-          <option value="indie">인디</option>
-          <option value="jazz">재즈</option>
-        </select>
-        <select name="language" required>
-          <option value="none">상관없음</option>
-          <option value="korean">한국어</option>
-          <option value="english">English</option>
-          <option value="japanese">日本語</option>
-          <option value="chinese">中文</option>
-          <option value="thai">ไทย</option>
-        </select>
-        <button type="submit">가사 생성</button>
-      </form>
-    </div>
-    <!-- ✅ 요기 위치! nav-icon 위에 넣자 -->
-    <div class="auth-buttons">
-      {% if user.is_authenticated %}
-        <span style="margin-right: 10px;">{{ user.username }}님</span>
-        <a href="{% url 'logout' %}" class="auth-link">로그아웃</a>
-        <a href="{% url 'mypage' %}" class="auth-link">마이페이지</a>
-      {% else %}
-        <a href="{% url 'login' %}" class="auth-link">로그인</a>
-        <a href="{% url 'signup' %}" class="auth-link">회원가입</a>
-      {% endif %}
-    </div>
+    <select name="style" required>
+      <option value="ballad">발라드</option>
+      <option value="hip-hop">힙합</option>
+      <option value="rock">록</option>
+      <option value="pop">팝</option>
+      <option value="indie">인디</option>
+      <option value="jazz">재즈</option>
+    </select>
+    <select name="language" required>
+      <option value="none">상관없음</option>
+      <option value="korean">한국어</option>
+      <option value="english">English</option>
+      <option value="japanese">日本語</option>
+      <option value="chinese">中文</option>
+      <option value="thai">ไทย</option>
+    </select>
+    <button type="submit">가사 생성</button>
+  </form>
+</div>
 
-    <div class="nav-icon" id="navIcon">
-      <span></span>
-      <span></span>
-      <span></span>
+
+<div class="lyrics-container">
+  {% if lyrics %}
+  <hr>
+  <div class="create-lyrics">
+    <div class="lyricsbox-created">
+      <h2>🎤 "{{ title }}"</h2>
+      <p><strong>주제:</strong> {{ prompt }} / <strong>스타일:</strong> {{ style }} /
+        <strong>언어:</strong> {{ language }}
+      </p>
+      <pre>{{ lyrics }}</pre>
     </div>
-  </header>
-
-  <div class="wrapper">
-    <!-- ✅ 사이드 메뉴 -->
-    <nav class="side-menu">
-      <ul>
-        <li data-target="section1">Home</li>
-        <li data-target="section2">Works</li>
-        <li data-target="section3">About</li>
-        <li data-target="section4">Contact</li>
-        <li data-target="section5">Hire us</li>
-      </ul>
-    </nav>
-
-    {% if lyrics %}
-    <hr>
-    <div style="display: flex; gap: 40px; align-items: flex-start;">
-      <div style="flex: 1;">
-        <h2 style="color: white;">🎤 "{{ title }}"</h2>
-        <p style="color: white;"><strong>주제:</strong> {{ prompt }} / <strong>스타일:</strong> {{ style }} / <strong>언어:</strong> {{ language }}</p>
-        <pre style="background:#f0f0f0; padding:10px;">{{ lyrics }}</pre>
-      </div>
-      <div style="flex: 1; text-align: center;">
-        <h3 style="color: white;">🎨 앨범 이미지</h3>
-        <img src="{{ new_lyrics.image_file.url }}" width="256" style="border-radius: 8px;"><br>
-        <a href="{{ new_lyrics.image_file.url }}" download style="color:white;">📥 이미지 다운로드</a>
-        <p style="color: white;">⏱ 생성 시간: {{ elapsed_time }}초</p>
-      </div>
+    <div class="albumcover">
+      <h3>🎨 앨범 이미지</h3>
+      <img src="{{ new_lyrics.image_file.url }}"><br>
+      <a href="{{ new_lyrics.image_file.url }}" download>📥 이미지 다운로드</a>
+      <p>⏱ 생성 시간: {{ elapsed_time }}초</p>
     </div>
-    {% endif %}
+  </div>
+  {% endif %}
 
-    {% if all_lyrics %}
-    <hr>
+  {% if all_lyrics %}
+  <hr>
+  <div class="recent-lyrics">
     <h2 style="color: white;">최근에 만든 가사들</h2>
-    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-      {% for item in all_lyrics %}
-      <div onclick="showLyricsModal(`{{ item.prompt }}`, `{{ item.lyrics|escapejs }}`)" style="width: 200px; border: 1px solid #ccc; border-radius: 10px; padding: 10px; background: #fdfdfd; box-shadow: 2px 2px 5px #ddd; cursor: pointer; text-align: center;">
-        <img src="{{ item.image_file.url }}" alt="앨범 이미지" style="width: 100%; border-radius: 8px; margin-bottom: 8px;">
-        <strong>{{ item.prompt }}</strong><br>
-        <small>{{ item.style }} /
-        {% if item.language == "korean" %}🇰🇷 한국어{% elif item.language == "english" %}🇺🇸 영어{% elif item.language == "japanese" %}🇯🇵 일본어{% elif item.language == "chinese" %}🇨🇳 중국어{% elif item.language == "thai" %}🇹🇭 태국어{% else %}🌍 언어무관{% endif %}
-        </small><br>
-        <small>{{ item.created_at|date:"Y-m-d H:i" }}</small>
-      </div>
-      {% endfor %}
+    {% for item in all_lyrics %}
+    <div class="mylyrics-card" onclick="showLyricsModal(`{{ item.prompt }}`, `{{ item.lyrics|escapejs }}`)">
+      <img src="{{ item.image_file.url }}" alt="앨범 이미지">
+      <strong>{{ item.prompt }}</strong><br>
+      <small>{{ item.style }} /
+        {% if item.language == "korean" %}🇰🇷 한국어
+        {% elif item.language == "english" %}🇺🇸 영어
+        {% elif item.language == "japanese" %}🇯🇵 일본어
+        {% elif item.language == "chinese" %}🇨🇳 중국어
+        {% elif item.language == "thai" %}🇹🇭 태국어
+        {%else %}🌍 언어무관
+        {% endif %}
+      </small><br>
+      <small>{{ item.created_at|date:"Y-m-d H:i" }}</small>
     </div>
-    {% endif %}
+    {% endfor %}
   </div>
+  {% endif %}
+</div>
 
-  <div id="lyricsModal" class="modal" style="display:none;">
-    <h3 id="modalTitle">🎵 제목</h3>
-    <pre id="modalLyrics" style="white-space: pre-wrap; background:#f9f9f9; padding:10px;"></pre>
-    <button onclick="closeModal()">닫기</button>
-  </div>
-  <div id="modalBackdrop" style="display:none;" onclick="closeModal()"></div>
+<div id="lyricsModal" class="lyrics-modal">
+  <h2 id="modalTitle">🎼 제목</h2>
+  <pre id="modalLyrics"></pre>
+  <button class="btn-glitch lyrics-btn" onclick="closeModal()">닫기</button>
+</div>
+<div id="modalBackdropLyrics" style="display:none;" onclick="closeModal()"></div>
 
-  <script>
-    function showLyricsModal(title, lyrics) {
-      const modal = document.getElementById("lyricsModal");
-      const backdrop = document.getElementById("modalBackdrop");
-      document.getElementById("modalTitle").innerText = `🎵 ${title}`;
-      document.getElementById("modalLyrics").innerText = lyrics;
-      backdrop.style.display = "block";
-      modal.style.display = "block";
-      setTimeout(() => {
-        modal.classList.add("show");
-      }, 10);
-    }
+{% endblock %}
 
-    function closeModal() {
-      const modal = document.getElementById("lyricsModal");
-      const backdrop = document.getElementById("modalBackdrop");
-      modal.classList.remove("show");
-      setTimeout(() => {
-        modal.style.display = "none";
-        backdrop.style.display = "none";
-      }, 300);
-    }
-
-    document.addEventListener("keydown", function(e) {
-      if (e.key === "Escape") {
-        closeModal();
-      }
-    });
-
-    const navIcon = document.getElementById('navIcon');
-    const wrapper = document.querySelector('.wrapper');
-    const menuLinks = document.querySelectorAll('.side-menu li');
-    navIcon.addEventListener('click', () => {
-      wrapper.classList.toggle('nav-open');
-    });
-    menuLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        wrapper.classList.remove('nav-open');
-      });
-    });
-
-    const micBtn = document.getElementById('mic-btn'); 
-    const stopBtn = document.getElementById('stop-recognition');
-    const promptInput = document.getElementById('prompt-input');
-
-    let recognition = null;
-    let isManuallyStopped = false;
-
-    micBtn.addEventListener('click', () => {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert("이 브라우저는 음성 인식을 지원하지 않습니다.");
-        return;
-      }
-
-      recognition = new SpeechRecognition();
-      recognition.lang = 'ko-KR';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.start();
-      micBtn.style.display = "none";
-      stopBtn.style.display = "inline";
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        promptInput.value = transcript;
-        stopMicRecognitionUI();
-      };
-
-      recognition.onerror = (event) => {
-        if (!isManuallyStopped) {
-          alert("음성 인식 오류: " + event.error);
-        }
-        stopMicRecognitionUI();
-      };
-
-      recognition.onend = () => {
-        stopMicRecognitionUI();
-        isManuallyStopped = false;  // 사용자가 중단한 경우 초기화
-      };
-    });
-
-    stopBtn.addEventListener('click', () => {
-      if (recognition) {
-        isManuallyStopped = true;
-        recognition.stop();
-      }
-      stopMicRecognitionUI();
-    });
-
-    function stopMicRecognitionUI() {
-      micBtn.style.display = "inline";
-      stopBtn.style.display = "none";
-    }
-</script>
-
-</body>
-</html>
+{% block extra_script %}
+<script src="{% static 'js/base.js' %}"></script>
+<script src="{% static 'js/lyrics.js' %}"></script>
+{% endblock %}

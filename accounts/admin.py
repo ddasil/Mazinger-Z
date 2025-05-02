@@ -8,14 +8,14 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser  # CustomUser 모델을 지정
 
     # 어드민 페이지에서 표시할 필드 설정 (username, is_staff, is_active)
-    list_display = ('username', 'nickname', 'is_staff', 'is_active')  # 사용자 이름, staff 여부, 활성화 상태 표시
+    list_display = ('username', 'nickname', 'is_staff', 'is_active','profile_picture')  # 사용자 이름, staff 여부, 활성화 상태 표시
 
     # 필터링 옵션 설정: 필터로 'is_staff', 'is_active', 'username'을 추가
     list_filter = ( 'username','is_staff', 'is_active')  # 'is_staff', 'is_active', 'username'을 필터로 사용
 
     # 사용자 정보 수정 시 표시할 필드 그룹 설정
     fieldsets = (
-        (None, {'fields': ('username', 'password', 'nickname',)}),  # 기본 필드: username, password
+        (None, {'fields': ('username', 'password', 'nickname','profile_picture')}),  # 기본 필드: username, password
         ('권한', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),  # 권한 관련 필드
     )
 
@@ -23,7 +23,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),  # 'wide' 클래스 사용
-            'fields': ('username', 'password1', 'password2', 'nickname', 'is_staff', 'is_active')  # 추가 시 사용할 필드
+            'fields': ('username', 'password1', 'password2', 'nickname', 'is_staff', 'is_active','profile_picture')  # 추가 시 사용할 필드
         }),
     )
 
