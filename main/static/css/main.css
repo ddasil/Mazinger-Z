@@ -16,16 +16,6 @@ body {
 }
 
 
-#bgVideo {
-  position: fixed;
-  left: -30%;
-  min-width: 100%;
-  min-height: 100%;
-  object-fit: cover;
-  z-index: -1;
-  transition: opacity 0.5s ease-in-out;
-}
-
 ::-webkit-scrollbar {
   width: 0;
 }
@@ -348,7 +338,7 @@ body {
   line-height: 1.2;
   font-family: "Raleway", serif;
   font-optical-sizing: auto;
-  font-weight: <weight>;
+  font-weight: weight;
   font-style: normal;
 }
 
@@ -444,7 +434,7 @@ body {
   border-radius: 10px;
   transition: transform 1.0s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.7s ease;
   opacity: 0;
-  z-index: 0;
+  z-index: 2;
   pointer-events: none;
   cursor: pointer;
   display: flex;
@@ -483,7 +473,7 @@ iframe {
 /* 중앙 카드 */
 .card.active {
   transform: translateX(0) translateY(-10px) scale(1);
-  z-index: 3;
+  z-index: 4;
   opacity: 1;
   pointer-events: auto;
 }
@@ -491,7 +481,7 @@ iframe {
 /* 왼쪽 카드 (왕관 왼쪽) */
 .card.prev {
   transform: translateX(-260px) translateY(30px) rotate(-10deg) scale(0.95);
-  z-index: 2;
+  z-index: 3;
   opacity: 1;
   pointer-events: auto;
 }
@@ -499,7 +489,7 @@ iframe {
 /* 오른쪽 카드 (왕관 오른쪽) */
 .card.next {
   transform: translateX(260px) translateY(30px) rotate(10deg) scale(0.95);
-  z-index: 2;
+  z-index: 3;
   opacity: 1;
   pointer-events: auto;
 }
@@ -507,7 +497,7 @@ iframe {
 /* 왼쪽 카드 (왕관 왼쪽) */
 .card.prev2 {
   transform: translateX(-500px) translateY(60px) rotate(-20deg) scale(0.85);
-  z-index: 1;
+  z-index: 2;
   opacity: 1;
   pointer-events: auto;
 }
@@ -515,7 +505,7 @@ iframe {
 /* 오른쪽 카드 (왕관 오른쪽) */
 .card.next2 {
   transform: translateX(500px) translateY(60px) rotate(20deg) scale(0.85);
-  z-index: 1;
+  z-index: 2;
   opacity: 1;
   pointer-events: auto;
 }
@@ -700,7 +690,7 @@ iframe {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 10px;
 }
 
 .close {
@@ -738,7 +728,6 @@ iframe {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
 }
 
 .modal .card-box {
@@ -766,32 +755,32 @@ iframe {
 }
 
 #dayoung {
-  background-image: url(images/insta1.jpg);
+  background-image: url(../images/insta1.jpg);
   background-size: cover;
 }
 
 #jinseop {
-  background-image: url(images/insta2.jpg);
+  background-image: url(../images/insta2.jpg);
   background-size: cover;
 }
 
 #sanghun {
-  background-image: url(images/insta3.jpg);
+  background-image: url(../images/insta3.jpg);
   background-size: cover;
 }
 
 #donggun {
-  background-image: url(images/insta1.jpg);
+  background-image: url(../images/insta1.jpg);
   background-size: cover;
 }
 
 #minsu {
-  background-image: url(images/insta2.jpg);
+  background-image: url(../images/insta2.jpg);
   background-size: cover;
 }
 
 #yonghwan {
-  background-image: url(images/insta3.jpg);
+  background-image: url(../images/insta3.jpg);
   background-size: cover;
 }
 
@@ -811,3 +800,220 @@ iframe {
   margin-bottom: 2px;
 }
 
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+
+.login-form {
+  width: 40%;
+  height: 60%;
+  margin: 0;
+  background: #111;
+  padding: 30px;
+  border-radius: 10px;
+  gap: 10px;
+  text-align: center;
+  z-index: 5;
+  overflow-y: auto;
+}
+
+.login-form p {
+  text-align: center;
+  color: white;
+  font-family: "Raleway";
+  font-optical-sizing: auto;
+  font-weight: bold;
+  letter-spacing: 0.2rem;
+}
+
+.login-form h1 {
+  text-align: center;
+  color: white;
+  font-family: "Raleway";
+  font-optical-sizing: auto;
+  font-weight: bold;
+  margin: 80px;
+  margin-top: 30px;
+  letter-spacing: 0.5rem;
+}
+.login-form label {
+  display: block;
+  margin-top: 40px;
+}
+.login-form input {
+  width: 60%;
+  padding: 10px;
+  margin-top: 10px;
+  background: #222;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 5px;
+}
+.login-form button {
+  margin-top: 50px;
+  margin-bottom: 20px;
+  width: 60%;
+  padding: 10px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.login-form span {
+  color: rgb(255, 255, 255);
+  font-family: "Raleway";
+  font-optical-sizing: auto;
+  font-weight: normal;
+}
+
+.login-form a {
+  text-decoration: none;
+  margin: 10px;
+  color: rgba(255, 255, 0, 0.17);
+}
+
+.login-form a:hover {
+  color: rgb(255, 255, 0);
+}
+
+
+
+
+.signup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.signup-form {
+  width: 60%;
+  height: 80%;
+  margin: 0;
+  background: #111;
+  padding: 30px;
+  border-radius: 10px;
+  gap: 10px;
+  text-align: center;
+  z-index: 5;
+  overflow-y: auto;
+}
+
+.signup-form h1 {
+  text-align: center;
+  color: white;
+  font-family: "Raleway";
+  font-optical-sizing: auto;
+  font-weight: bold;
+  margin: 80px;
+  margin-top: 30px;
+  letter-spacing: 0.5rem;
+}
+
+.signup-form p {
+  text-align: center;
+  color: white;
+  font-family: "Raleway";
+  font-optical-sizing: auto;
+  font-weight: bold;
+  letter-spacing: 0.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.signup-form input {
+  margin-top: 10px;
+}
+
+.signup-form button {
+  margin-top: 50px;
+  margin-bottom: 20px;
+  width: 60%;
+  padding: 10px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
+
+.form-control {
+  width: 60%;
+  padding: 10px 15px;
+  font-size: 1rem;
+  font-family: 'Raleway', sans-serif;
+  border: none;
+  border-radius: 6px;
+  background-color: #ffffff36;
+  color: #ffffff;
+  margin-bottom: 30px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: #aaa;
+}
+
+button[type="submit"] {
+  background-color: transparent;
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-family: 'Raleway', sans-serif;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+  background-color:  #ffffff1e;
+}
+
+
+.helptext {
+  margin-bottom: 70px;
+  color: #ffffff5e;
+}
+
+
+.signup-form p:has(select[name="birthday_year"]) {
+  width: 60%;
+  margin: 0 auto;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.signup-form p:has(select[name="birthday_year"]) label {
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.signup-form p:has(select[name="birthday_year"]) select {
+  width: 30%;
+  flex: 1 1 auto;
+}
+
+.signup-form select, 
+.signup-form select option {
+  background-color: #333;
+  color: #fff;
+}
