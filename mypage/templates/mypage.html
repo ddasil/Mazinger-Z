@@ -11,11 +11,10 @@
 {% block content %}
 <div class="mypage-container">
 
-
   <!-- 프로필 박스 -->
   <div class="profile-box">
     {% if user.profile_picture %}
-      <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+      <img src="{% static 'images/profiles/'|add:user.profile_picture %}" alt="Profile Picture" class="profile-picture">
     {% else %}
       <img src="{% static 'images/logo-black.png' %}" alt="Default Picture" class="profile-picture">
     {% endif %}
@@ -45,7 +44,7 @@
   <div class="modal-content">
     <span class="modal-close" onclick="closeModal()">&times;</span>
     <h3>프로필 수정</h3>
-    <form method="POST" enctype="multipart/form-data" class="profile-form">
+    <form method="POST" class="profile-form">
       {% csrf_token %}
       <label>ID</label>
       <input type="text" value="{{ user.username }}" readonly>
@@ -59,11 +58,17 @@
       <label for="id_phone_number">전화번호</label>
       <input type="text" name="phone_number" value="{{ user.phone_number }}">
 
-      <label for="id_profile_picture">프로필 사진</label>
-      <input type="file" name="profile_picture">
+      <label for="id_profile_picture">프로필 사진 선택</label>
+      <select name="profile_picture" class="form-control">
+        <option value="profile1.png" {% if user.profile_picture == "profile1.png" %}selected{% endif %}>1번 이미지</option>
+        <option value="profile2.png" {% if user.profile_picture == "profile2.png" %}selected{% endif %}>2번 이미지</option>
+        <option value="profile3.png" {% if user.profile_picture == "profile3.png" %}selected{% endif %}>3번 이미지</option>
+        <option value="profile4.png" {% if user.profile_picture == "profile4.png" %}selected{% endif %}>4번 이미지</option>
+        <option value="profile5.png" {% if user.profile_picture == "profile5.png" %}selected{% endif %}>5번 이미지</option>
+      </select>
 
       <input type="hidden" name="password" id="hiddenPassword">
-      
+
       <button type="submit" class="save-btn">저장</button>
     </form>
   </div>

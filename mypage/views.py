@@ -11,20 +11,22 @@ def mypage(request):
     user = request.user
 
     if request.method == 'POST':
-        form = CustomUserChangeForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            user = form.save(commit=False)
-            if 'profile_picture' in request.FILES:
-                user.profile_picture = request.FILES['profile_picture']
-            user.save()
-            messages.success(request, '프로필이 성공적으로 업데이트되었습니다.')
-            return redirect('mypage')
-        else:
-            print("❌ form errors:", form.errors)
-    else:
-        form = CustomUserChangeForm(instance=user)
+        nickname = request.POST.get('nickname')
+        birthday = request.POST.get('birthday')
+        phone_number = request.POST.get('phone_number')
+        profile_picture = request.POST.get('profile_picture')
 
-    return render(request, 'mypage.html', {'form': form, 'user': user})
+        # ✅ 직접 저장
+        user.nickname = nickname
+        user.birthday = birthday if birthday else None
+        user.phone_number = phone_number
+        user.profile_picture = profile_picture
+        user.save()
+
+        messages.success(request, '프로필이 성공적으로 저장되었습니다.')
+        return redirect('mypage')
+
+    return render(request, 'mypage.html', {'user': user})
 
 
 
