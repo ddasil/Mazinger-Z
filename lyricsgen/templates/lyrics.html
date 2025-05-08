@@ -42,20 +42,33 @@
 
 <div class="lyrics-container">
   {% if lyrics %}
-  <hr>
   <div class="create-lyrics">
-    <div class="lyricsbox-created">
+    <div class="lyrics-title">
       <h2>🎤 "{{ title }}"</h2>
-      <p><strong>주제:</strong> {{ prompt }} / <strong>스타일:</strong> {{ style }} /
-        <strong>언어:</strong> {{ language }}
-      </p>
-      <pre>{{ lyrics }}</pre>
     </div>
-    <div class="albumcover">
-      <h3>🎨 앨범 이미지</h3>
-      <img src="{{ new_lyrics.image_file.url }}"><br>
-      <a href="{{ new_lyrics.image_file.url }}" download>📥 이미지 다운로드</a>
-      <p>⏱ 생성 시간: {{ elapsed_time }}초</p>
+    <div class="lyrics-content">
+      <div class="lyricsbox-created">
+        <div class="albumcover">
+          <h3>🎨 앨범 이미지</h3>
+          <div class="album-image-wrapper" style="background-image: url('{{ new_lyrics.image_file.url }}');"
+            onclick="window.location.href='{{ new_lyrics.image_file.url }}'">
+            <div class="album-hover-content">
+              <span class="download-icon">📥</span>
+              <p>⏱ {{ elapsed_time }}초</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="created_lyrics">
+        <pre>{{ lyrics }}</pre>
+      </div>
+    </div>
+    <div class="lyrics-caption">
+      <p>{{ prompt }} 이라는 주제로
+        {{ style }} 스타일 가사와
+        이미지를 제작하였습니다.<br>
+        <strong>언어:</strong> {{ language }}<br>
+      </p>
     </div>
   </div>
   {% endif %}

@@ -50,7 +50,13 @@
       <input type="text" value="{{ user.username }}" readonly>
 
       <label for="id_nickname">닉네임</label>
-      <input type="text" name="nickname" value="{{ user.nickname }}">
+      <input type="text" name="nickname"
+            value="{{ form.nickname.value|default_if_none:'' }}"
+            placeholder="닉네임 입력">
+
+      {% if form.nickname.errors %}
+        <div class="error">{{ form.nickname.errors.0 }}</div>
+      {% endif %}
 
       <label for="id_birthday">생일</label>
       <input type="date" name="birthday" value="{{ user.birthday|date:'Y-m-d' }}">
