@@ -122,38 +122,19 @@
       </section>
 
       <section class="section" id="section3">
-        <!-- <p><i class="fa-solid fa-angles-down"></i>click</p> -->
-        <!-- 자동차 이미지 -->
         <img id="carTrigger" src="{% static 'images/microbus.png' %}" alt="car" />
-
-        <!-- 섹션3 콘텐츠 중 등장하는 슬라이딩 요소 -->
+      
         <div class="car-slide-content" id="carSlideContent">
-          <div class="schedule-wrapper">
-            <!-- 좌측: 달력 -->
-            <div class="calendar-box">
-              <div class="calendar-header">
-                <h2>2024년 4월</h2>
-              </div>
-              <div class="day-names">
-                <div>일</div>
-                <div>월</div>
-                <div>화</div>
-                <div>수</div>
-                <div>목</div>
-                <div>금</div>
-                <div>토</div>
-              </div>
-              <div class="calendar-grid" id="calendarBox">
-                <!-- 날짜들 생성됨 -->
-              </div>
+          <!-- 이 안쪽에 콘텐츠가 있어야 자동차 지나간 뒤 보임 -->
+          <div class="content-wrapper">
+            <div class="content-menu">
+              <button data-type="preference">🎧 음악 취향 검사</button>
+              <button data-type="guess">🎤 가사 제목 맞추기</button>
             </div>
-
-            <!-- 우측: 공연 포스터 -->
-            <div class="poster-box" id="posterBox">
-              <h2>날짜를 선택해 주세요</h2>
+            <div class="content-display" id="section3Content">
+              <h2>왼쪽 메뉴에서 콘텐츠를 선택하세요</h2>
             </div>
           </div>
-
         </div>
       </section>
 
