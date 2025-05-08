@@ -1,0 +1,168 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>가사 및 곡 정보</title>
+  <link rel="stylesheet" href="{% static 'search.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+<body>
+  <div style="text-align: center; margin: 20px;">
+    <div class="input-wrapper" style="display: inline-flex; align-items: center; gap: 8px;">
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="검색어를 입력하세요" 
+        onkeypress="if(event.key==='Enter'){redirectSearch();}" 
+      >
+      <button id="micBtn"><i class="fas fa-microphone"></i></button>
+      <button id="stopBtn" style="display: none;"><i class="fas fa-stop"></i></button>
+      <button onclick="redirectSearch()">🔍</button>
+    </div>
+  </div>
+
+
+  <div class="container" style="display: flex; height: 100vh; overflow: hidden;">
+    
+    <!-- 왼쪽 가사 영역 -->
+    <div id="infoSection" style="flex: 1; border-right: 1px solid #ccc; padding: 20px; overflow-y: auto;">
+      <div style="position: relative; width: 100%; padding-bottom: 56.25%; /* 16:9 비율 */ height: 0;">
+        <iframe id="youtubePlayer" 
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" 
+                allowfullscreen>
+        </iframe>
+      </div>
+      <!-- 앨범 이미지 + 곡 정보 (반응형) -->
+      <!-- 앨범 정보: 남은 공간에 꽉 채우되 줄어들 수 있음 -->
+      <div style="display: flex; gap: 20px; flex-grow: 1; overflow: hidden; margin-top: 10px;">
+        <div style="flex: 1;">
+          <img id="albumCover" src="" alt="앨범 커버"
+              style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
+        </div>
+        <div style="flex: 2; overflow: hidden;">
+          <h2>🎵 곡 정보
+            <button id="favoriteBtn">🤍</button>
+          </h2>
+          <div id="infoContent">정보 로딩 중...</div>
+        </div>
+      </div>
+        
+    </div>
+
+
+    <!-- 오른쪽 정보 영역 -->
+    <div id="lyricsSection" style="flex: 1; padding: 20px; overflow-y: auto;">
+      <h2>📄 가사</h2>
+
+            <!-- ✅ 번역 버튼들 추가 -->
+      <div class="translation-buttons">
+        <button onclick="translateLyrics('ko')">한국어</button>
+        <button onclick="translateLyrics('en')">영어</button>
+        <button onclick="translateLyrics('ja')">일본어</button>
+        <button onclick="translateLyrics('zh')">중국어</button>
+      </div>
+
+      <div id="lyricsContent">가사 로딩 중...</div>
+    </div>
+  </div>
+
+  <script src="{% static 'lyrics_info.js' %}"></script>
+  <script>
+    const API_KEY = "{{ youtube_api_key }}";
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const micBtn = document.getElementById('micBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const searchInput = document.getElementById('searchInput');
+      let recognition = null;
+      let isManuallyStopped = false;
+    
+      if (!micBtn || !stopBtn || !searchInput) return;
+    
+      micBtn.addEventListener('click', () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          alert("이 브라우저는 음성 인식을 지원하지 않습니다.");
+          return;
+        }
+    
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ko-KR';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+    
+        recognition.start();
+        micBtn.style.display = "none";
+        stopBtn.style.display = "inline";
+    
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          searchInput.value = transcript;
+          stopMicRecognitionUI();
+        };
+    
+        recognition.onerror = (event) => {
+          if (!isManuallyStopped) {
+            alert("음성 인식 오류: " + event.error);
+          }
+          stopMicRecognitionUI();
+        };
+    
+        recognition.onend = () => {
+          stopMicRecognitionUI();
+          isManuallyStopped = false;
+        };
+      });
+    
+      stopBtn.addEventListener('click', () => {
+        if (recognition) {
+          isManuallyStopped = true;
+          recognition.stop();
+        }
+        stopMicRecognitionUI();
+      });
+    
+      function stopMicRecognitionUI() {
+        micBtn.style.display = "inline";
+        stopBtn.style.display = "none";
+      }
+    });
+    </script>
+
+    <script>
+    document.getElementById('favoriteBtn').addEventListener('click', () => {
+      const title = document.querySelector('#infoContent h3')?.textContent?.replace('노래 제목 : ', '');
+      const artist = document.querySelector('#infoContent p')?.textContent?.replace('아티스트 :', '').trim();
+      const albumCover = document.getElementById('albumCover').src;
+    
+      fetch('/music/toggle-favorite/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ title, artist, albumCover })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const btn = document.getElementById('favoriteBtn');
+        if (data.status === 'added') btn.textContent = '❤️';
+        else if (data.status === 'removed') btn.textContent = '🤍';
+      });
+    });
+    
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    </script>
+    
+      
+    
+</body>
+</html>

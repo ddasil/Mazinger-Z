@@ -29,40 +29,32 @@
     <button onclick="searchMusic()">🔍</button>
   </div>
 
-  <div id="results"></div>
-
-  <!-- 📌 왼쪽 고정 네비게이션 바 추가 -->
-  <div id="leftNavBar">
-    <button onclick="toggleLyricsPanel()">📄 가사</button>
-    <button onclick="toggleRecentPanel()">⭐ 즐겨찾기</button>
-  </div>
-
-  <!-- 📄 가사 패널 -->
-  <div id="lyricsPanel" class="hidden">
-    <h3>📄 가사</h3>
-
-      <!-- ✅ 번역 버튼들 추가 -->
-    <div class="translation-buttons">
-      <button onclick="translateLyrics('ko')">한국어</button>
-      <button onclick="translateLyrics('en')">영어</button>
-      <button onclick="translateLyrics('ja')">일본어</button>
-      <button onclick="translateLyrics('zh')">중국어</button>
+    <!-- ✅ 즐겨찾기 + 검색결과를 감싸는 flex 박스 -->
+  <div style="display: flex; width: 100%; gap: 20px; padding: 20px; box-sizing: border-box;">
+    
+    <!-- 🎵 즐겨찾기 목록 -->
+    <div id="favoritesList" style="width: 250px; border-right: 1px solid #ccc; padding-right: 15px;">
+      <h3>❤️ 좋아요</h3>
+      <ul id="favoriteItems" style="list-style: none; padding: 0; font-size: 14px;">
+        {% if favorites %}
+          {% for song in favorites %}
+            <li style="margin-bottom: 10px;">
+              <strong>{{ song.title }}</strong><br>
+              <small>{{ song.artist }}</small>
+            </li>
+          {% endfor %}
+        {% else %}
+          <li>아직 즐겨찾기한 곡이 없습니다.</li>
+        {% endif %}
+      </ul>
     </div>
 
-    <div id="lyricsContent">가사 로딩 중...</div>
+    <!-- 🔍 검색 결과 -->
+    <div style="flex: 1;">
+      <div id="results"></div>
+    </div>
   </div>
 
-  <!-- ⭐ 즐겨찾기 패널 -->
-  <div id="recentPanel" class="hidden">
-    <h3>⭐ 즐겨찾기</h3>
-    <div id="recentList"></div>
-  </div>
-
-  <!-- ▶️ 오른쪽 슬라이딩 패널 -->
-  <div id="sidePanel">
-    <span id="closePanel" onclick="closePanel()">✖</span>
-    <div id="panelContent"></div>
-  </div>
 
   <script src="{% static 'search.js' %}"></script>
   <script>
