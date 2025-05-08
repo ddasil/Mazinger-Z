@@ -18,25 +18,32 @@
         <li class="song-item">
           <span class="title">{{ song.title }}</span>
           <span class="artist">- {{ song.artist }}</span>
-          <span class="tags">감정 태그: {{ song.emotion_tags }}</span>
+          <span class="tags">
+            감정 태그:
+            {% if song.top2_emotions %}
+              {% for emotion in song.top2_emotions %}
+                <span class="tag">{{ emotion }}</span>{% if not forloop.last %},{% endif %}
+              {% endfor %}
+            {% else %}
+              <span class="tag none">없음</span>
+            {% endif %}
+          </span>
         </li>
       {% empty %}
-        <li>해당 감정을 가진 곡이 아직 없습니다.</li>
+        <li class="no-result">😢 현재 이 감정을 가진 추천곡이 없습니다.<br>다른 감정을 선택하거나, 새로운 노래를 분석해보세요!</li>
       {% endfor %}
     </ul>
 
-<div class="back-button">
-  <!-- 돌아가기 버튼: 현재 페이지를 분석 결과 페이지로 리디렉션 -->
-  <button onclick="window.history.back()" class="button go-back">
-    ⬅ 돌아가기
-</button>
+    <div class="back-button">
+      <button onclick="window.history.back()" class="button go-back">
+        ⬅ 돌아가기
+      </button>
 
-
-  <!-- 다른 노래 분석하기 버튼: 처음 입력을 받는 페이지로 이동 -->
-  <a href="{% url 'analyze' %}" class="button retry">
-    🔁 다른 노래 분석하기
-  </a>
-</div>
+      <a href="{% url 'analyze' %}" class="button retry">
+        🔁 다른 노래 분석하기
+      </a>
+    </div>
   </div>
+
 </body>
 </html>
