@@ -811,3 +811,152 @@ iframe {
   margin-bottom: 2px;
 }
 
+/* 섹션3 */
+.content-wrapper {
+  display: flex;
+  width: 90%;
+  height: 80vh;
+  gap: 40px;
+  align-items: center;
+}
+
+.content-menu {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.content-menu button {
+  padding: 15px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #222;
+  color: white;
+}
+
+.content-display {
+  width: 80%;
+  height: 100%;
+  background-color: #333;
+  border-radius: 10px;
+  padding: 20px;
+  overflow-y: auto;
+  color: white;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 5px;
+  background-color: #444;
+  margin-bottom: 20px;
+}
+
+.progress {
+  height: 100%;
+  background-color: #00ccff;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.question {
+  font-size: 24px;
+  margin: 20px 0;
+}
+
+.answer-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 30px 0;
+}
+
+.answer-buttons button {
+  width: 120px;
+  height: 60px;
+  border: 2px solid transparent;
+  border-radius: 15px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.strong-agree { background-color: #0066cc; color: white; }
+.agree { background-color: #3399ff; color: white; }
+.neutral { background-color: #666666; color: white; }
+.disagree { background-color: #cc3333; color: white; }
+.strong-disagree { background-color: #990000; color: white; }
+
+.answer-buttons button.selected {
+  border: 3px solid yellow;
+  transform: scale(1.1);
+}
+
+.nav-buttons {
+  display: block;
+  margin-top: 20px;
+}
+
+.nav-buttons button {
+  width: 200px;
+  height: 50px;
+  margin: 10px auto;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  display: block;
+  line-height: 50px;
+}
+
+#result-btn {
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  width: 200px;
+  height: 50px;
+  margin-top: 20px;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+#result-btn.active {
+  background-color: #00cc66;
+  cursor: pointer;
+  opacity: 1;
+}
+
+
+/* 관련 장르 음악 css */
+#recommend-songs {
+  margin-top: 30px;
+  color: white;
+  font-size: 16px;
+}
+
+.recommend-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.recommended-song {
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: opacity 0.2s;
+}
+
+.recommended-song:hover {
+  opacity: 0.8;
+}
+
+
+
+
+/* 섹션3 끝 */
