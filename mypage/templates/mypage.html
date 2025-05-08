@@ -10,8 +10,6 @@
 
 {% block content %}
 <div class="mypage-container">
-
-  <!-- 프로필 박스 -->
   <div class="profile-box">
     {% if user.profile_picture %}
       <img src="{% static 'images/profiles/'|add:user.profile_picture %}" alt="Profile Picture" class="profile-picture">
@@ -19,17 +17,15 @@
       <img src="{% static 'images/logo-black.png' %}" alt="Default Picture" class="profile-picture">
     {% endif %}
     <h2>{{ user.username }}</h2>
-    <button onclick="openPasswordModal()" class="edit-profile-btn">프로필 수정</button>
+    <button id="openPasswordBtn" class="edit-profile-btn">프로필 수정</button>
   </div>
 
-  <!-- 이동 버튼들 -->
   <div class="link-buttons">
     <a href="{% url 'lyrics' %}" class="mypage-link-btn">내가 만든 가사</a>
     <a href="{% url 'music_search' %}" class="mypage-link-btn">내 플레이 리스트</a>
   </div>
 </div>
 
-<!-- 🔒 비밀번호 확인 모달 -->
 <div id="passwordModal" class="modal">
   <div class="modal-content">
     <span class="modal-close" onclick="closePasswordModal()">&times;</span>
@@ -39,7 +35,6 @@
   </div>
 </div>
 
-<!-- ✏️ 프로필 수정 모달 -->
 <div id="editModal" class="modal">
   <div class="modal-content">
     <span class="modal-close" onclick="closeModal()">&times;</span>
@@ -50,22 +45,23 @@
       <input type="text" value="{{ user.username }}" readonly>
 
       <label for="id_nickname">닉네임</label>
-      <input type="text" name="nickname"
+      <input type="text" name="nickname" id="id_nickname"
             value="{{ form.nickname.value|default_if_none:'' }}"
             placeholder="닉네임 입력">
-
       {% if form.nickname.errors %}
-        <div class="error">{{ form.nickname.errors.0 }}</div>
+        <div class="nickname-error error" style="color:red">{{ form.nickname.errors.0 }}</div>
       {% endif %}
 
       <label for="id_birthday">생일</label>
-      <input type="date" name="birthday" value="{{ user.birthday|date:'Y-m-d' }}">
+      <input type="date" name="birthday" id="id_birthday"
+             value="{{ user.birthday|date:'Y-m-d' }}">
 
       <label for="id_phone_number">전화번호</label>
-      <input type="text" name="phone_number" value="{{ user.phone_number }}">
+      <input type="text" name="phone_number" id="id_phone_number"
+             value="{{ user.phone_number }}">
 
       <label for="id_profile_picture">프로필 사진 선택</label>
-      <select name="profile_picture" class="form-control">
+      <select name="profile_picture" id="id_profile_picture" class="form-control">
         <option value="profile1.png" {% if user.profile_picture == "profile1.png" %}selected{% endif %}>1번 이미지</option>
         <option value="profile2.png" {% if user.profile_picture == "profile2.png" %}selected{% endif %}>2번 이미지</option>
         <option value="profile3.png" {% if user.profile_picture == "profile3.png" %}selected{% endif %}>3번 이미지</option>
@@ -74,8 +70,7 @@
       </select>
 
       <input type="hidden" name="password" id="hiddenPassword">
-
-      <button type="submit" class="save-btn">저장</button>
+      <button type="submit" id="submit-btn" disabled class="btn btn-primary">수정</button>
     </form>
   </div>
 </div>
@@ -83,52 +78,153 @@
 
 {% block extra_script %}
 <script src="{% static 'js/base.js' %}"></script>
+
 <script>
+  let passwordModal, editModal;
+  let nicknameInput, birthdayInput, phoneInput, profileSelect, submitBtn;
+  let jsNicknameError;
+  let originalValues = {};
+  
   function openPasswordModal() {
-    document.getElementById("passwordModal").classList.add("show");
+    passwordModal.classList.add("show");
   }
-
   function closePasswordModal() {
-    document.getElementById("passwordModal").classList.remove("show");
+    passwordModal.classList.remove("show");
   }
-
   function openModal() {
-    document.getElementById("editModal").classList.add("show");
+    editModal.classList.add("show");
+    updateSubmitState();
   }
-
   function closeModal() {
-    document.getElementById("editModal").classList.remove("show");
+    editModal.classList.remove("show");
   }
-
-  async function verifyPassword() {
+  
+  function validateNickname(nickname) {
+    return /^[\w가-힣]+$/.test(nickname);
+  }
+  
+  function checkNicknameDuplicate(nickname, callback) {
+    fetch(`/accounts/check_nickname/?nickname=${encodeURIComponent(nickname)}`)
+      .then(res => res.json())
+      .then(data => {
+        nicknameInput.dataset.duplicate = data.duplicate;
+        callback();
+      })
+      .catch(err => {
+        console.error("중복 닉네임 확인 오류:", err);
+        nicknameInput.dataset.duplicate = "false";
+        callback();
+      });
+  }
+  
+  function updateSubmitState() {
+    const currentValues = {
+      nickname: nicknameInput.value.trim(),
+      birthday: birthdayInput.value,
+      phone: phoneInput.value.trim(),
+      picture: profileSelect.value
+    };
+  
+    const changed = Object.keys(currentValues).some(
+      key => currentValues[key] !== originalValues[key]
+    );
+  
+    const nicknameValid = validateNickname(currentValues.nickname);
+    const isDuplicate = nicknameInput.dataset.duplicate === "true";
+  
+    submitBtn.disabled = !(changed && nicknameValid && !isDuplicate);
+  
+    if (!nicknameValid) {
+      nicknameInput.style.border = "2px solid red";
+      jsNicknameError.innerText = "한글, 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.";
+    } else if (isDuplicate) {
+      nicknameInput.style.border = "2px solid red";
+      jsNicknameError.innerText = "이미 사용 중인 닉네임입니다.";
+    } else {
+      nicknameInput.style.border = "2px solid green";
+      jsNicknameError.innerText = "";
+    }
+  }
+  
+  function verifyPassword() {
     const password = document.getElementById("confirmPassword").value;
     if (password.trim() === "") {
       alert("비밀번호를 입력하세요.");
       return;
     }
-
-    try {
-      const response = await fetch("{% url 'verify_password' %}", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({ password: password })
+  
+    fetch("{% url 'verify_password' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ password: password })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById("hiddenPassword").value = password;
+          closePasswordModal();
+          openModal();
+        } else {
+          alert("비밀번호가 올바르지 않습니다.");
+        }
+      })
+      .catch(err => {
+        console.error("비밀번호 확인 오류:", err);
+        alert("서버 오류가 발생했습니다.");
       });
-
-      const data = await response.json();
-      if (data.success) {
-        document.getElementById("hiddenPassword").value = password;
-        closePasswordModal();
-        openModal();
-      } else {
-        alert("비밀번호가 올바르지 않습니다.");
-      }
-    } catch (error) {
-      console.error("비밀번호 검증 오류:", error);
-      alert("서버 오류가 발생했습니다.");
-    }
   }
-</script>
+  
+  window.verifyPassword = verifyPassword;
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+  window.closePasswordModal = closePasswordModal;
+  
+  document.addEventListener("DOMContentLoaded", function () {
+    passwordModal = document.getElementById("passwordModal");
+    editModal = document.getElementById("editModal");
+    const openBtn = document.getElementById("openPasswordBtn");
+  
+    nicknameInput = document.getElementById("id_nickname");
+    birthdayInput = document.getElementById("id_birthday");
+    phoneInput = document.getElementById("id_phone_number");
+    profileSelect = document.getElementById("id_profile_picture");
+    submitBtn = document.getElementById("submit-btn");
+  
+    jsNicknameError = document.createElement("p");
+    jsNicknameError.classList.add("error");
+    jsNicknameError.style.color = "red";
+    nicknameInput.insertAdjacentElement("afterend", jsNicknameError);
+  
+    originalValues = {
+      nickname: "{{ user.nickname|escapejs }}",
+      birthday: "{{ user.birthday|date:'Y-m-d' }}",
+      phone: "{{ user.phone_number|default_if_none:''|escapejs }}",
+      picture: "{{ user.profile_picture|escapejs }}"
+    };
+  
+    if (openBtn) openBtn.addEventListener("click", openPasswordModal);
+  
+    nicknameInput.addEventListener("input", () => {
+      const value = nicknameInput.value.trim();
+      if (!validateNickname(value)) {
+        nicknameInput.dataset.duplicate = "false";
+        updateSubmitState();
+        return;
+      }
+      checkNicknameDuplicate(value, updateSubmitState);
+    });
+  
+    birthdayInput.addEventListener("change", updateSubmitState);
+    phoneInput.addEventListener("input", updateSubmitState);
+    profileSelect.addEventListener("change", updateSubmitState);
+  
+    checkNicknameDuplicate(nicknameInput.value.trim(), updateSubmitState);
+  });
+  </script>
+  
+
+
 {% endblock %}

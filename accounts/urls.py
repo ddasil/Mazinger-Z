@@ -6,4 +6,5 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('mypage/', include('mypage.urls')),  # mypage 앱의 URL을 추가
+    path('check_nickname/', views.check_nickname, name='check_nickname'),
 ]
