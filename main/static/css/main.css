@@ -766,32 +766,32 @@ iframe {
 }
 
 #dayoung {
-  background-image: url(images/insta1.jpg);
+  background-image: url(/static/images/insta1.jpg);
   background-size: cover;
 }
 
 #jinseop {
-  background-image: url(images/insta2.jpg);
+  background-image: url(/static/images/insta2.jpg);
   background-size: cover;
 }
 
 #sanghun {
-  background-image: url(images/insta3.jpg);
+  background-image: url(/static/images/insta3.jpg);
   background-size: cover;
 }
 
 #donggun {
-  background-image: url(images/insta1.jpg);
+  background-image: url(/static/images/insta1.jpg);
   background-size: cover;
 }
 
 #minsu {
-  background-image: url(images/insta2.jpg);
+  background-image: url(/static/images/insta2.jpg);
   background-size: cover;
 }
 
 #yonghwan {
-  background-image: url(images/insta3.jpg);
+  background-image: url(/static/images/insta3.jpg);
   background-size: cover;
 }
 
