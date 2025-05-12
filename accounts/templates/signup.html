@@ -18,11 +18,15 @@
       <p>
         {{ form.username.label_tag }}
         {{ form.username }}
-        <span id="username-check" style="font-size: 0.85em; color: {% if form.username.errors %}red{% else %}yellow{% endif %};">
-          {% if form.username.errors %}
+        {% if form.username.errors %}
+          <span id="username-check" style="font-size: 0.85em; color: red;">
             {{ form.username.errors.0 }}
-          {% endif %}
-        </span>
+          </span>
+        {% else %}
+          <span id="username-check" style="font-size: 0.85em; color: yellow;">
+            <!-- JS 중복 확인 메시지가 들어갈 자리 -->
+          </span>
+        {% endif %}
       </p>
       <ul style="font-size: 0.8em; color: gray; margin-top: -10px; margin-bottom: 10px;">
         <li>영문, 숫자, @/./+/-/_ 가능</li>
@@ -34,16 +38,41 @@
         {{ form.password1.label_tag }}
         {{ form.password1 }}
         <span id="password-check" style="font-size: 0.85em;"></span>
+        {% if form.password1.errors %}
+          <div style="font-size: 0.85em; color: red;">{{ form.password1.errors.0 }}</div>
+        {% endif %}
       </p>
       <ul style="font-size: 0.8em; color: gray; margin-top: -10px; margin-bottom: 10px;">
         <li>8자 이상</li>
         <li>숫자만 사용 불가</li>
       </ul>
-      <p>{{ form.password2.label_tag }} {{ form.password2 }}</p>
+
+      <p>
+        {{ form.password2.label_tag }}
+        {{ form.password2 }}
+        {% if form.password2.errors %}
+          <div style="font-size: 0.85em; color: red;">{{ form.password2.errors.0 }}</div>
+        {% endif %}
+      </p>
 
       <!-- Other fields -->
-      <p>{{ form.birthday.label_tag }} {{ form.birthday }}</p>
-      <p>{{ form.phone_number.label_tag }} {{ form.phone_number }}</p>
+      <p>
+        {{ form.birthday.label_tag }}
+        {{ form.birthday }}
+        {% if form.birthday.errors %}
+          <div style="font-size: 0.85em; color: red;">{{ form.birthday.errors.0 }}</div>
+        {% endif %}
+      </p>
+
+      <p>
+        {{ form.phone_number.label_tag }}
+        {{ form.phone_number }}
+        <small style="font-size: 0.8em; color: gray;">예: 010-1234-5678 형식으로 입력하세요</small>
+        {% if form.phone_number.errors %}
+          <div style="font-size: 0.85em; color: red;">{{ form.phone_number.errors.0 }}</div>
+        {% endif %}
+      </p>
+
       <p>{{ form.profile_picture.label_tag }} {{ form.profile_picture }}</p>
 
       <button class="btn-glitch" type="submit">SIGN UP</button>
@@ -60,8 +89,33 @@
     const checkMessage = document.getElementById("username-check");
     const passwordInput = document.getElementById("id_password1");
     const passwordCheck = document.getElementById("password-check");
+    const phoneInput = document.getElementById("id_phone_number");
 
-    // 아이디 중복 체크
+    // ✅ 전화번호 자동 하이픈 및 유효성
+    function formatPhoneNumber(value) {
+      const cleaned = value.replace(/\D/g, "").slice(0, 11);
+      if (cleaned.length < 4) return cleaned;
+      if (cleaned.length < 8) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7, 11)}`;
+    }
+
+    function validatePhoneNumber(phone) {
+      return /^010-\d{4}-\d{4}$/.test(phone);
+    }
+
+    if (phoneInput) {
+      phoneInput.addEventListener("input", () => {
+        phoneInput.value = formatPhoneNumber(phoneInput.value);
+
+        if (validatePhoneNumber(phoneInput.value)) {
+          phoneInput.style.border = "2px solid lightgreen";
+        } else {
+          phoneInput.style.border = "2px solid red";
+        }
+      });
+    }
+
+    // ✅ 아이디 중복 체크
     if (usernameInput) {
       usernameInput.addEventListener("input", function () {
         const username = usernameInput.value.trim();
@@ -69,9 +123,6 @@
           checkMessage.textContent = "";
           return;
         }
-
-        // 서버에서 이미 오류 메시지가 있다면 지우지 않음
-        if (checkMessage.textContent.includes("이미 사용 중")) return;
 
         fetch(`/accounts/check_username/?username=${encodeURIComponent(username)}`)
           .then(res => res.json())
@@ -91,7 +142,7 @@
       });
     }
 
-    // 비밀번호 조건 검사
+    // ✅ 비밀번호 조건 검사 (JS 실시간 피드백)
     if (passwordInput) {
       passwordInput.addEventListener("input", function () {
         const pw = passwordInput.value;
