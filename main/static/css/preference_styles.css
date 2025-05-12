@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 /* ✅ 전체 컨테이너 */
 #preference-container {
   display: flex;
@@ -87,94 +85,20 @@
 }
 
 /* ✅ 진행도 바 */
->>>>>>> dayoung
 .progress-bar {
   width: 100%;
   height: 5px;
   background-color: #444;
-<<<<<<< HEAD
-  margin-bottom: 20px;
-}
-
-.progress {
-=======
   margin-top: 20px;
 }
 
 #progress {
->>>>>>> dayoung
   height: 100%;
   background-color: #00ccff;
   width: 0%;
   transition: width 0.3s ease;
 }
 
-<<<<<<< HEAD
-.question {
-  font-size: 24px;
-  margin: 20px 0;
-}
-
-.answer-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin: 30px 0;
-}
-
-.answer-buttons button {
-  width: 120px;
-  height: 60px;
-  border: 2px solid transparent;
-  border-radius: 15px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.3s;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.strong-agree { background-color: #0066cc; color: white; }
-.agree { background-color: #3399ff; color: white; }
-.neutral { background-color: #666666; color: white; }
-.disagree { background-color: #cc3333; color: white; }
-.strong-disagree { background-color: #990000; color: white; }
-
-.answer-buttons button.selected {
-  border: 3px solid yellow;
-  transform: scale(1.1);
-}
-
-.nav-buttons {
-  display: block;
-  margin-top: 20px;
-}
-
-.nav-buttons button {
-  width: 200px;
-  height: 50px;
-  margin: 10px auto;
-  background-color: #333;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  display: block;
-  line-height: 50px;
-}
-
-#result-btn {
-  background-color: #333;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  width: 200px;
-  height: 50px;
-  margin-top: 20px;
-  cursor: not-allowed;
-  opacity: 0.5;
-=======
 /* ✅ 지역 선택 섹션 (질문 이후 등장) */
 #region-question {
   display: none;
@@ -236,7 +160,6 @@
   display: inline-block !important;
   visibility: visible !important;
   opacity: 1 !important;
->>>>>>> dayoung
 }
 
 #result-btn.active {
@@ -245,9 +168,6 @@
   opacity: 1;
 }
 
-<<<<<<< HEAD
-@import url('preference_styles.css');
-=======
 #result-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -276,4 +196,3 @@
 .restart-btn:hover {
   background-color: #555;
 }
->>>>>>> dayoung

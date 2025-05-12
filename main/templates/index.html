@@ -15,116 +15,6 @@
         </h1>
       </div>
     </div>
-<<<<<<< HEAD
-    <div class="container">
-
-      <div id="lp">
-        <img src="{% static 'images/lp_no_shadow.png' %}">
-      </div>
-
-      <div id="tonearm">
-        <img src="{% static 'images/tonearm.png' %}">
-      </div>
-
-      <section class="section" id="section1">
-        <div class="main-content">
-          <div class="main-image" id="mainImage">
-            <img src="{% static 'images/main.jpg' %}">
-          </div>
-          <div class="main-text" id="mainText">
-            <div class="text-mask">
-              <h1><span id="yellow">S</span>HOW<br>Y<span id="yellow">O</span>UR<br>MU<span id="yellow">SIC</span>TASTE
-              </h1>
-            </div>
-          </div>
-        </div>
-        <div class="search-box" id="searchBox">
-          <input type="search" placeholder="와 씨 그냥 집에 가고 싶다" />
-          <button><i class="fa-solid fa-magnifying-glass"></i></button>
-        </div>
-      </section>
-
-      <section class="section" id="section2">
-        <div class="card-container">
-          <div class="card" data-index="0" data-link="{% url 'music_search' %}" style="background-image: url('static/images/apple.png');">
-          </div>
-          <div class="card" data-index="1" data-link="{% url 'lyrics' %}"
-            style="background-image: url('static/images/apple.png');"></div>
-          <div class="card" data-index="2" data-link="{% url 'analyze' %}" style="background-image: url('static/images/apple.png');">
-          </div>
-          <div class="card" data-index="3" data-link="{% url 'search_song' %}" style="background-image: url('static/images/apple.png');">
-          </div>
-          <div class="card" data-index="4" data-link="page5.html" style="background-image: url('static/images/apple.png');">
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section3">
-        <img id="carTrigger" src="{% static 'images/microbus.png' %}" alt="car" />
-      
-        <div class="car-slide-content" id="carSlideContent">
-          <!-- 이 안쪽에 콘텐츠가 있어야 자동차 지나간 뒤 보임 -->
-          <div class="content-wrapper">
-            <div class="content-menu">
-              <button data-type="preference">🎧 음악 취향 검사</button>
-              <button data-type="guess">🎤 가사 제목 맞추기</button>
-            </div>
-            <div class="content-display" id="section3Content">
-              <h2>왼쪽 메뉴에서 콘텐츠를 선택하세요</h2>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="section4">
-        <div id="modal" class="modal">
-          <div class="modal-content">
-            <span id="closeModalBtn" class="close">&times;</span>
-            <h1>CONTACT</h1>
-            <h2><br></h2>
-            <h2><br></h2>
-            <form id="contactForm">
-              <div class="card-box">
-                <a href="#">
-                  <div class="contact-card" id="dayoung"></div>
-                </a>
-                <a href="#">
-                  <div class="contact-card" id="jinseop"></div>
-                </a>
-                <a href="#">
-                  <div class="contact-card" id="sanghun"></div>
-                </a>
-                <a href="#">
-                  <div class="contact-card" id="donggun"></div>
-                </a>
-                <a href="#">
-                  <div class="contact-card" id="minsu"></div>
-                </a>
-                <a href="#">
-                  <div class="contact-card" id="yonghwan"></div>
-                </a>
-              </div>
-
-              <button class="btn-glitch" type="submit">HOME</button>
-            </form>
-          </div>
-        </div>
-        <button class="btn-glitch" id="openModalBtn">CONTACT</button>
-      </section>
-
-    </div>
-
-    <nav class="side-menu">
-      <ul>
-        <li data-target="section1">Home</li>
-        <li data-target="section2">Works</li>
-        <li data-target="section3">About</li>
-        <li data-target="section4">Contact</li>
-        <li data-target="section5">Hire us</li>
-      </ul>
-    </nav>
-=======
->>>>>>> dayoung
   </div>
   <div class="search-box" id="searchBox">
     <input type="search" placeholder="와 씨 그냥 집에 가고 싶다" />
@@ -134,10 +24,10 @@
 
 <section class="section" id="section2">
   <div class="card-container">
-    <div class="card" data-index="0" data-link="{% url 'music_search' %}"
+    <div class="card" data-index="0" data-link="/music/"
       style="background-image: url('static/images/apple.png');">
     </div>
-    <div class="card" data-index="1" data-link="{% url 'lyrics' %}"
+    <div class="card" data-index="1" data-link="{% url 'lyrics_root' %}"
       style="background-image: url('static/images/apple.png');"></div>
     <div class="card" data-index="2" data-link="{% url 'analyze' %}"
       style="background-image: url('static/images/apple.png');">

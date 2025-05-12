@@ -92,8 +92,11 @@ def reset_password(request, uid):
 
     return render(request, 'reset_password.html', {'form': form, 'username': uid})
 
+User = get_user_model()
+
 def check_username(request):
-    username = request.GET.get('username')
-    exists = CustomUser.objects.filter(username=username).exists()
+    username = request.GET.get("username", "")
+    exists = User.objects.filter(username=username).exists()  # ✅ 정확히 일치하는지만 검사
     return JsonResponse({'available': not exists})
+
 

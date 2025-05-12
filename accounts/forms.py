@@ -1,4 +1,3 @@
-# accounts/forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm, AuthenticationForm
 from .models import CustomUser
@@ -22,7 +21,8 @@ class CustomUserCreationForm(UserCreationForm):
     phone_number = forms.CharField(
         max_length=15,
         required=True,
-        help_text="전화번호를 입력해주세요."
+        help_text="전화번호를 입력해주세요.",
+        widget=forms.TextInput(attrs={'placeholder': '010-1234-5678'})
     )
     profile_picture = forms.ChoiceField(
         choices=PROFILE_CHOICES,
@@ -38,6 +38,13 @@ class CustomUserCreationForm(UserCreationForm):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
+
+    # ✅ 전화번호 유효성 검사 추가
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number')
+        if phone and not re.match(r'^010-\d{4}-\d{4}$', phone):
+            raise ValidationError("전화번호는 010-1234-5678 형식으로 입력해주세요.")
+        return phone
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -78,15 +85,12 @@ class CustomUserChangeForm(UserChangeForm):
         if 'password' in self.fields:
             self.fields.pop('password')  # ✅ password 필드 제거
 
-<<<<<<< HEAD
-=======
     def clean_username(self):
         username = self.cleaned_data.get("username")
         if CustomUser.objects.filter(username=username).exists():
             raise ValidationError("이미 사용 중인 아이디입니다.")
         return username
 
->>>>>>> dayoung
     def clean_nickname(self):
         nickname = self.cleaned_data.get('nickname')
 
@@ -100,8 +104,6 @@ class CustomUserChangeForm(UserChangeForm):
         
         return nickname
 
-
-
     # ✅ 전화번호 유효성 검사: 010-1234-5678 형식
     def clean_phone_number(self):
         phone = self.cleaned_data.get('phone_number')
@@ -110,14 +112,12 @@ class CustomUserChangeForm(UserChangeForm):
         return phone
 
 
-
 class CustomAuthenticationForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].label = 'ID'
         self.fields['password'].label = 'PASSWORD'
-<<<<<<< HEAD
-=======
+
 
 class PasswordResetForm(forms.Form):
     new_password = forms.CharField(widget=forms.PasswordInput, label="새 비밀번호")
@@ -131,4 +131,3 @@ class PasswordResetForm(forms.Form):
         if new_pw and confirm_pw and new_pw != confirm_pw:
             raise forms.ValidationError("비밀번호와 비밀번호 확인이 일치하지 않습니다.")
         return cleaned_data
->>>>>>> dayoung

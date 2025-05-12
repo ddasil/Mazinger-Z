@@ -90,48 +90,13 @@ if (car && carSlideContent) {
   observer.observe(car);
 }
 
-<<<<<<< HEAD
-// ✅ section3 메뉴 클릭 시 콘텐츠 로딩
-=======
 // ----------------- SECTION3 DYNAMIC CONTENT -----------------
->>>>>>> dayoung
 document.querySelectorAll('.content-menu button').forEach(button => {
   button.addEventListener('click', () => {
     const type = button.dataset.type;
     const container = document.getElementById('section3Content');
 
     if (type === 'preference') {
-<<<<<<< HEAD
-      // 👉 서버에서 preference.html 내용을 받아오기
-      fetch('/preference/')
-        .then(res => res.text())
-        .then(html => {
-          // 👉 받은 HTML을 섹션3에 삽입
-          container.innerHTML = html;
-
-          // 👉 preference.js 파일을 동적으로 로딩 (기존 script 태그는 작동 안 함)
-          const script = document.createElement('script');
-          script.src = '/static/js/preference.js';
-
-          // ✅ 스크립트가 로드된 후 함수 수동 실행
-          script.onload = () => {
-            if (typeof initPreferenceTest === 'function') {
-              initPreferenceTest();  // ✅ 직접 호출
-            } else {
-              console.error("⚠️ initPreferenceTest 함수가 정의되지 않았습니다.");
-            }
-          };
-
-          // ⚠️ container가 아닌 document.body에 추가해야 브라우저가 실행 인식함
-          document.body.appendChild(script);
-        });
-    } else if (type === 'guess') {
-      container.innerHTML = `<h2>가사로 노래 제목 맞추기 Coming Soon...</h2>`;
-    }
-  });
-});
-
-=======
       fetch('/preference/')
         .then(res => res.text())
         .then(html => {
@@ -183,7 +148,6 @@ document.querySelectorAll('.content-menu button').forEach(button => {
     }
   });
 });
->>>>>>> dayoung
 
 // ----------------- CONTACT MODAL + GLITCH -----------------
 document.addEventListener("DOMContentLoaded", () => {

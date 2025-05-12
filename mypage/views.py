@@ -4,37 +4,14 @@ from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.http import JsonResponse
 from accounts.forms import CustomUserChangeForm  # 사용자 정보 수정 폼
-<<<<<<< HEAD
-from django.core.files.base import ContentFile  # ✅ 이거 추가
-=======
 from django.db import IntegrityError  # DB 오류 처리를 위해 import
 
->>>>>>> dayoung
 
 @login_required
 def mypage(request):
     user = request.user  # 현재 로그인한 사용자 객체
 
     if request.method == 'POST':
-<<<<<<< HEAD
-        nickname = request.POST.get('nickname')
-        birthday = request.POST.get('birthday')
-        phone_number = request.POST.get('phone_number')
-        profile_picture = request.POST.get('profile_picture')
-
-        # ✅ 직접 저장
-        user.nickname = nickname
-        user.birthday = birthday if birthday else None
-        user.phone_number = phone_number
-        user.profile_picture = profile_picture
-        user.save()
-
-        messages.success(request, '프로필이 성공적으로 저장되었습니다.')
-        return redirect('mypage')
-
-    return render(request, 'mypage.html', {'user': user})
-
-=======
         # 사용자 입력 기반으로 폼 생성 (현재 사용자 정보를 instance로 전달)
         form = CustomUserChangeForm(request.POST, instance=user)
 
@@ -59,7 +36,6 @@ def mypage(request):
         # GET 요청 시 현재 사용자 정보를 가진 폼 생성
         form = CustomUserChangeForm(instance=user)
         return render(request, 'mypage.html', {'form': form})
->>>>>>> dayoung
 
 
 @login_required

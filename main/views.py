@@ -12,15 +12,7 @@ from chartsongs.models import ChartSong
 from django.views.decorators.csrf import csrf_exempt
 
 
-from django.http import JsonResponse
-from django.db.models import Q
-from chartsongs.models import ChartSong
-# from analyze.models import Song
-
 def main(request):
-<<<<<<< HEAD
-    return render(request, 'index.html')
-=======
     songs = list(ChartSong.objects.filter(
         lylics__isnull=False
     ).exclude(
@@ -37,7 +29,6 @@ def main(request):
     return render(request, 'index.html', {
         'quiz_song': first_song,
     })
->>>>>>> dayoung
 
 def preference_view(request):
     return render(request, "preference.html") # 메인 음악 취향 검사
@@ -78,9 +69,6 @@ def recommend_by_genre(request):
         .values("title", "artist", "normalized_genre")[:10]  # ✅ 최대 10개로 확장 가능
     )
 
-<<<<<<< HEAD
-    return JsonResponse({"songs": list(songs)})
-=======
     return JsonResponse({"songs": list(songs)})
 
 # 날씨 때문에 추가
@@ -234,4 +222,3 @@ def quiz_song_view(request):
 
     quiz_song = random.choice(songs)
     return render(request, 'quiz_song.html', {'quiz_song': quiz_song})
->>>>>>> dayoung

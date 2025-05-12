@@ -21,8 +21,8 @@
   </div>
 
   <div class="link-buttons">
-    <a href="{% url 'lyrics' %}" class="mypage-link-btn">내가 만든 가사</a>
-    <a href="{% url 'music_search' %}" class="mypage-link-btn">내 플레이 리스트</a>
+    <a href="{% url 'lyrics_root' %}" class="mypage-link-btn">내가 만든 가사</a>
+    <a href="/music/" class="mypage-link-btn">내 플레이 리스트</a>
   </div>
 </div>
 
@@ -45,20 +45,11 @@
       <input type="text" value="{{ user.username }}" readonly>
 
       <label for="id_nickname">닉네임</label>
-<<<<<<< HEAD
-      <input type="text" name="nickname"
-            value="{{ form.nickname.value|default_if_none:'' }}"
-            placeholder="닉네임 입력">
-
-      {% if form.nickname.errors %}
-        <div class="error">{{ form.nickname.errors.0 }}</div>
-=======
       <input type="text" name="nickname" id="id_nickname"
             value="{{ form.nickname.value|default_if_none:'' }}"
             placeholder="닉네임 입력">
       {% if form.nickname.errors %}
         <div class="nickname-error error" style="color:red">{{ form.nickname.errors.0 }}</div>
->>>>>>> dayoung
       {% endif %}
 
       <label for="id_birthday">생일</label>
@@ -70,11 +61,7 @@
              value="{{ user.phone_number }}" placeholder="010-1234-5678">
 
       <label for="id_profile_picture">프로필 사진 선택</label>
-<<<<<<< HEAD
-      <select name="profile_picture" class="form-control">
-=======
       <select name="profile_picture" id="id_profile_picture" class="form-control">
->>>>>>> dayoung
         <option value="profile1.png" {% if user.profile_picture == "profile1.png" %}selected{% endif %}>1번 이미지</option>
         <option value="profile2.png" {% if user.profile_picture == "profile2.png" %}selected{% endif %}>2번 이미지</option>
         <option value="profile3.png" {% if user.profile_picture == "profile3.png" %}selected{% endif %}>3번 이미지</option>
@@ -83,12 +70,7 @@
       </select>
 
       <input type="hidden" name="password" id="hiddenPassword">
-<<<<<<< HEAD
-
-      <button type="submit" class="save-btn">저장</button>
-=======
       <button type="submit" id="submit-btn" disabled class="btn btn-primary">수정</button>
->>>>>>> dayoung
     </form>
   </div>
 </div>
@@ -102,25 +84,28 @@
   let nicknameInput, birthdayInput, phoneInput, profileSelect, submitBtn;
   let jsNicknameError;
   let originalValues = {};
-  
+
   function openPasswordModal() {
     passwordModal.classList.add("show");
   }
+
   function closePasswordModal() {
     passwordModal.classList.remove("show");
   }
+
   function openModal() {
     editModal.classList.add("show");
     updateSubmitState();
   }
+
   function closeModal() {
     editModal.classList.remove("show");
   }
-  
+
   function validateNickname(nickname) {
     return /^[\w가-힣]+$/.test(nickname);
   }
-  
+
   function checkNicknameDuplicate(nickname, callback) {
     fetch(`/accounts/check_nickname/?nickname=${encodeURIComponent(nickname)}`)
       .then(res => res.json())
@@ -134,7 +119,18 @@
         callback();
       });
   }
-  
+
+  function formatPhoneNumber(value) {
+    const cleaned = value.replace(/\D/g, "").slice(0, 11);
+    if (cleaned.length < 4) return cleaned;
+    if (cleaned.length < 8) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7, 11)}`;
+  }
+
+  function validatePhoneNumber(phone) {
+    return /^010-\d{4}-\d{4}$/.test(phone);
+  }
+
   function updateSubmitState() {
     const currentValues = {
       nickname: nicknameInput.value.trim(),
@@ -151,10 +147,8 @@
     const phoneValid = validatePhoneNumber(currentValues.phone);
     const isDuplicate = nicknameInput.dataset.duplicate === "true";
 
-    // 조건 충족 시에만 버튼 활성화
-    submitBtn.disabled = !(nicknameValid && phoneValid && !isDuplicate);
+    submitBtn.disabled = !(nicknameValid && phoneValid && !isDuplicate && changed);
 
-    // 닉네임 검증 시 시각 피드백
     if (!nicknameValid) {
       nicknameInput.style.border = "2px solid red";
       jsNicknameError.innerText = "한글, 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.";
@@ -166,7 +160,6 @@
       jsNicknameError.innerText = "";
     }
 
-    // 전화번호 검증 시 시각 피드백
     if (!phoneValid) {
       phoneInput.style.border = "2px solid red";
     } else {
@@ -174,14 +167,13 @@
     }
   }
 
-  
   function verifyPassword() {
     const password = document.getElementById("confirmPassword").value;
     if (password.trim() === "") {
       alert("비밀번호를 입력하세요.");
       return;
     }
-  
+
     fetch("{% url 'verify_password' %}", {
       method: "POST",
       headers: {
@@ -205,37 +197,37 @@
         alert("서버 오류가 발생했습니다.");
       });
   }
-  
+
   window.verifyPassword = verifyPassword;
   window.openModal = openModal;
   window.closeModal = closeModal;
   window.closePasswordModal = closePasswordModal;
-  
+
   document.addEventListener("DOMContentLoaded", function () {
     passwordModal = document.getElementById("passwordModal");
     editModal = document.getElementById("editModal");
     const openBtn = document.getElementById("openPasswordBtn");
-  
+
     nicknameInput = document.getElementById("id_nickname");
     birthdayInput = document.getElementById("id_birthday");
     phoneInput = document.getElementById("id_phone_number");
     profileSelect = document.getElementById("id_profile_picture");
     submitBtn = document.getElementById("submit-btn");
-  
+
     jsNicknameError = document.createElement("p");
     jsNicknameError.classList.add("error");
     jsNicknameError.style.color = "red";
     nicknameInput.insertAdjacentElement("afterend", jsNicknameError);
-  
+
     originalValues = {
       nickname: "{{ user.nickname|escapejs }}",
       birthday: "{{ user.birthday|date:'Y-m-d' }}",
       phone: "{{ user.phone_number|default_if_none:''|escapejs }}",
       picture: "{{ user.profile_picture|escapejs }}"
     };
-  
+
     if (openBtn) openBtn.addEventListener("click", openPasswordModal);
-  
+
     nicknameInput.addEventListener("input", () => {
       const value = nicknameInput.value.trim();
       if (!validateNickname(value)) {
@@ -245,18 +237,19 @@
       }
       checkNicknameDuplicate(value, updateSubmitState);
     });
-  
+
     birthdayInput.addEventListener("change", updateSubmitState);
-    phoneInput.addEventListener("input", updateSubmitState);
+
+    phoneInput.addEventListener("input", () => {
+      phoneInput.value = formatPhoneNumber(phoneInput.value);
+      updateSubmitState();
+    });
+
     profileSelect.addEventListener("change", updateSubmitState);
-  
+
     checkNicknameDuplicate(nicknameInput.value.trim(), updateSubmitState);
   });
+</script>
 
-  function validatePhoneNumber(phone) {
-    return /^010-\d{4}-\d{4}$/.test(phone);
-  }
-
-  </script>
   
 {% endblock %}
