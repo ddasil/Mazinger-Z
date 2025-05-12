@@ -172,3 +172,27 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* 다시하기 버튼 */
+.restart-btn {
+  background-color: #666;
+  color: white;
+  width: auto;
+  height: 40px; /* 버튼 높이 고정 */
+  line-height: 40px; /* 텍스트 수직 정렬 */
+  padding: 0 16px;
+  border: none;
+  border-radius: 6px;
+  margin-left: 10px;
+  cursor: pointer;
+  text-align: center;
+  vertical-align: middle;
+
+  /* 만약 flex를 쓸 경우에는 아래 둘 중 하나만 사용 */
+  display: inline-block;
+  font-size: 16px;
+}
+
+.restart-btn:hover {
+  background-color: #555;
+}

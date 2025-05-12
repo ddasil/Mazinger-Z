@@ -196,6 +196,27 @@ function calculateResult() {
     });
 }
 
+function restartPreference() {
+  current = 0;
+  answers = Array(questions.length).fill(null);
+  selectedSido = null;
+  selectedGugun = null;
+
+  document.getElementById("sido-select").selectedIndex = 0;
+  document.getElementById("gugun-select").innerHTML = '<option value="">구/군을 선택하세요</option>';
+  document.getElementById("gugun-select").disabled = true;
+
+  document.getElementById("question-box").style.display = "block";
+  document.getElementById("region-question").style.display = "none";
+  document.getElementById("result").innerText = "";
+  document.getElementById("recommend-songs").innerHTML = "";
+
+  updateProgress();
+  updateResultButtonState();
+  loadQuestion();
+}
+
+
 // ✅ 초기 실행 함수
 function initPreferenceTest() {
   populateSidoOptions(); // ✅ 시/도 목록 초기화
