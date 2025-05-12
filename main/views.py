@@ -2,7 +2,9 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.http import HttpResponse
-
+import random
+import json
+from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Q
 from chartsongs.models import ChartSong
@@ -11,7 +13,22 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 def main(request):
-    return render(request, 'index.html')
+    songs = list(ChartSong.objects.filter(
+        lylics__isnull=False
+    ).exclude(
+        lylics=''
+    ).exclude(
+        lylics__exact='None'
+    ))
+
+    if not songs:
+        return render(request, 'index.html', {'quiz_song': None})
+
+    first_song = random.choice(songs)
+
+    return render(request, 'index.html', {
+        'quiz_song': first_song,
+    })
 
 def preference_view(request):
     return render(request, "preference.html") # 메인 음악 취향 검사
@@ -190,3 +207,18 @@ def get_guguns(request):
 
     guguns = gugun_map.get(sido, [])
     return JsonResponse({"guguns": guguns})
+
+def quiz_song_view(request):
+    songs = list(ChartSong.objects.filter(
+        lylics__isnull=False
+    ).exclude(
+        lylics=''
+    ).exclude(
+        lylics__exact='None'
+    ))
+
+    if not songs:
+        return render(request, 'quiz_song.html', {'quiz_song': None})
+
+    quiz_song = random.choice(songs)
+    return render(request, 'quiz_song.html', {'quiz_song': quiz_song})

@@ -1493,6 +1493,49 @@ button[type="submit"]:hover {
   opacity: 0.8;
 }
 
+.quiz-container {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  align-items: center;
+  /* 추가: 내부 내용 가운데 정렬 */
+}
+
+.quiz-container h2,
+.quiz-container p {
+  margin-bottom: 10px;
+  /* 한 줄로 강제 */
+  max-width: 100%;
+}
+
+.form-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  /* input과 button 사이 간격 */
+  width: 100%;
+}
+
+.quiz-container input {
+  padding: 10px;
+  width: 60%;
+  border-radius: 5px;
+  border: none;
+}
+
+.quiz-container button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background: #ffffff33;
+  color: white;
+  cursor: pointer;
+  width: auto;
+}
 
 
 

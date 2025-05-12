@@ -40,7 +40,8 @@
   </div>
 </section>
 
-<section class="section" id="section3">
+<section class="section" id="section3" data-answer="{{ quiz_song.title|escapejs|lower }}"
+        data-lyrics="{{ quiz_song.lylics|slice:':50' }}...">
   <img id="carTrigger" src="{% static 'images/microbus.png' %}" alt="car" />
 
   <div class="car-slide-content" id="carSlideContent">
@@ -48,12 +49,12 @@
     <div class="content-wrapper">
       <div class="content-menu">
         <button data-type="preference">🎧 음악 취향 검사</button>
-        <button data-type="guess">🎤 가사 제목 맞추기</button>
+        <button data-type="quiz_song">🎤 가사 제목 맞추기</button>
       </div>
       <div class="content-display" id="section3Content">
         <h2>왼쪽 메뉴에서 콘텐츠를 선택하세요</h2>
       </div>
-    </div>
+    </div>  
   </div>
 </section>
 
