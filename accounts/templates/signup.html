@@ -6,13 +6,46 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/main.css' %}">
 {% endblock %}
+
 {% block content %}
 <div class="signup-container">
-  <div class="signup-form" >
+  <div class="signup-form">
     <h1>SIGN UP</h1>
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
-      {{ form.as_p }}
+
+      <!-- Username -->
+      <p>
+        {{ form.username.label_tag }}
+        {{ form.username }}
+        <span id="username-check" style="font-size: 0.85em; color: {% if form.username.errors %}red{% else %}yellow{% endif %};">
+          {% if form.username.errors %}
+            {{ form.username.errors.0 }}
+          {% endif %}
+        </span>
+      </p>
+      <ul style="font-size: 0.8em; color: gray; margin-top: -10px; margin-bottom: 10px;">
+        <li>영문, 숫자, @/./+/-/_ 가능</li>
+        <li>중복 불가, 최대 150자</li>
+      </ul>
+
+      <!-- Password -->
+      <p>
+        {{ form.password1.label_tag }}
+        {{ form.password1 }}
+        <span id="password-check" style="font-size: 0.85em;"></span>
+      </p>
+      <ul style="font-size: 0.8em; color: gray; margin-top: -10px; margin-bottom: 10px;">
+        <li>8자 이상</li>
+        <li>숫자만 사용 불가</li>
+      </ul>
+      <p>{{ form.password2.label_tag }} {{ form.password2 }}</p>
+
+      <!-- Other fields -->
+      <p>{{ form.birthday.label_tag }} {{ form.birthday }}</p>
+      <p>{{ form.phone_number.label_tag }} {{ form.phone_number }}</p>
+      <p>{{ form.profile_picture.label_tag }} {{ form.profile_picture }}</p>
+
       <button class="btn-glitch" type="submit">SIGN UP</button>
     </form>
   </div>
@@ -21,4 +54,59 @@
 
 {% block extra_script %}
 <script src="{% static 'js/base.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const usernameInput = document.getElementById("id_username");
+    const checkMessage = document.getElementById("username-check");
+    const passwordInput = document.getElementById("id_password1");
+    const passwordCheck = document.getElementById("password-check");
+
+    // 아이디 중복 체크
+    if (usernameInput) {
+      usernameInput.addEventListener("input", function () {
+        const username = usernameInput.value.trim();
+        if (!username) {
+          checkMessage.textContent = "";
+          return;
+        }
+
+        // 서버에서 이미 오류 메시지가 있다면 지우지 않음
+        if (checkMessage.textContent.includes("이미 사용 중")) return;
+
+        fetch(`/accounts/check_username/?username=${encodeURIComponent(username)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.available) {
+              checkMessage.textContent = "사용 가능한 아이디입니다.";
+              checkMessage.style.color = "lightgreen";
+            } else {
+              checkMessage.textContent = "이미 사용 중인 아이디입니다.";
+              checkMessage.style.color = "red";
+            }
+          })
+          .catch(err => {
+            checkMessage.textContent = "서버 오류";
+            checkMessage.style.color = "orange";
+          });
+      });
+    }
+
+    // 비밀번호 조건 검사
+    if (passwordInput) {
+      passwordInput.addEventListener("input", function () {
+        const pw = passwordInput.value;
+        if (pw.length < 8) {
+          passwordCheck.textContent = "비밀번호는 8자 이상이어야 합니다.";
+          passwordCheck.style.color = "red";
+        } else if (/^\d+$/.test(pw)) {
+          passwordCheck.textContent = "숫자만으로는 사용할 수 없습니다.";
+          passwordCheck.style.color = "red";
+        } else {
+          passwordCheck.textContent = "사용 가능한 비밀번호입니다.";
+          passwordCheck.style.color = "lightgreen";
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}

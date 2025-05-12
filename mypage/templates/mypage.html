@@ -58,7 +58,7 @@
 
       <label for="id_phone_number">전화번호</label>
       <input type="text" name="phone_number" id="id_phone_number"
-             value="{{ user.phone_number }}">
+             value="{{ user.phone_number }}" placeholder="010-1234-5678">
 
       <label for="id_profile_picture">프로필 사진 선택</label>
       <select name="profile_picture" id="id_profile_picture" class="form-control">
@@ -124,16 +124,19 @@
       phone: phoneInput.value.trim(),
       picture: profileSelect.value
     };
-  
+
     const changed = Object.keys(currentValues).some(
       key => currentValues[key] !== originalValues[key]
     );
-  
+
     const nicknameValid = validateNickname(currentValues.nickname);
+    const phoneValid = validatePhoneNumber(currentValues.phone);
     const isDuplicate = nicknameInput.dataset.duplicate === "true";
-  
-    submitBtn.disabled = !(changed && nicknameValid && !isDuplicate);
-  
+
+    // 조건 충족 시에만 버튼 활성화
+    submitBtn.disabled = !(nicknameValid && phoneValid && !isDuplicate);
+
+    // 닉네임 검증 시 시각 피드백
     if (!nicknameValid) {
       nicknameInput.style.border = "2px solid red";
       jsNicknameError.innerText = "한글, 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.";
@@ -144,7 +147,15 @@
       nicknameInput.style.border = "2px solid green";
       jsNicknameError.innerText = "";
     }
+
+    // 전화번호 검증 시 시각 피드백
+    if (!phoneValid) {
+      phoneInput.style.border = "2px solid red";
+    } else {
+      phoneInput.style.border = "2px solid green";
+    }
   }
+
   
   function verifyPassword() {
     const password = document.getElementById("confirmPassword").value;
@@ -223,8 +234,11 @@
   
     checkNicknameDuplicate(nicknameInput.value.trim(), updateSubmitState);
   });
+
+  function validatePhoneNumber(phone) {
+    return /^010-\d{4}-\d{4}$/.test(phone);
+  }
+
   </script>
   
-
-
 {% endblock %}

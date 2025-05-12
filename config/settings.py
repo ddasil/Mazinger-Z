@@ -104,18 +104,15 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    #{
-       # "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    #},
-    #{
-     #   "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    #},
-    #{
-     #   "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    #},
-    #{
-     #   "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    #},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 8,
+        }
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 
@@ -156,3 +153,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 브라우저 닫아도 유지
+SESSION_COOKIE_AGE = 60 * 60 * 24    # 1일간 유지 (초 단위)
+
