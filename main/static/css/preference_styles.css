@@ -114,6 +114,11 @@
   font-size: 16px;
 }
 
+.region-question-hidden {
+  display: none;
+  margin-top: 30px;
+}
+
 /* ✅ 결과 출력 */
 #result {
   margin-top: 30px;
