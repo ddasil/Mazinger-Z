@@ -116,24 +116,26 @@ document.querySelectorAll('.content-menu button').forEach(button => {
       fetch('/preference/')
         .then(res => res.text())
         .then(html => {
-          // 👉 받은 HTML을 섹션3에 삽입
           container.innerHTML = html;
 
-          // 👉 preference.js 파일을 동적으로 로딩 (기존 script 태그는 작동 안 함)
-          const script = document.createElement('script');
-          script.src = '/static/js/preference.js';
+          // ✅ weather_score_map.js 삽입
+          const script2 = document.createElement('script');
+          script2.src = '/static/js/weather_score_map.js';
+          document.body.appendChild(script2);
 
-          // ✅ 스크립트가 로드된 후 함수 수동 실행
-          script.onload = () => {
+          // ✅ preference3.js 삽입
+          const script3 = document.createElement('script');
+          script3.src = '/static/js/preference.js';
+          
+          script3.onload = () => {
+            console.log("✅ preference.js 로드 완료 후");
             if (typeof initPreferenceTest === 'function') {
-              initPreferenceTest();  // ✅ 직접 호출
+              initPreferenceTest(); // ✅ 여기서 직접 호출
             } else {
-              console.error("⚠️ initPreferenceTest 함수가 정의되지 않았습니다.");
+              console.error("❌ initPreferenceTest 함수가 정의되지 않았습니다.");
             }
           };
-
-          // ⚠️ container가 아닌 document.body에 추가해야 브라우저가 실행 인식함
-          document.body.appendChild(script);
+          document.body.appendChild(script3);
         });
     } else if (type === 'guess') {
       container.innerHTML = `<h2>가사로 노래 제목 맞추기 Coming Soon...</h2>`;
