@@ -765,6 +765,7 @@ iframe {
   height: 100%;
 }
 
+/* 이미지 링크 수정 시작 */
 #dayoung {
   background-image: url(/static/images/insta1.jpg);
   background-size: cover;
@@ -794,6 +795,7 @@ iframe {
   background-image: url(/static/images/insta3.jpg);
   background-size: cover;
 }
+/* 이미지 링크 수정 끝 */
 
 .modal .contact-card:hover {
   transform: scale(1.2);
@@ -915,7 +917,7 @@ iframe {
   line-height: 50px;
 }
 
-#result-btn {
+/* #result-btn {
   background-color: #333;
   color: white;
   border: none;
@@ -931,7 +933,7 @@ iframe {
   background-color: #00cc66;
   cursor: pointer;
   opacity: 1;
-}
+} */
 
 
 /* 관련 장르 음악 css */

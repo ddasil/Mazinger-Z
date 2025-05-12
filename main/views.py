@@ -99,6 +99,7 @@ def convert_to_grid(lat, lon):
     y = int(ro - ra * math.cos(theta) + YO + 0.5)
     return {"nx": x, "ny": y}
 
+
 @csrf_exempt
 def get_weather_genre(request):
     sido = request.GET.get("sido")
@@ -108,12 +109,13 @@ def get_weather_genre(request):
         return JsonResponse({"error": "지역 정보 누락"}, status=400)
 
     try:
-        # ✅ Kakao 주소 검색 API로 위경도 좌표 얻기
+        # ✅ Kakao 주소 검색 API로 위경도 얻기
         query = f"{sido} {gugun}"
         kakao_key = config("KAKAO_API_KEY")
         kakao_url = f"https://dapi.kakao.com/v2/local/search/address.json?query={query}"
         headers = {"Authorization": f"KakaoAK {kakao_key}"}
-        kakao_res = requests.get(kakao_url, headers=headers).json()
+        kakao_response = requests.get(kakao_url, headers=headers)
+        kakao_res = kakao_response.json()
 
         if "documents" not in kakao_res or not kakao_res["documents"]:
             return JsonResponse({"error": "좌표 변환 실패"}, status=404)
@@ -121,35 +123,52 @@ def get_weather_genre(request):
         lon = float(kakao_res["documents"][0]["x"])
         lat = float(kakao_res["documents"][0]["y"])
 
-        # ✅ 위경도 → 격자 좌표 변환
+        # ✅ 위경도 → 격자 변환
         grid = convert_to_grid(lat, lon)
         nx, ny = grid["nx"], grid["ny"]
 
-        # ✅ 기준 시각 계산
+        # ✅ 기준 시각 계산 (초단기 실황: 10분 단위 → 가장 가까운 30분 전 시각 사용)
         now = datetime.now()
-        if now.minute < 45:
+        minute = now.minute
+        if minute < 45:
             now -= timedelta(hours=1)
         base_date = now.strftime("%Y%m%d")
-        base_time = now.strftime("%H00")
+        base_time = now.strftime("%H30")  # 초단기 실황 기준 시간
 
-        # ✅ KMA 단기예보 API 호출
+        # ✅ 기상청 초단기 실황 API 호출
         kma_key = config("KMA_SERVICE_KEY_ENCODED")
         kma_url = (
-            f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
+            f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
             f"?serviceKey={kma_key}&dataType=JSON&numOfRows=100&pageNo=1"
             f"&base_date={base_date}&base_time={base_time}&nx={nx}&ny={ny}"
         )
 
         res = requests.get(kma_url)
+        print("KMA 요청 URL:", kma_url)
+        print("KMA 응답 상태코드:", res.status_code)
+        print("KMA 응답 본문:", res.text)
+
         data = res.json()
 
-        items = data["response"]["body"]["items"]["item"]
-        pty = next((item["fcstValue"] for item in items if item["category"] == "PTY"), "0")
+        try:
+            items = data["response"]["body"]["items"]["item"]
+        except Exception as e:
+            return JsonResponse({
+                "pty": "0",
+                "note": "기상청 실황 데이터 없음",
+                "kma_response": data
+            }, status=200)
+
+        # ✅ PTY 항목 추출 (실시간 관측값: obsrValue 사용)
+        pty = next((item["obsrValue"] for item in items if item["category"] == "PTY"), "0")
 
         return JsonResponse({"pty": pty})
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+
 
 # ✅ 시/도에 따른 구/군 리스트 반환
 def get_guguns(request):

@@ -14,25 +14,37 @@ let answers = Array(questions.length).fill(null);
 let selectedSido = null;
 let selectedGugun = null;
 
-// ✅ 버튼 색상 클래스 매핑
+// ✅ 시/도 초기 옵션 추가
+function populateSidoOptions() {
+  const sidoSelect = document.getElementById("sido-select");
+  const sidoList = [
+    "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시",
+    "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도",
+    "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", "경상남도", "제주특별자치도"
+  ];
+
+  sidoList.forEach(sido => {
+    const option = document.createElement("option");
+    option.value = sido;
+    option.textContent = sido;
+    sidoSelect.appendChild(option);
+  });
+}
+
+// ✅ 색상 클래스 매핑
 function getButtonClass(idx) {
   return ["strong-disagree", "disagree", "neutral", "agree", "strong-agree"][idx];
 }
 
-// ✅ 질문 출력
+// ✅ 질문 로딩 및 버튼 렌더링
 function loadQuestion() {
   const qBox = document.getElementById("question-box");
-  const nextBtn = document.getElementById("next-btn");
-  const resultBtn = document.getElementById("result-btn");
-
   if (!qBox) return;
 
   if (current >= questions.length) {
-    // 문항이 끝나면 지역 선택 화면으로 전환
     qBox.style.display = "none";
-    nextBtn.style.display = "none";
-    resultBtn.style.display = "none";
     document.getElementById("region-question").style.display = "block";
+    updateResultButtonState();
     return;
   }
 
@@ -44,19 +56,28 @@ function loadQuestion() {
         <button class="answer-btn ${getButtonClass(idx)}" onclick="selectAnswer(${idx + 1}, this)">${label}</button>
       `).join("")}
     </div>
+    <div class="nav-buttons">
+      <button id="prev-btn" onclick="prevQuestion()">이전</button>
+      <button id="next-btn" onclick="loadQuestion()">다음</button>
+    </div>
   `;
 
-  if (answers[current] !== null) {
-    const selected = qBox.querySelectorAll("button")[answers[current] - 1];
-    if (selected) selected.classList.add("selected");
-  }
+  // ✅ 버튼 제어는 반드시 렌더링 이후에!
+  setTimeout(() => {
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
 
-  document.getElementById("prev-btn").disabled = current === 0;
-  nextBtn.style.display = current < questions.length - 1 ? "inline-block" : "none";
-  resultBtn.style.display = "none";
+    if (prevBtn) prevBtn.disabled = current === 0;
+    if (nextBtn) nextBtn.style.display = current < questions.length - 1 ? "inline-block" : "none";
+
+    if (answers[current] !== null) {
+      const selected = document.querySelectorAll(".answer-buttons button")[answers[current] - 1];
+      if (selected) selected.classList.add("selected");
+    }
+  }, 0);
 }
 
-// ✅ 답변 선택 시 다음 문항으로
+// ✅ 답변 선택 시 다음 질문
 function selectAnswer(value, btn) {
   answers[current] = value;
   document.querySelectorAll(".answer-buttons button").forEach(b => b.classList.remove("selected"));
@@ -66,31 +87,28 @@ function selectAnswer(value, btn) {
     current++;
     loadQuestion();
     updateProgress();
+    updateResultButtonState();
   }, 300);
 }
 
-// ✅ 이전 문항 이동
+// ✅ 이전 질문으로 이동
 function prevQuestion() {
   if (current > 0) {
     current--;
-    document.getElementById("region-question").style.display = "none";
-    document.getElementById("question-box").style.display = "block";
-    document.getElementById("next-btn").style.display = "inline-block";
     loadQuestion();
     updateProgress();
+    updateResultButtonState();
   }
 }
 
-// ✅ 진행도 바 표시
+// ✅ 진행 바 업데이트
 function updateProgress() {
   const percent = (current / questions.length) * 100;
   document.getElementById("progress").style.width = `${percent}%`;
 }
 
-// ✅ 시/도 선택 시 구/군 목록 가져오기
+// ✅ 시/도 선택 시 구군 로딩
 function onSidoSelect(sido) {
-  console.log("🔍 선택된 시도:", sido);
-
   selectedSido = sido;
   selectedGugun = null;
 
@@ -108,24 +126,36 @@ function onSidoSelect(sido) {
         gugunSelect.appendChild(option);
       });
       gugunSelect.disabled = false;
-    })
-    .catch(() => {
-      alert("구/군 정보를 불러오는 데 실패했습니다.");
+      updateResultButtonState();
     });
 }
 
-// ✅ 구/군 선택 시 자동으로 결과 계산
+// ✅ 구군 선택 처리
 function onGugunSelect(gugun) {
   selectedGugun = gugun;
-  if (selectedSido && selectedGugun) calculateResult();
+  updateResultButtonState();
 }
 
-// ✅ 최종 점수 계산 → 장르 추천
-function calculateResult() {
-  if (!selectedSido || !selectedGugun) {
-    alert("지역 선택이 누락되었습니다.");
-    return;
+// ✅ 결과 버튼 활성화 조건 체크
+function updateResultButtonState() {
+  const resultBtn = document.getElementById("result-btn");
+  const regionReady = selectedSido && selectedGugun;
+  const allAnswered = answers.every(ans => ans !== null);
+  const canClick = regionReady && allAnswered;
+
+  if (resultBtn) {
+    resultBtn.disabled = !canClick;
+    if (canClick) {
+      resultBtn.classList.add("active");
+    } else {
+      resultBtn.classList.remove("active");
+    }
   }
+}
+
+// ✅ 결과 계산 및 추천 요청
+function calculateResult() {
+  if (!selectedSido || !selectedGugun) return;
 
   fetch(`/get_weather_genre/?sido=${encodeURIComponent(selectedSido)}&gugun=${encodeURIComponent(selectedGugun)}`)
     .then(res => res.json())
@@ -145,63 +175,44 @@ function calculateResult() {
       };
 
       let genre = "팝";
-      if (final.bright >= 4 && final.fast >= 4 && final.emotion >= 4 && final.trendy >= 4) genre = "K-pop, EDM";
-      else if (final.calm >= 4 && final.emotion >= 4 && final.classic >= 4) genre = "발라드, 재즈";
-      else if (final.fast >= 4 && final.emotion <= 2 && final.trendy >= 4) genre = "힙합, 일렉트로닉";
-      else if (final.calm >= 4 && final.emotion <= 2 && final.classic >= 4) genre = "클래식, 인디";
-      else if (final.bright >= 4 && final.fast >= 4 && final.trendy >= 4 && final.emotion <= 2) genre = "록, 메탈";
+      if (final.bright >= 4 && final.fast >= 4 && final.emotion >= 4) genre = "K-pop, EDM";
+      else if (final.calm >= 4 && final.emotion >= 4) genre = "발라드";
+      else if (final.fast >= 4 && final.trendy >= 4) genre = "힙합, 일렉트로닉";
       else genre = "OST, R&B";
 
       document.getElementById("result").innerText = `추천 장르: ${genre}`;
-      localStorage.setItem("preferenceResult", genre);
-
       fetch(`/recommend_by_genre/?genre=${encodeURIComponent(genre)}`)
         .then(res => res.json())
         .then(data => {
           const recDiv = document.getElementById("recommend-songs");
           recDiv.innerHTML = "<div class='recommend-title'>추천 음악</div>";
-
-          if (data.songs.length === 0) {
-            recDiv.innerHTML += "<p>추천 곡이 없습니다.</p>";
-            return;
-          }
-
           data.songs.forEach(song => {
             const div = document.createElement("div");
             div.className = "recommended-song";
             div.innerText = `${song.title} - ${song.artist} (${song.normalized_genre})`;
-            div.onclick = () => {
-              window.location.href = `/music/?q=${encodeURIComponent(song.title + " " + song.artist)}`;
-            };
             recDiv.appendChild(div);
           });
         });
-    })
-    .catch(err => {
-      console.error("날씨 API 오류:", err);
-      alert("날씨 정보를 불러오는 데 실패했습니다.");
     });
 }
 
-// ✅ preference 테스트 초기화 함수 (main.js에서 수동 호출)
+// ✅ 초기 실행 함수
 function initPreferenceTest() {
+  populateSidoOptions(); // ✅ 시/도 목록 초기화
   current = 0;
   answers = Array(questions.length).fill(null);
+  selectedSido = null;
+  selectedGugun = null;
+
+  document.getElementById("question-box").style.display = "block";
+  document.getElementById("region-question").style.display = "none";
+  document.getElementById("result").innerText = "";
+  document.getElementById("recommend-songs").innerHTML = "";
+
   loadQuestion();
   updateProgress();
-
-  const sidoSelect = document.getElementById("sido-select");
-  if (sidoSelect) {
-    const sidos = [
-      "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시",
-      "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도",
-      "전라북도", "전라남도", "경상북도", "경상남도", "제주특별자치도"
-    ];
-    sidos.forEach(sido => {
-      const option = document.createElement("option");
-      option.value = sido;
-      option.textContent = sido;
-      sidoSelect.appendChild(option);
-    });
-  }
+  updateResultButtonState();
 }
+
+// ✅ DOM 로딩 후 실행
+document.addEventListener("DOMContentLoaded", initPreferenceTest);
