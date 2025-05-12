@@ -1,83 +1,21 @@
-
+{% extends 'base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
+{% block title %}홈페이지{% endblock %}
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MUSICTASTE</title>
-  <link rel="stylesheet" href="{% static 'css/main.css' %}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-    integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@100..400&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-</head>
-
-<body>
-
-  <svg style="position: absolute; width: 0; height: 0;" width="0" height="0" version="1.1"
-    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="svg-sprite">
-    <defs>
-      <filter id="filter">
-        <feTurbulence type="fractalNoise" baseFrequency="0.000001 0.000001" numOctaves="1" result="warp" seed="1">
-        </feTurbulence>
-        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="30" in="SourceGraphic" in2="warp">
-        </feDisplacementMap>
-      </filter>
-    </defs>
-  </svg>
-
-  <div class="wrapper">
-    <div class="nav-bar">
-      <div class="logo-box" id="logoBox">
-        <a href="#section1">
-          <img id="logo-image" src="{% static 'images/logo-white.png' %}">
-          <span id="logo-text">SOSIC</span>
-        </a>
-      </div>
-      <div class="right-box">
-        <div class="sign-box">
-          {% if user.is_authenticated %}
-              <!-- 로그인된 경우에만 로그아웃 및 마이페이지 버튼을 표시 -->
-              <div class="sign-btn btn-glitch" id="logOutBtn">
-                <a href="{% url 'logout' %}">
-                    Log out
-                </a>
-              </div>
-              <div class="sign-btn btn-glitch" id="myPageBtn">
-                  <a href="{% url 'mypage' %}">
-                      My Page
-                  </a>
-              </div>
-          {% else %}
-              <!-- 로그인 안 된 경우 로그인 및 회원가입 버튼을 표시 -->
-              <div class="sign-btn btn-glitch" id="signInBtn">
-                  <a href="{% url 'login' %}">
-                      Sign in
-                  </a>
-              </div>
-              <div class="sign-btn btn-glitch" id="signUpBtn">
-                  <a href="{% url 'signup' %}">
-                      Sign up
-                  </a>
-              </div>
-          {% endif %}
-      </div>
-
-        <div class="nav-icon" id="navIcon">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
+{% block content %}
+<section class="section" id="section1">
+  <div class="main-content">
+    <div class="main-image" id="mainImage">
+      <img src="{% static 'images/main.jpg' %}">
+    </div>
+    <div class="main-text" id="mainText">
+      <div class="text-mask">
+        <h1><span id="yellow">S</span>HOW<br>Y<span id="yellow">O</span>UR<br>MU<span id="yellow">SIC</span>TASTE
+        </h1>
       </div>
     </div>
+<<<<<<< HEAD
     <div class="container">
 
       <div id="lp">
@@ -185,9 +123,89 @@
         <li data-target="section5">Hire us</li>
       </ul>
     </nav>
+=======
+>>>>>>> dayoung
   </div>
+  <div class="search-box" id="searchBox">
+    <input type="search" placeholder="와 씨 그냥 집에 가고 싶다" />
+    <button><i class="fa-solid fa-magnifying-glass"></i></button>
+  </div>
+</section>
 
-  <script src="{% static 'js/main.js' %}"></script>
-</body>
+<section class="section" id="section2">
+  <div class="card-container">
+    <div class="card" data-index="0" data-link="{% url 'music_search' %}"
+      style="background-image: url('static/images/apple.png');">
+    </div>
+    <div class="card" data-index="1" data-link="{% url 'lyrics' %}"
+      style="background-image: url('static/images/apple.png');"></div>
+    <div class="card" data-index="2" data-link="{% url 'analyze' %}"
+      style="background-image: url('static/images/apple.png');">
+    </div>
+    <div class="card" data-index="3" data-link="{% url 'search_song' %}"
+      style="background-image: url('static/images/apple.png');">
+    </div>
+    <div class="card" data-index="4" data-link="page5.html" style="background-image: url('static/images/apple.png');">
+    </div>
+  </div>
+</section>
 
-</html>
+<section class="section" id="section3" data-answer="{{ quiz_song.title|escapejs|lower }}"
+        data-lyrics="{{ quiz_song.lylics|slice:':50' }}...">
+  <img id="carTrigger" src="{% static 'images/microbus.png' %}" alt="car" />
+
+  <div class="car-slide-content" id="carSlideContent">
+    <!-- 이 안쪽에 콘텐츠가 있어야 자동차 지나간 뒤 보임 -->
+    <div class="content-wrapper">
+      <div class="content-menu">
+        <button data-type="preference">🎧 음악 취향 검사</button>
+        <button data-type="quiz_song">🎤 가사 제목 맞추기</button>
+      </div>
+      <div class="content-display" id="section3Content">
+        <h2>왼쪽 메뉴에서 콘텐츠를 선택하세요</h2>
+      </div>
+    </div>  
+  </div>
+</section>
+
+<section class="section" id="section4">
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span id="closeModalBtn" class="close">&times;</span>
+      <h1>CONTACT</h1>
+      <h2><br></h2>
+      <h2><br></h2>
+      <form id="contactForm">
+        <div class="card-box">
+          <a href="#">
+            <div class="contact-card" id="dayoung"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="jinseop"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="sanghun"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="donggun"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="minsu"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="yonghwan"></div>
+          </a>
+        </div>
+
+        <button class="btn-glitch" type="submit">HOME</button>
+      </form>
+    </div>
+  </div>
+  <button class="btn-glitch" id="openModalBtn">CONTACT</button>
+</section>
+
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/main.js' %}"></script>
+{% endblock %}

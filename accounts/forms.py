@@ -78,6 +78,15 @@ class CustomUserChangeForm(UserChangeForm):
         if 'password' in self.fields:
             self.fields.pop('password')  # ✅ password 필드 제거
 
+<<<<<<< HEAD
+=======
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+        if CustomUser.objects.filter(username=username).exists():
+            raise ValidationError("이미 사용 중인 아이디입니다.")
+        return username
+
+>>>>>>> dayoung
     def clean_nickname(self):
         nickname = self.cleaned_data.get('nickname')
 
@@ -107,3 +116,19 @@ class CustomAuthenticationForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         self.fields['username'].label = 'ID'
         self.fields['password'].label = 'PASSWORD'
+<<<<<<< HEAD
+=======
+
+class PasswordResetForm(forms.Form):
+    new_password = forms.CharField(widget=forms.PasswordInput, label="새 비밀번호")
+    confirm_password = forms.CharField(widget=forms.PasswordInput, label="비밀번호 확인")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_pw = cleaned_data.get("new_password")
+        confirm_pw = cleaned_data.get("confirm_password")
+
+        if new_pw and confirm_pw and new_pw != confirm_pw:
+            raise forms.ValidationError("비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+        return cleaned_data
+>>>>>>> dayoung

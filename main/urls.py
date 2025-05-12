@@ -1,6 +1,11 @@
 from django.urls import path, include
 from . import views
+<<<<<<< HEAD
 from .views import preference_view
+=======
+from .views import preference_view, quiz_song_view
+from .views import preference_view, get_guguns # 메인 음악 취향 검사
+>>>>>>> dayoung
 
 
 urlpatterns = [
@@ -14,4 +19,10 @@ urlpatterns = [
     path('recommend/', include('recommendations.urls')), # recommendations 앱연결
     path('preference/', preference_view, name='preference'), # 메인 음악 취향 검사
     path("recommend_by_genre/", views.recommend_by_genre, name="recommend_by_genre"), # 메인 음악 취향 검사 추천 음악
+<<<<<<< HEAD
+=======
+    path('get_weather_genre/', views.get_weather_genre, name='get_weather_genre'), # 음악 취향 검사에서 날씨 조회
+    path('get_guguns/', get_guguns, name='get_guguns'), # 음악 취향 검사에서 날씨 조회
+    path('quiz_song/', quiz_song_view, name='quiz_song'), # 음악퀴즈
+>>>>>>> dayoung
 ]

@@ -1,17 +1,115 @@
+<<<<<<< HEAD
+=======
+/* ✅ 전체 컨테이너 */
+#preference-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  font-family: Arial, sans-serif;
+  color: white;
+}
+
+/* ✅ 질문 영역 중앙 정렬 */
+#question-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* ✅ 질문 텍스트 */
+.question {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* ✅ 답변 버튼 영역 */
+.answer-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+/* ✅ 답변 버튼 기본 스타일 */
+.answer-btn {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.answer-btn:hover {
+  transform: scale(1.05);
+}
+
+/* ✅ 선택된 버튼 스타일 */
+.answer-btn.selected {
+  font-weight: bold;
+  outline: 2px solid #00ffff;
+}
+
+/* ✅ 감정별 색상 클래스 */
+.strong-disagree { background-color: #8b0000; color: white; }
+.disagree         { background-color: #ff6347; color: white; }
+.neutral          { background-color: #808080; color: white; }
+.agree            { background-color: #1e90ff; color: white; }
+.strong-agree     { background-color: #006400; color: white; }
+
+/* ✅ 네비게이션 버튼 그룹 */
+.nav-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px; /* 간격 줄임 */
+  margin-top: 20px;
+}
+
+/* ✅ 이전/다음 버튼 스타일 */
+.nav-buttons button {
+  width: 140px;
+  height: 45px;
+  margin: 0;
+  background-color: #666; /* 밝은 회색 */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.nav-buttons button:hover {
+  background-color: #888;
+}
+
+/* ✅ 진행도 바 */
+>>>>>>> dayoung
 .progress-bar {
   width: 100%;
   height: 5px;
   background-color: #444;
+<<<<<<< HEAD
   margin-bottom: 20px;
 }
 
 .progress {
+=======
+  margin-top: 20px;
+}
+
+#progress {
+>>>>>>> dayoung
   height: 100%;
   background-color: #00ccff;
   width: 0%;
   transition: width 0.3s ease;
 }
 
+<<<<<<< HEAD
 .question {
   font-size: 24px;
   margin: 20px 0;
@@ -76,6 +174,69 @@
   margin-top: 20px;
   cursor: not-allowed;
   opacity: 0.5;
+=======
+/* ✅ 지역 선택 섹션 (질문 이후 등장) */
+#region-question {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* ✅ 셀렉트 박스 스타일 */
+#region-question select {
+  margin: 10px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+.region-question-hidden {
+  display: none;
+  margin-top: 30px;
+}
+
+/* ✅ 결과 출력 */
+#result {
+  margin-top: 30px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* ✅ 추천곡 리스트 */
+#recommend-songs {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.recommended-song {
+  cursor: pointer;
+  margin: 5px 0;
+  padding: 8px 12px;
+  background-color: #222;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.recommended-song:hover {
+  background-color: #333;
+}
+
+/* ✅ result-btn 정렬 및 상태 표시 */
+#result-btn {
+  width: 140px;
+  height: 45px;
+  background-color: #444;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  margin: 0;
+  cursor: pointer;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+>>>>>>> dayoung
 }
 
 #result-btn.active {
@@ -84,4 +245,35 @@
   opacity: 1;
 }
 
+<<<<<<< HEAD
 @import url('preference_styles.css');
+=======
+#result-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 다시하기 버튼 */
+.restart-btn {
+  background-color: #666;
+  color: white;
+  width: auto;
+  height: 40px; /* 버튼 높이 고정 */
+  line-height: 40px; /* 텍스트 수직 정렬 */
+  padding: 0 16px;
+  border: none;
+  border-radius: 6px;
+  margin-left: 10px;
+  cursor: pointer;
+  text-align: center;
+  vertical-align: middle;
+
+  /* 만약 flex를 쓸 경우에는 아래 둘 중 하나만 사용 */
+  display: inline-block;
+  font-size: 16px;
+}
+
+.restart-btn:hover {
+  background-color: #555;
+}
+>>>>>>> dayoung
