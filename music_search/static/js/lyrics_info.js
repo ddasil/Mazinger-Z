@@ -1,4 +1,4 @@
-window.onload = async function() {
+window.onload = async function () {
   const urlParams = new URLSearchParams(window.location.search);
   const artist = urlParams.get('artist');
   const title = urlParams.get('title');
@@ -53,15 +53,17 @@ async function fetchLyrics(artist, title) {
     translatedLyrics.en = Array.isArray(translations.en) ? translations.en.join('<br>') : (translations.en || '');
     translatedLyrics.ja = Array.isArray(translations.ja) ? translations.ja.join('<br>') : (translations.ja || '');
     translatedLyrics.zh = Array.isArray(translations.zh) ? translations.zh.join('<br>') : (translations.zh || '');
-    
 
-        // ✅ 이 줄 다음에 실제 저장 확인용 로그 추가!
+
+    // ✅ 이 줄 다음에 실제 저장 확인용 로그 추가!
     console.log("✅ 저장된 영어:", translatedLyrics.en);
     console.log("✅ 저장된 일본어:", translatedLyrics.ja);
     console.log("✅ 저장된 중국어:", translatedLyrics.zh);
 
 
     lyricsContent.innerHTML = translatedLyrics[translations.detected] || translatedLyrics.detected;
+
+    document.getElementById("loadingOverlay").style.display = "none";  // ✅ 로딩 종료
 
     // 번역이 끝난 후에 다음 코드 추가
     await fetch('/music/save-tagged-song/', {
@@ -73,19 +75,20 @@ async function fetchLyrics(artist, title) {
         lyrics: data.lyrics
       })
     })
-    .then(res => res.json())
-    .then(response => {
-      if (response.status === 'success') {
-        console.log("✅ 태그 저장 완료:", response.tags);
-      } else {
-        console.warn("⚠️ 태그 저장 실패:", response.error);
-      }
-    })
-    .catch(err => console.error("🔥 저장 요청 실패:", err));
+      .then(res => res.json())
+      .then(response => {
+        if (response.status === 'success') {
+          console.log("✅ 태그 저장 완료:", response.tags);
+        } else {
+          console.warn("⚠️ 태그 저장 실패:", response.error);
+        }
+      })
+      .catch(err => console.error("🔥 저장 요청 실패:", err));
 
   } catch (err) {
     console.error("🔥 가사 요청 또는 번역 실패:", err);
     lyricsContent.innerHTML = "⚠️ 가사 로딩 중 오류 발생!";
+    document.getElementById("loadingOverlay").style.display = "none";  // ✅ 실패 시도 닫기
   }
 }
 
@@ -133,4 +136,91 @@ function redirectSearch() {
   if (query) {
     window.location.href = `/music/?q=${encodeURIComponent(query)}`;
   }
+}
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  const micBtn = document.getElementById('micBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const searchInput = document.getElementById('searchInput');
+  let recognition = null;
+  let isManuallyStopped = false;
+
+  if (!micBtn || !stopBtn || !searchInput) return;
+
+  micBtn.addEventListener('click', () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("이 브라우저는 음성 인식을 지원하지 않습니다.");
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'ko-KR';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+    micBtn.style.display = "none";
+    stopBtn.style.display = "inline";
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      searchInput.value = transcript;
+      stopMicRecognitionUI();
+    };
+
+    recognition.onerror = (event) => {
+      if (!isManuallyStopped) {
+        alert("음성 인식 오류: " + event.error);
+      }
+      stopMicRecognitionUI();
+    };
+
+    recognition.onend = () => {
+      stopMicRecognitionUI();
+      isManuallyStopped = false;
+    };
+  });
+
+  stopBtn.addEventListener('click', () => {
+    if (recognition) {
+      isManuallyStopped = true;
+      recognition.stop();
+    }
+    stopMicRecognitionUI();
+  });
+
+  function stopMicRecognitionUI() {
+    micBtn.style.display = "inline";
+    stopBtn.style.display = "none";
+  }
+});
+
+
+document.getElementById('favoriteBtn').addEventListener('click', () => {
+  const title = document.querySelector('#infoContent h3')?.textContent?.replace('노래 제목 : ', '');
+  const artist = document.querySelector('#infoContent p')?.textContent?.replace('아티스트 :', '').trim();
+  const albumCover = document.getElementById('albumCover').src;
+
+  fetch('/music/toggle-favorite/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({ title, artist, albumCover })
+  })
+    .then(res => res.json())
+    .then(data => {
+      const btn = document.getElementById('favoriteBtn');
+      if (data.status === 'added') btn.textContent = '❤️';
+      else if (data.status === 'removed') btn.textContent = '🤍';
+    });
+});
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
 }
