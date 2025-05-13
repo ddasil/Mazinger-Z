@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <title>가사 및 곡 정보</title>
+  <link rel="stylesheet" href="{% static 'css/search.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+  <div class="search-container" style="margin: 20px auto 40px;">
+    <div class="input-wrapper">
+      <input type="text" id="searchInput" placeholder="검색어를 입력하세요" onfocus="showRecentKeywords()"
+        onblur="hideSuggestions()" autocomplete="off">
+      <button id="micBtn"><i class="fas fa-microphone"></i></button>
+      <button id="stopBtn" style="display: none;"><i class="fas fa-stop"></i></button>
+      <div id="suggestions"></div>
+      <div id="recentKeywords" style="display: none;"></div>
+    </div>
+    <button onclick="searchMusic()">🔍</button>
+  </div>
+
+
+  <div class="container" style="display: flex; min-height: 100vh; ">
+
+    <!-- 왼쪽: 영상 + 곡 정보 -->
+    <div id="infoSection" style="flex: 1; border-right: 1px solid #ccc; padding: 20px; overflow-y: auto;">
+
+      <!-- YouTube 영상 로딩 -->
+      <div id="youtubeWrapper" style="position: relative; width: 100%; padding-bottom: 50%;">
+        <div id="youtubeLoading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+          background: #000; color: white; display: flex; justify-content: center; align-items: center; z-index: 1;">
+          🎬 영상 로딩 중...
+        </div>
+        <iframe id="youtubePlayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;"
+          allowfullscreen></iframe>
+      </div>
+
+      <!-- 앨범 + 곡 정보 -->
+      <div style="display: flex; gap: 20px; flex-grow: 1; overflow: hidden; margin-top: 10px;">
+        <div style="flex: 1;">
+          <img id="albumCover" src="" alt="앨범 커버"
+            style="width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; background: #111;">
+        </div>
+        <div style="flex: 2; overflow: hidden;">
+          <h2>🎵 곡 정보
+            <button id="favoriteBtn"
+            {% if is_favorite %} data-initial="added"
+            {% else %} data-initial="removed" 
+            {%endif %}>
+              {% if is_favorite %}❤️{% else %}🤍{% endif %}
+            </button>
+          </h2>
+
+          <div id="infoContent">정보 로딩 중...</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 오른쪽: 가사 -->
+    <div id="lyricsSection" style="flex: 1; padding: 20px; max-height: 80vh; overflow-y: auto;">
+      <h2>📄 가사</h2>
+      <div class="translation-buttons">
+        <button onclick="translateLyrics('original')">원본</button>
+        <button onclick="translateLyrics('ko')">한국어</button>
+        <button onclick="translateLyrics('en')">영어</button>
+        <button onclick="translateLyrics('ja')">일본어</button>
+        <button onclick="translateLyrics('zh')">중국어</button>
+      </div>
+
+      <div id="lyricsContent" style="min-height: 300px; display: flex; justify-content: center; align-items: center;">
+        🎤 가사 로딩 중...
+      </div>
+    </div>
+
+  </div>
+
+  <script src="{% static 'js/lyrics_info.js' %}"></script>
+  <script>
+    const API_KEY = "{{ youtube_api_key }}";
+    const SONG_TITLE = "{{ title|escapejs }}";
+    const SONG_ARTIST = "{{ artist|escapejs }}";
+  </script>
+
+
+</body>
+
+</html>

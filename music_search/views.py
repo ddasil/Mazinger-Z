@@ -12,6 +12,12 @@ import openai
 import requests
 from bs4 import BeautifulSoup
 import lyricsgenius
+import re
+from .models import TaggedSong
+from django.contrib.auth.decorators import login_required
+from .models import FavoriteSong
+from .models import FullLyrics
+from django.db.models.functions import Lower
 
 
 # ✅ API 키 세팅
@@ -19,11 +25,16 @@ import lyricsgenius
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 GENIUS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
 genius = lyricsgenius.Genius(GENIUS_TOKEN, skip_non_songs=True, excluded_terms=["(Remix)", "(Live)"])
+genius.timeout = 15  # ✅ 추가
 
 # ✅ 메인 검색 페이지
 def search_view(request):
+    favorites = []
+    if request.user.is_authenticated:
+        favorites = FavoriteSong.objects.filter(user=request.user)
     return render(request, 'search.html', {
-        'youtube_api_key': settings.YOUTUBE_API_KEY
+        'youtube_api_key': settings.YOUTUBE_API_KEY,
+        'favorites': favorites
     })
 
 # ✅ GPT로 영상 제목 분석: 가수 / 곡명 추출
@@ -56,6 +67,31 @@ def analyze_title(request):
 
     return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
 
+# ✅ 여기에 넣어라
+def translate_to(language_name, cleaned_lyrics):
+    prompt = f"""
+    다음 노래 가사를 {language_name}로 번역해줘.
+
+    - 절대 요약하지 말고 모든 줄을 번역할 것
+    - 줄 순서와 줄바꿈은 그대로 유지할 것
+    - 결과는 문자열 하나로만 출력하고, 설명 없이 바로 시작할 것
+
+    가사:
+    {cleaned_lyrics}
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"🔥 번역 실패 ({language_name}):", e)
+        return ""
+
+
 # ✅ Genius API + 크롤링으로 가사 가져오기
 @csrf_exempt
 def get_lyrics(request):
@@ -64,39 +100,112 @@ def get_lyrics(request):
             body = json.loads(request.body)
             artist = body.get("artist")
             title = body.get("title")
-
-            print(f"🎤 가사 요청: artist={artist}, title={title}")
-
             if not artist or not title:
                 return JsonResponse({"error": "Missing artist or title"}, status=400)
 
+            # ✅ FullLyrics에 이미 저장된 경우 바로 반환
+            try:
+                existing = FullLyrics.objects.get(title=title, artist=artist)
+                return JsonResponse({
+                    "lyrics": existing.original,
+                    "ko_lyrics": existing.ko,
+                    "en_lyrics": existing.en,
+                    "ja_lyrics": existing.ja,
+                    "zh_lyrics": existing.zh,
+                })
+            except FullLyrics.DoesNotExist:
+                pass
+
+            # ✅ Genius API 호출
             song = genius.search_song(title, artist)
-            if not song or not song.url:
+            if not song or not song.lyrics:
                 return JsonResponse({"error": "No song found on Genius"}, status=404)
 
-            # 🕸️ 크롤링
-            res = requests.get(song.url)
-            soup = BeautifulSoup(res.text, 'html.parser')
-            lyrics_divs = soup.find_all("div", attrs={"data-lyrics-container": "true"})
-            raw_lyrics = "\n".join(div.get_text(separator="\n").strip() for div in lyrics_divs)
+            # ✅ 가사 정제
+            def clean_lyrics(raw):
+                skip_keywords = ["Contributors", "Translations", "Romanization", "English", "Français", "Deutsch", "Español"]
+                section_tags = ["[Chorus", "[Pre-Chorus", "[Verse", "[Bridge", "[Outro", "[Intro"]  # 괄호 열기까지 비교
 
-            # 🧼 메타데이터 제거 함수
-            def clean_lyrics(raw: str) -> str:
-                skip_keywords = [
-                    "Contributors", "Translations", "Romanization",
-                    "English", "Français", "Deutsch", "Español"
-                ]
                 lines = raw.splitlines()
-                filtered = [
-                    line.strip() for line in lines
-                    if line.strip() and not any(kw in line for kw in skip_keywords)
-                ]
-                return "\n".join(filtered).strip()
+                cleaned = []
+                for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    if any(kw in line for kw in skip_keywords):
+                        continue
+                    if any(line.startswith(tag) for tag in section_tags):
+                        continue
+                    cleaned.append(line)
+                return "\n".join(cleaned)
 
+            raw_lyrics = song.lyrics
             cleaned_lyrics = clean_lyrics(raw_lyrics)
 
+            # # ✅ GPT에게 모든 언어로 번역 요청
+            # translate_prompt = f"""
+            # 다음 가사를 한국어, 영어, 일본어, 중국어로 모두 번역해줘.
+
+            # - 줄 순서와 줄바꿈을 유지할 것
+            # - 절대 요약하지 말 것
+            # - 형식: {{
+            #     "ko": "...",
+            #     "en": "...",
+            #     "ja": "...",
+            #     "zh": "..."
+            # }}
+
+            # 가사:
+            # {cleaned_lyrics}
+            # """
+
+            # response = client.chat.completions.create(
+            #     model="gpt-3.5-turbo",
+            #     messages=[{"role": "user", "content": translate_prompt}],
+            #     temperature=0.3
+            # )
+
+            # # ✅ JSON 추출
+            # try:
+            #     raw_content = response.choices[0].message.content
+            #     match = re.search(r'\{[\s\S]*?\}', raw_content)
+            #     if not match:
+            #         raise ValueError("JSON 블록이 응답에 포함되지 않음")
+            #     translations = json.loads(match.group())
+            # except Exception as e:
+            #     print("🔥 JSON 파싱 실패:", e)
+            #     print("🔥 전체 응답 내용:", response.choices[0].message.content)
+            #     return JsonResponse({"error": "GPT 응답 파싱 실패", "detail": str(e)}, status=500)
+
+
+            # # ✅ 🔽 이 아래에 추가
+            # for lang in ['ko', 'en', 'ja', 'zh']:
+            #     if isinstance(translations.get(lang), dict):
+            #         translations[lang] = "\n".join(translations[lang].values())
+
+            # ✅ 언어별 GPT 번역 요청
+            ko = translate_to("한국어", cleaned_lyrics)
+            en = translate_to("영어", cleaned_lyrics)
+            ja = translate_to("일본어", cleaned_lyrics)
+            zh = translate_to("중국어", cleaned_lyrics)
+
+            # ✅ DB 저장
+            FullLyrics.objects.create(
+                title=title,
+                artist=artist,
+                original=cleaned_lyrics,
+                ko=ko,
+                en=en,
+                ja=ja,
+                zh=zh
+            )
+
             return JsonResponse({
-                "lyrics": cleaned_lyrics or "가사를 찾을 수 없습니다."
+                "lyrics": cleaned_lyrics,
+                "ko_lyrics": ko,
+                "en_lyrics": en,
+                "ja_lyrics": ja,
+                "zh_lyrics": zh,
             })
 
         except Exception as e:
@@ -106,84 +215,113 @@ def get_lyrics(request):
     return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
 
 
-@csrf_exempt
-def translate_lyrics(request):
-    if request.method == 'POST':
-        body = json.loads(request.body)
-        original_lyrics = body.get('lyrics', '')
+# @csrf_exempt
+# def translate_lyrics(request):
+#     if request.method == 'POST':
+#         body = json.loads(request.body)
+#         original_lyrics = body.get('lyrics', '')
 
-        if not original_lyrics:
-            return JsonResponse({"error": "No lyrics provided"}, status=400)
+#         if not original_lyrics:
+#             return JsonResponse({"error": "No lyrics provided"}, status=400)
 
-        try:
-            # 언어 감지
-            detect_prompt = f"""
-            다음 가사의 주된 언어가 무엇인지 알려줘. 답변은 Korean, English, Japanese, Chinese 중 하나로만.
-            가사:
-            {original_lyrics}
-            """
+#         try:
+#             # 언어 감지
+#             detect_prompt = f"""
+#             다음 가사의 주된 언어가 무엇인지 알려줘. 답변은 Korean, English, Japanese, Chinese 중 하나로만.
+#             가사:
+#             {original_lyrics}
+#             """
+#             detect_response = client.chat.completions.create(
+#                 model="gpt-3.5-turbo",
+#                 messages=[{"role": "user", "content": detect_prompt}],
+#                 temperature=0
+#             )
+#             detected_language = detect_response.choices[0].message.content.strip()
 
-            detect_response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": detect_prompt}],
-                temperature=0
-            )
-            detected_language = detect_response.choices[0].message.content.strip()
+#             # Step 2: 번역 대상 언어 만들기
+#             all_languages = {
+#                 'Korean': 'ko', 
+#                 'English': 'en', 
+#                 'Japanese': 'ja', 
+#                 'Chinese': 'zh'
+#                 }
+            
 
-            all_languages = {
-                'Korean': 'ko',
-                'English': 'en',
-                'Japanese': 'ja',
-                'Chinese': 'zh'
-            }
-            target_languages = {k: v for k, v in all_languages.items() if k != detected_language}
+#             lang_map = {
+#             'Korean': 'ko', 'English': 'en', 'Japanese': 'ja', 'Chinese': 'zh'
+#              }
+#             detected_code = lang_map.get(detected_language, 'unknown')
+#             if detected_code == 'unknown':
+#                 return JsonResponse({'error': 'Unsupported language detected'}, status=400)
 
-            # 번역 요청
-            translate_prompt = f"""
-            다음 가사를 {', '.join(target_languages.keys())}로 번역해줘.
-
-            **주의사항**:
-            - 반드시 JSON 포맷으로만 출력해.
-            - JSON 이외에 다른 텍스트(예: 설명, 인사말)는 절대 추가하지 마.
-            - 키는 "{list(target_languages.values())[0]}","{list(target_languages.values())[1]}","{list(target_languages.values())[2]}" 형태여야 해.
-
-            가사:
-            {original_lyrics}
-            """
-
-            translate_response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": translate_prompt}],
-                temperature=0.3
-            )
-
-            # 📌 추가할 부분
-            print("🔥 detect_response:", detect_response.choices[0].message.content)
-            print("🔥 translate_response:", translate_response.choices[0].message.content)
-
-            translations = json.loads(translate_response.choices[0].message.content)
-
-            # 📌 여기 추가해
-            if isinstance(translations.get('en'), dict):
-                translations['en'] = "\n".join(translations['en'].values())
-
-            if isinstance(translations.get('ja'), dict):
-                translations['ja'] = "\n".join(translations['ja'].values())
-
-            if isinstance(translations.get('zh'), dict):
-                translations['zh'] = "\n".join(translations['zh'].values())
+#             remaining_codes = [code for code in lang_map.values() if code != detected_code]
 
 
-            response_data = {
-                'detected': all_languages.get(detected_language, 'unknown'),
-                **translations
-            }
-            return JsonResponse(response_data)
 
-        except Exception as e:
-            print(f"🔥 번역 에러 발생: {e}")
-            return JsonResponse({"error": "번역 실패", "detail": str(e)}, status=500)
+#             # Step 3: 번역 프롬프트 생성
+#             translate_prompt = f"""
+#             다음 가사를 {', '.join(remaining_codes)}로 완전히 번역해줘.
+
+#             - 반드시 **모든 줄과 문장**을 번역할 것
+#             - **줄 순서와 형식을 그대로 유지**할 것 (줄바꿈 포함)
+#             - **절대 요약하지 마** (가사 전체를 빠짐없이 번역해야 함)
+#             - 설명, 예시, 제목, 인삿말 모두 제거
+#             - 출력은 반드시 JSON 형식이어야 하며, 다음과 같은 키만 사용할 것:{', '.join(remaining_codes)}
+#             - 값은 해당 언어로 전체 가사를 줄 단위로 번역한 문자열이어야 함 (line breaks 포함)
+#             - JSON 전체는 반드시 **중괄호 하나로 시작해서 하나로 끝나야 한다**. 여러 개의 JSON 블록으로 나누지 마.
+
+#             아래는 번역할 가사입니다:
+
+#             {original_lyrics}
+#             """
+
+#             translate_response = client.chat.completions.create(
+#                 model="gpt-3.5-turbo",
+#                 messages=[{"role": "user", "content": translate_prompt}],
+#                 temperature=0.3
+#             )
+
+#             # 📌 추가할 부분
+#             print("🔥 detect_response:", detect_response.choices[0].message.content)
+#             print("🔥 translate_response:", translate_response.choices[0].message.content)
+
+#             # ✅ JSON 문자열만 추출진섭추가가
+#             import re
+#             match = re.search(r'\{.*\}', translate_response.choices[0].message.content, re.DOTALL)
+#             if not match:
+#                 return JsonResponse({"error": "JSON 파싱 실패"}, status=500)
+
+#             translations = json.loads(match.group())
+#             #진섭추가끝
+
+#             # 📌 여기 추가해
+#             if isinstance(translations.get('en'), dict):
+#                 translations['en'] = "\n".join(translations['en'].values())
+
+#             if isinstance(translations.get('ja'), dict):
+#                 translations['ja'] = "\n".join(translations['ja'].values())
+
+#             if isinstance(translations.get('zh'), dict):
+#                 translations['zh'] = "\n".join(translations['zh'].values())
+
+
+#             response_data = {
+#                 'detected': detected_code,
+#                 'ko': translations.get('ko', ''),
+#                 'en': translations.get('en', ''),
+#                 'ja': translations.get('ja', ''),
+#                 'zh': translations.get('zh', '')
+#             }
+#             return JsonResponse(response_data)
+
+#         except Exception as e:
+#             print(f"🔥 번역 에러 발생: {e}")
+#             return JsonResponse({"error": "번역 실패", "detail": str(e)}, status=500)
         
+
+#     return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
+
 # YouTube 영상 ➔ mp3 파일 다운로드 
 @csrf_exempt
 def download_mp3(request):
@@ -280,6 +418,111 @@ def delete_mp3(request):
         except Exception as e:
             print("❗ 삭제 중 오류:", str(e))
             return JsonResponse({'success': False, 'error': str(e)})
+        
 
 
+# lyrics_info.html 처리 view 추가
 
+def lyrics_info_view(request):
+    artist = request.GET.get('artist', '').strip()
+    title = request.GET.get('title', '').strip()
+    video_id = request.GET.get('videoId')
+
+    if not artist or not title or not video_id:
+        return render(request, 'lyrics_info.html', {
+            'error': 'Missing artist, title, or videoId'
+        })
+
+    is_favorite = False
+
+    # ✅ 로그인 한 경우에만 쿼리 실행
+    if request.user.is_authenticated:
+        is_favorite = FavoriteSong.objects.annotate(
+            title_lower=Lower('title'),
+            artist_lower=Lower('artist')
+        ).filter(
+            user=request.user,
+            title_lower=title.lower(),
+            artist_lower=artist.lower()
+        ).exists()
+
+    return render(request, 'lyrics_info.html', {
+        'artist': artist,
+        'title': title,
+        'video_id': video_id,
+        'youtube_api_key': settings.YOUTUBE_API_KEY,
+        'is_favorite': is_favorite,
+    })
+
+
+# 태그 자동 추출 함수 생성
+def extract_tags_from_lyrics(lyrics):
+    prompt = f"""
+    아래는 노래 가사입니다. 이 가사를 바탕으로 일상생활과 관련된 주제 32가지를 추출해 주세요.
+    결과는 배열 형태의 한국어 태그 3개로만 주세요. 예: ["운동", "영화","산책"]
+    
+    가사:
+    {lyrics}
+    결과:"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0
+        )
+        result = response.choices[0].message.content.strip()
+        tags = eval(result) if result.startswith("[") else []
+        return tags[:3]
+    except Exception as e:
+        print("🔥 태그 추출 실패:", e)
+        return []
+    
+#저장용 API 뷰 함수
+@csrf_exempt
+def save_tagged_song_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        title = data.get("title")
+        artist = data.get("artist")
+        lyrics = data.get("lyrics")
+
+        if not (title and artist and lyrics):
+            return JsonResponse({"error": "Missing fields"}, status=400)
+        
+        # ✅ 이미 저장된 곡인지 확인
+        if TaggedSong.objects.filter(title=title, artist=artist).exists():
+            return JsonResponse({"status": "skipped", "message": "이미 저장된 곡입니다."})
+
+        tags = extract_tags_from_lyrics(lyrics)
+        if tags:
+            TaggedSong.objects.create(title=title, artist=artist, lyrics=lyrics, tags=tags)
+            return JsonResponse({"status": "success", "tags": tags})
+        else:
+            return JsonResponse({"error": "No tags generated"}, status=500)
+        
+
+@login_required
+@csrf_exempt
+def toggle_favorite(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        title = data.get('title')
+        artist = data.get('artist')
+        album_cover_url = data.get('albumCover', '')
+        video_id = data.get('videoId', '')  # ✅ 추가
+
+        favorite, created = FavoriteSong.objects.get_or_create(
+            user=request.user,
+            title=title,
+            artist=artist,
+            defaults={
+                'album_cover_url': album_cover_url,
+                'video_id': video_id  # ✅ 저장
+                }
+        )
+        if not created:
+            favorite.delete()
+            return JsonResponse({'status': 'removed'})
+        return JsonResponse({'status': 'added'})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
