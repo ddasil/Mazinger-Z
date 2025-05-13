@@ -4,13 +4,22 @@
 {% block title %}Mypage{% endblock %}
 
 {% block extra_head %}
+<!-- 📌 공통 스타일 시트 불러오기 -->
 <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+<!-- 📌 마이페이지 전용 스타일 시트 -->
 <link rel="stylesheet" href="{% static 'css/mypage.css' %}">
+
+<!-- ✅ CSRF 토큰을 JS에서 사용하기 위해 메타 태그로 삽입 -->
+<meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock %}
 
+
 {% block content %}
+<!-- 🔵 마이페이지 상단 프로필 영역 -->
 <div class="mypage-container">
   <div class="profile-box">
+    <!-- ✅ 현재 설정된 프로필 이미지 표시 (없으면 기본 이미지) -->
     {% if form.profile_picture.value %}
       <img src="{% static 'images/profiles/'|add:form.profile_picture.value %}" alt="Profile Picture" class="profile-picture">
     {% else %}
@@ -21,12 +30,14 @@
     <button id="openPasswordBtn" class="edit-profile-btn">프로필 수정</button>
   </div>
 
+  <!-- 🔗 내가 만든 가사 / 플레이리스트 바로가기 -->
   <div class="link-buttons">
     <a href="{% url 'lyrics_root' %}" class="mypage-link-btn">내가 만든 가사</a>
     <a href="/music/" class="mypage-link-btn">내 플레이 리스트</a>
   </div>
 </div>
 
+<!-- 🔐 비밀번호 확인 모달 -->
 <div id="passwordModal" class="modal">
   <div class="modal-content">
     <span class="modal-close" onclick="closePasswordModal()">&times;</span>
@@ -36,15 +47,21 @@
   </div>
 </div>
 
+<!-- ✏️ 프로필 수정 모달 -->
 <div id="editModal" class="modal">
   <div class="modal-content">
     <span class="modal-close" onclick="closeModal()">&times;</span>
     <h3>프로필 수정</h3>
+
+    <!-- 🔐 수정 폼 시작 -->
     <form method="POST" class="profile-form">
       {% csrf_token %}
+
+      <!-- ✅ 아이디(읽기 전용) -->
       <label>ID</label>
       <input type="text" name="username" id="id_username" value="{{ form.username.value }}" readonly>
 
+      <!-- ✅ 닉네임 입력 -->
       <label for="id_nickname">닉네임</label>
       <input type="text" name="nickname" id="id_nickname"
             value="{{ form.nickname.value|default_if_none:'' }}"
@@ -53,14 +70,17 @@
         <div class="nickname-error error" style="color:red">{{ form.nickname.errors.0 }}</div>
       {% endif %}
 
+      <!-- ✅ 생일 입력 -->
       <label for="id_birthday">생일</label>
       <input type="date" name="birthday" id="id_birthday"
              value="{{ form.birthday.value|date:'Y-m-d' }}">
 
+      <!-- ✅ 전화번호 입력 -->
       <label for="id_phone_number">전화번호</label>
       <input type="text" name="phone_number" id="id_phone_number"
              value="{{ form.phone_number.value|default_if_none:'' }}" placeholder="010-1234-5678">
 
+      <!-- ✅ 프로필 이미지 선택 -->
       <label for="id_profile_picture">프로필 사진 선택</label>
       <select name="profile_picture" id="id_profile_picture" class="form-control">
         {% for val, label in form.fields.profile_picture.choices %}
@@ -68,7 +88,15 @@
         {% endfor %}
       </select>
 
+      <!-- ✅ 실시간 미리보기 영역 -->
+      <div class="preview-box">
+        <img id="profilePreview" src="{% static 'images/profiles/' %}{{ form.profile_picture.value }}" class="profile-preview" alt="선택된 프로필 미리보기">
+      </div>
+
+      <!-- ✅ 비밀번호 hidden 처리 (수정 시 검증용) -->
       <input type="hidden" name="password" id="hiddenPassword">
+
+      <!-- ✅ 수정 버튼 (조건 충족해야 활성화됨) -->
       <button type="submit" id="submit-btn" disabled class="btn btn-primary">수정</button>
     </form>
   </div>
@@ -76,193 +104,8 @@
 {% endblock %}
 
 
-
 {% block extra_script %}
 <script src="{% static 'js/base.js' %}"></script>
+<script src="{% static 'js/mypage.js' %}"></script>
 
-<script>
-  let passwordModal, editModal;
-  let nicknameInput, birthdayInput, phoneInput, profileSelect, submitBtn;
-  let jsNicknameError, jsPhoneError;
-  let originalValues = {};
-
-  function openPasswordModal() {
-    passwordModal.classList.add("show");
-  }
-
-  function closePasswordModal() {
-    passwordModal.classList.remove("show");
-  }
-
-  function openModal() {
-    editModal.classList.add("show");
-    updateSubmitState();
-  }
-
-  function closeModal() {
-    editModal.classList.remove("show");
-  }
-
-  function validateNickname(nickname) {
-    return /^[\w가-힣]+$/.test(nickname);
-  }
-
-  function checkNicknameDuplicate(nickname, callback) {
-    fetch(`/accounts/check_nickname/?nickname=${encodeURIComponent(nickname)}`)
-      .then(res => res.json())
-      .then(data => {
-        nicknameInput.dataset.duplicate = data.duplicate;
-        callback();
-      })
-      .catch(err => {
-        console.error("중복 닉네임 확인 오류:", err);
-        nicknameInput.dataset.duplicate = "false";
-        callback();
-      });
-  }
-
-  function formatPhoneNumber(value) {
-    const cleaned = value.replace(/\D/g, "").slice(0, 11);
-    if (cleaned.length < 4) return cleaned;
-    if (cleaned.length < 8) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
-    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7)}`;
-  }
-
-  function validatePhoneNumber(phone) {
-    return /^010-\d{4}-\d{4}$/.test(phone);
-  }
-
-  function updateSubmitState() {
-    const currentValues = {
-      nickname: nicknameInput.value.trim(),
-      birthday: birthdayInput.value,
-      phone: phoneInput.value.trim(),
-      picture: profileSelect.value
-    };
-
-    const changed = Object.keys(currentValues).some(
-      key => currentValues[key] !== originalValues[key]
-    );
-
-    const nicknameValid = validateNickname(currentValues.nickname);
-    const phoneValid = validatePhoneNumber(currentValues.phone);
-    const isDuplicate = nicknameInput.dataset.duplicate === "true";
-
-    submitBtn.disabled = !(nicknameValid && phoneValid && !isDuplicate);
-
-    if (!nicknameValid) {
-      nicknameInput.style.border = "2px solid red";
-      jsNicknameError.innerText = "한글, 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.";
-    } else if (isDuplicate) {
-      nicknameInput.style.border = "2px solid red";
-      jsNicknameError.innerText = "이미 사용 중인 닉네임입니다.";
-    } else {
-      nicknameInput.style.border = "2px solid green";
-      jsNicknameError.innerText = "";
-    }
-
-    if (!phoneValid) {
-      phoneInput.style.border = "2px solid red";
-      jsPhoneError.innerText = "전화번호는 010-1234-5678 형식이어야 합니다.";
-    } else {
-      phoneInput.style.border = "2px solid green";
-      jsPhoneError.innerText = "";
-    }
-  }
-
-  function verifyPassword() {
-    const password = document.getElementById("confirmPassword").value;
-    if (password.trim() === "") {
-      alert("비밀번호를 입력하세요.");
-      return;
-    }
-
-    fetch("{% url 'verify_password' %}", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}"
-      },
-      body: JSON.stringify({ password: password })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          document.getElementById("hiddenPassword").value = password;
-          closePasswordModal();
-          openModal();
-        } else {
-          alert("비밀번호가 올바르지 않습니다.");
-        }
-      })
-      .catch(err => {
-        console.error("비밀번호 확인 오류:", err);
-        alert("서버 오류가 발생했습니다.");
-      });
-  }
-
-  window.verifyPassword = verifyPassword;
-  window.openModal = openModal;
-  window.closeModal = closeModal;
-  window.closePasswordModal = closePasswordModal;
-
-  document.addEventListener("DOMContentLoaded", function () {
-    passwordModal = document.getElementById("passwordModal");
-    editModal = document.getElementById("editModal");
-    const openBtn = document.getElementById("openPasswordBtn");
-
-    nicknameInput = document.getElementById("id_nickname");
-    birthdayInput = document.getElementById("id_birthday");
-    phoneInput = document.getElementById("id_phone_number");
-    profileSelect = document.getElementById("id_profile_picture");
-    submitBtn = document.getElementById("submit-btn");
-
-    // ✅ 닉네임 오류 메시지
-    jsNicknameError = document.createElement("p");
-    jsNicknameError.classList.add("error");
-    jsNicknameError.style.color = "red";
-    nicknameInput.insertAdjacentElement("afterend", jsNicknameError);
-
-    // ✅ 전화번호 오류 메시지
-    jsPhoneError = document.createElement("p");
-    jsPhoneError.classList.add("error");
-    jsPhoneError.style.color = "red";
-    phoneInput.insertAdjacentElement("afterend", jsPhoneError);
-
-    originalValues = {
-      nickname: "{{ user.nickname|escapejs }}",
-      birthday: "{{ user.birthday|date:'Y-m-d' }}",
-      phone: "{{ user.phone_number|default_if_none:''|escapejs }}",
-      picture: "{{ user.profile_picture|escapejs }}"
-    };
-
-    if (openBtn) openBtn.addEventListener("click", openPasswordModal);
-
-    nicknameInput.addEventListener("input", () => {
-      const value = nicknameInput.value.trim();
-      if (!validateNickname(value)) {
-        nicknameInput.dataset.duplicate = "false";
-        updateSubmitState();
-        return;
-      }
-      checkNicknameDuplicate(value, updateSubmitState);
-    });
-
-    birthdayInput.addEventListener("change", updateSubmitState);
-
-    phoneInput.addEventListener("input", () => {
-      const formatted = formatPhoneNumber(phoneInput.value);
-      phoneInput.value = formatted;
-      updateSubmitState();
-    });
-
-    profileSelect.addEventListener("change", updateSubmitState);
-
-    checkNicknameDuplicate(nicknameInput.value.trim(), updateSubmitState);
-  });
-</script>
-
-
-
-  
 {% endblock %}

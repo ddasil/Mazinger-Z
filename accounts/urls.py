@@ -11,4 +11,5 @@ urlpatterns = [
     path('find_password/', views.find_password, name='find_password'),
     path('reset_password/<str:uid>/', views.reset_password, name='reset_password'),
     path('check_username/', views.check_username, name='check_username'),  # AJAX 용
+
 ]

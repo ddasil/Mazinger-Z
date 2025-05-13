@@ -1,8 +1,9 @@
+# mypage/urls.py
 from django.urls import path, include
-from . import views
+from . import views  # 여기서 views.mypage 등 다 처리
 
 urlpatterns = [
-    path('', views.mypage, name='mypage'),  # 마이페이지 뷰 연결
-    path('music/', include('music_search.urls')), # music_search 앱 연결
-    path('verify-password/', views.verify_password, name='verify_password'),
+    path('', views.mypage, name='mypage'),
+    path('verify_password/', views.verify_password, name='verify_password'),  # ✅ 고쳤음
+    path('music/', include('music_search.urls')),
 ]
