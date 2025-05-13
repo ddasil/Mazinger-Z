@@ -108,3 +108,25 @@
 .modal.show {
   display: flex;
 }
+
+select,
+select option {
+  color: white;            /* 글자색 흰색 */
+  background-color: #333;  /* 드롭다운 배경 진한 회색 */
+}
+
+.profile-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-top: 10px;
+}
+
+.profile-preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-top: 10px;
+}

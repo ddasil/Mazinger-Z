@@ -1,6 +1,6 @@
 from django.urls import path, include
 from . import views
-from .views import preference_view, quiz_song_view
+from .views import preference_view, quiz_song_view, search_results_view
 from .views import preference_view, get_guguns # 메인 음악 취향 검사
 
 
@@ -18,4 +18,5 @@ urlpatterns = [
     path('get_weather_genre/', views.get_weather_genre, name='get_weather_genre'), # 음악 취향 검사에서 날씨 조회
     path('get_guguns/', get_guguns, name='get_guguns'), # 음악 취향 검사에서 날씨 조회
     path('quiz_song/', quiz_song_view, name='quiz_song'), # 음악퀴즈
+    path('search/', search_results_view, name='search_results'),#진섭이 추가 
 ]
