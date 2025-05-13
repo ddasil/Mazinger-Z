@@ -4,7 +4,7 @@ from django.urls import path
 from . import views
 from .views import delete_mp3
 from .views import save_tagged_song_view
-from .views import toggle_favorite
+# from .views import toggle_favorite
 
 urlpatterns = [
     path('', views.search_view, name='music_search'),
@@ -16,5 +16,5 @@ urlpatterns = [
     path('delete-mp3/', delete_mp3, name='delete_mp3'),
     path('lyrics-info/', views.lyrics_info_view, name='lyrics_info'),
     path('save-tagged-song/', save_tagged_song_view),
-    path('toggle-favorite/', toggle_favorite, name='toggle_favorite'),
+    # path('toggle-favorite/', toggle_favorite, name='toggle_favorite'),
 ]

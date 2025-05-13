@@ -15,7 +15,7 @@ import lyricsgenius
 import re
 from .models import TaggedSong
 from django.contrib.auth.decorators import login_required
-from .models import FavoriteSong
+# from .models import FavoriteSong
 from .models import FullLyrics
 from django.db.models.functions import Lower
 
@@ -29,13 +29,14 @@ genius.timeout = 15  # ✅ 추가
 
 # ✅ 메인 검색 페이지
 def search_view(request):
-    favorites = []
-    if request.user.is_authenticated:
-        favorites = FavoriteSong.objects.filter(user=request.user)
+    # favorites = []
+    # if request.user.is_authenticated:
+    #     favorites = FavoriteSong.objects.filter(user=request.user)
     return render(request, 'search.html', {
         'youtube_api_key': settings.YOUTUBE_API_KEY,
-        'favorites': favorites
+        # 'favorites': favorites,   ← ❌ 이 줄도 제거
     })
+
 
 # ✅ GPT로 영상 제목 분석: 가수 / 곡명 추출
 @csrf_exempt
@@ -435,16 +436,16 @@ def lyrics_info_view(request):
 
     is_favorite = False
 
-    # ✅ 로그인 한 경우에만 쿼리 실행
-    if request.user.is_authenticated:
-        is_favorite = FavoriteSong.objects.annotate(
-            title_lower=Lower('title'),
-            artist_lower=Lower('artist')
-        ).filter(
-            user=request.user,
-            title_lower=title.lower(),
-            artist_lower=artist.lower()
-        ).exists()
+    # # ✅ 로그인 한 경우에만 쿼리 실행
+    # if request.user.is_authenticated:
+    #     is_favorite = FavoriteSong.objects.annotate(
+    #         title_lower=Lower('title'),
+    #         artist_lower=Lower('artist')
+    #     ).filter(
+    #         user=request.user,
+    #         title_lower=title.lower(),
+    #         artist_lower=artist.lower()
+    #     ).exists()
 
     return render(request, 'lyrics_info.html', {
         'artist': artist,
@@ -502,27 +503,27 @@ def save_tagged_song_view(request):
             return JsonResponse({"error": "No tags generated"}, status=500)
         
 
-@login_required
-@csrf_exempt
-def toggle_favorite(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        title = data.get('title')
-        artist = data.get('artist')
-        album_cover_url = data.get('albumCover', '')
-        video_id = data.get('videoId', '')  # ✅ 추가
+# @login_required
+# @csrf_exempt
+# def toggle_favorite(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         title = data.get('title')
+#         artist = data.get('artist')
+#         album_cover_url = data.get('albumCover', '')
+#         video_id = data.get('videoId', '')  # ✅ 추가
 
-        favorite, created = FavoriteSong.objects.get_or_create(
-            user=request.user,
-            title=title,
-            artist=artist,
-            defaults={
-                'album_cover_url': album_cover_url,
-                'video_id': video_id  # ✅ 저장
-                }
-        )
-        if not created:
-            favorite.delete()
-            return JsonResponse({'status': 'removed'})
-        return JsonResponse({'status': 'added'})
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+#         favorite, created = FavoriteSong.objects.get_or_create(
+#             user=request.user,
+#             title=title,
+#             artist=artist,
+#             defaults={
+#                 'album_cover_url': album_cover_url,
+#                 'video_id': video_id  # ✅ 저장
+#                 }
+#         )
+#         if not created:
+#             favorite.delete()
+#             return JsonResponse({'status': 'removed'})
+#         return JsonResponse({'status': 'added'})
+#     return JsonResponse({'error': 'Invalid request'}, status=400)

@@ -108,3 +108,9 @@
 .modal.show {
   display: flex;
 }
+
+select,
+select option {
+  color: white;            /* 글자색 흰색 */
+  background-color: #333;  /* 드롭다운 배경 진한 회색 */
+}

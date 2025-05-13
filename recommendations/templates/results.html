@@ -11,127 +11,18 @@
     <meta charset="UTF-8">
     <title>추천 결과</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 0;
-            background-color: #000;
-            color: white;
-            padding-bottom: 80px;
-            overflow-x: hidden;
-        }
-
-        .wrapper.nav-open .side-menu {
-            right: 0;
-        }
-
-        .side-menu ul {
-            list-style: none;
-            text-align: right;
-            padding: 0;
-        }
-
-        .side-menu li {
-            font-size: 2rem;
-            padding: 20px 0;
-            cursor: pointer;
-        }
-
-        .side-menu li:hover {
-            color: #60a5fa;
-        }
-
-        .result-box {
-            max-width: 900px;
-            margin: 40px auto;
-            background-color: #1e1e1e;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 99;
-        }
-
-        .sec {
-            margin-bottom: 40px;
-        }
-
-        .items {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .item {
-            width: 120px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .item img {
-            width: 100%;
-            aspect-ratio: 3/4;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid #555;
-        }
-
-        .item p {
-            margin-top: 8px;
-            font-size: 15px;
-            line-height: 1.4;
-            min-height: 48px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .retry-button {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background-color: #6c63ff;
-            color: white;
-            padding: 10px 18px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .retry-button:hover {
-            background-color: #574fd6;
-        }
-
-        h1 {
-            text-align: center;
-            margin: 40px auto;
-            margin-top: 80px;
-        }
-
-        h2 {
-            margin-bottom: 16px;
-        }
-    </style>
     {% endblock %}
 
     {% block content %}
-</head>
-
-<body>
-    <div class="wrapper">
-        <div class="overlay"></div>
-
-
-        <h1>🎵 '{{ song }}'에 대한 추천</h1>
-
+    <link rel="stylesheet" href="{% static 'css/recommend.css' %}">
+    <div class="result-container">
+        <div class="result-title">
+            <h1><i class="fa-solid fa-headphones"></i> '{{ song }}' 관련 추천</h1>
+        </div>
         <div class="result-box">
             <!-- 책 추천 -->
             <div class="sec">
-                <h2>📚 책 추천</h2>
+                <h2><i class="fa-solid fa-book-open"></i> 책</h2>
                 <div class="items">
                     {% for book in books %}
                     <div class="item">
@@ -144,7 +35,7 @@
 
             <!-- 여행지 추천 -->
             <div class="sec">
-                <h2>🧳 여행지 추천</h2>
+                <h2><i class="fa-solid fa-person-walking-luggage"></i> 여행지</h2>
                 <div class="items">
                     {% for travel in travels %}
                     <div class="item">
@@ -154,119 +45,17 @@
                     {% endfor %}
                 </div>
             </div>
-
-            <div class="sec">
-                <a href="/recommend/" class="retry-button">🔁 다시 검색하기</a>
+            <div class="btn-sec">
+                <a href="/recommend/" class="retry-btn"><i class="fa-solid fa-magnifying-glass"></i> 다른 검색</a>
             </div>
+
         </div>
     </div>
     {% endblock %}
 
     {% block extra_script %}
-    <script>
-        const navIcon = document.getElementById('navIcon');
-        const wrapper = document.querySelector('.wrapper');
-        const menuLinks = document.querySelectorAll('.side-menu li');
-
-        navIcon.addEventListener('click', () => {
-            wrapper.classList.toggle('nav-open');
-        });
-
-        menuLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                const targetId = link.getAttribute('data-target');
-                document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
-                wrapper.classList.remove('nav-open');
-            });
-        });
-
-        document.addEventListener('click', (event) => {
-            const isMenuOpen = wrapper.classList.contains('nav-open');
-            const isNavIcon = event.target.closest('#navIcon');
-            const isSideMenu = event.target.closest('.side-menu');
-            if (isMenuOpen && !isNavIcon && !isSideMenu) {
-                wrapper.classList.remove('nav-open');
-            }
-        });
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const modal = document.getElementById("modal");
-            const closeModalBtn = document.getElementById("closeModalBtn");
-            const contactForm = document.getElementById("contactForm");
-            const openModalBtn = document.getElementById("openModalBtn");
-            const homeButton = document.querySelector('#contactForm button[type="submit"]');
-
-            closeModalBtn.addEventListener("click", () => {
-                modal.style.display = "none";
-            });
-
-            openModalBtn.addEventListener("click", () => {
-                modal.style.display = "flex";
-            });
-
-            homeButton.addEventListener("click", (event) => {
-                event.preventDefault();
-                window.location.reload(); // ✅ 그냥 새로고침
-            });
-
-            contactForm.reset();
-        });
-
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const $filter = document.querySelector('.svg-sprite');
-            const $turb = $filter.querySelector('#filter feTurbulence');
-            const turbVal = { val: 0.000001 };
-            const turbValX = { val: 0.000001 };
-
-            const glitchTimeline = () => {
-                const timeline = gsap.timeline({
-                    repeat: -1,
-                    repeatDelay: 2,
-                    paused: true,
-                    onUpdate: () => {
-                        $turb.setAttribute('baseFrequency', turbVal.val + ' ' + turbValX.val);
-                    }
-                });
-
-                timeline
-                    .to(turbValX, { val: 0.5, duration: 0.1 })
-                    .to(turbVal, { val: 0.02, duration: 0.1 })
-                    .set(turbValX, { val: 0.000001 })
-                    .set(turbVal, { val: 0.000001 })
-                    .to(turbValX, { val: 0.4, duration: 0.2 }, 0.4)
-                    .to(turbVal, { val: 0.002, duration: 0.2 }, 0.4)
-                    .set(turbValX, { val: 0.000001 })
-                    .set(turbVal, { val: 0.000001 });
-
-                return {
-                    start: () => timeline.play(0),
-                    stop: () => timeline.pause()
-                };
-            };
-
-            const btnGlitch = glitchTimeline();
-
-            document.querySelectorAll('.btn-glitch').forEach(button => {
-                button.addEventListener('mouseenter', () => {
-                    button.classList.add('btn-glitch-active');
-                    btnGlitch.start();
-                });
-                button.addEventListener('mouseleave', () => {
-                    button.classList.remove('btn-glitch-active');
-                    btnGlitch.stop();
-                });
-            });
-            window.addEventListener('pageshow', function (event) {
-                if (event.persisted) {
-                    window.location.reload();
-                }
-            });
-        });
-
-
-    </script>
-</body>
-{% endblock %}
+    <script src="{% static 'js/base.js' %}"></script>
+    <script src="{% static 'js/recommendations.js' %}"></script>
+    {% endblock %}
 
 </html>
