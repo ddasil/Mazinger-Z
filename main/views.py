@@ -10,6 +10,8 @@ from django.db.models import Q
 from chartsongs.models import ChartSong
 # from analyze.models import Song
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
+
 
 
 def main(request):
@@ -222,3 +224,26 @@ def quiz_song_view(request):
 
     quiz_song = random.choice(songs)
     return render(request, 'quiz_song.html', {'quiz_song': quiz_song})
+
+# 진섭이추가 
+def search_results_view(request):
+    query = request.GET.get('q', '')
+    page_number = request.GET.get('page')
+    results = []
+
+    if query:
+        results_queryset = ChartSong.objects.filter(
+            Q(title__icontains=query) |
+            Q(artist__icontains=query) |
+            Q(lylics__icontains=query)
+        ).distinct()
+        
+        paginator = Paginator(results_queryset, 10)  # 10개씩 나눔
+        results = paginator.get_page(page_number)
+
+    return render(request, 'search_results.html', {
+        'query': query,
+        'results': results,
+    })
+
+#추가끝끝

@@ -112,40 +112,70 @@ document.querySelectorAll('.content-menu button').forEach(button => {
           };
           document.body.appendChild(script3);
         });
-    } else if (type === 'quiz_song') {
-      fetch('/quiz_song/')
-        .then(res => res.text())
-        .then(html => {
-          container.innerHTML = html;
-          const containerEl = container.querySelector('.guess-container');
-          const submitButton = container.querySelector('#submitAnswer');
-          const retryButton = container.querySelector('#retryButton');
-          const answerInput = container.querySelector('#answerInput');
-          const lyricSnippet = container.querySelector('#lyricSnippet');
+    } 
+    
+     // 노래퀴즈
+    else if (type === 'quiz_song') {
+      function loadQuizContent() {
+        fetch('/quiz_song/')
+          .then(res => res.text())
+          .then(html => {
+            container.innerHTML = html;
 
-          if (!containerEl) return;
-          const correctAnswer = containerEl.getAttribute('data-answer');
+            const containerEl = container.querySelector('.quiz-container');
+            const submitButton = container.querySelector('#submitAnswer');
+            const retryButton = container.querySelector('#retryButton');
+            const answerInput = container.querySelector('#answerInput');
+            const lyricSnippet = container.querySelector('#lyricSnippet');
 
-          submitButton?.addEventListener('click', () => {
-            const userAnswer = answerInput.value.trim().toLowerCase();
-            if (userAnswer === correctAnswer) {
-              lyricSnippet.textContent = `✅ 정답입니다! (${correctAnswer})`;
-              lyricSnippet.style.color = "lightgreen";
-            } else {
-              lyricSnippet.textContent = `❌ 틀렸습니다! 정답: ${correctAnswer}`;
-              lyricSnippet.style.color = "salmon";
+            if (!containerEl) return;
+
+            const correctAnswer = containerEl.getAttribute('data-answer');
+            const originalLyrics = containerEl.getAttribute('data-lyrics');
+            let attemptCount = 0;
+
+            function resetState() {
+              attemptCount = 0;
+              lyricSnippet.innerHTML = originalLyrics;
+              lyricSnippet.style.color = '';
+              answerInput.value = '';
+              answerInput.style.display = 'inline-block';
+              submitButton.style.display = 'inline-block';
+              retryButton.style.display = 'none';
             }
-            answerInput.style.display = 'none';
-            submitButton.style.display = 'none';
-            retryButton.style.display = 'inline-block';
-          });
 
-          retryButton?.addEventListener('click', (event) => {
-            event.preventDefault();
-            location.reload();
+            submitButton?.addEventListener('click', () => {
+              const userAnswer = answerInput.value.trim().toLowerCase();
+              attemptCount++;
+
+              if (userAnswer === correctAnswer) {
+                lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: lightgreen;">✅ 정답입니다! (${correctAnswer})</span>`;
+                answerInput.style.display = 'none';
+                submitButton.style.display = 'none';
+                retryButton.style.display = 'inline-block';
+              } else {
+                if (attemptCount < 3) {
+                  lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: salmon;">❌ 틀렸습니다! (${attemptCount}/3)</span>`;
+                } else {
+                  lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: salmon;">❌ 기회를 전부 소진했습니다.<br>정답 : ${correctAnswer}</span>`;
+                  answerInput.style.display = 'none';
+                  submitButton.style.display = 'none';
+                  retryButton.style.display = 'inline-block';
+                }
+              }
+            });
+
+            retryButton?.addEventListener('click', (event) => {
+              event.preventDefault();
+              loadQuizContent();  // ✅ 새로 fetch해서 다시 로드
+            });
           });
-        });
+      }
+
+      loadQuizContent(); // ✅ 최초 실행
     }
+
+    // 노래퀴즈 끝
   });
 });
 
@@ -209,4 +239,30 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener('pageshow', function (event) {
     if (event.persisted) window.location.reload();
   });
+});
+
+// 진섭이출가
+// ✅ 검색 버튼 클릭 시 /search/?q=... 로 이동
+document.querySelectorAll('#searchBox').forEach(searchBox => {
+  const input = searchBox.querySelector('input');
+  const button = searchBox.querySelector('button');
+
+  if (button && input) {
+    // 클릭 시 검색
+    button.addEventListener('click', function (e) {
+      e.preventDefault();
+      const query = input.value.trim();
+      if (query) {
+        window.location.href = `/search/?q=${encodeURIComponent(query)}`;
+      }
+    });
+
+    // Enter 키 눌렀을 때도 검색
+    input.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        button.click();
+      }
+    });
+  }
 });

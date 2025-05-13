@@ -1493,10 +1493,10 @@ button[type="submit"]:hover {
   opacity: 0.8;
 }
 
+/* 노래퀴즈 */
 .quiz-container {
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.1);
   padding: 20px;
   border-radius: 12px;
   text-align: center;
@@ -1536,7 +1536,4 @@ button[type="submit"]:hover {
   cursor: pointer;
   width: auto;
 }
-
-
-
-/* 섹션3 끝 */
+/* 노래퀴즈 끝 */
