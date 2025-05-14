@@ -1,69 +1,54 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>음악 검색 with YouTube + Apple Music</title>
-  <link rel="stylesheet" href="{% static 'css/search.css' %}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-</head>
-<body>
-  <h1>음악 검색</h1>
+{% block title %}가사생성 페이지{% endblock %}
 
-  <div class="search-container">
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/search.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="search-container">
+  <h1 class="search-title">음악 검색</h1>
+  <div class="search-bar">
     <div class="input-wrapper">
-      <input 
-        type="text" 
-        id="searchInput" 
-        placeholder="검색어를 입력하세요"
-        onfocus="showRecentKeywords()" 
-
-        onblur="hideSuggestions()"
-        autocomplete="off"
-      >
+      <input type="text" id="searchInput" placeholder="youtube로 검색하기" onfocus="handleInputChange()"
+        onblur="hideSuggestions()" autocomplete="off">
       <button id="micBtn"><i class="fas fa-microphone"></i></button>
       <button id="stopBtn" style="display: none;"><i class="fas fa-stop"></i></button>
       <div id="suggestions"></div>
-      <div id="recentKeywords" style="display: none;"></div>
+      <!-- <div id="recentKeywords" style="display: none;"></div> -->
     </div>
-    <button onclick="searchMusic()">🔍</button>
+    <button class="search-btn" onclick="searchMusic()"><i class="fa-brands fa-youtube"></i></button>
   </div>
-
-    <!-- ✅ 즐겨찾기 + 검색결과를 감싸는 flex 박스 -->
-  <div style="display: flex; width: 100%; gap: 20px; padding: 20px; box-sizing: border-box;">
-    
-    <!-- 🎵 즐겨찾기 목록
-    <div id="favoritesList" style="width: 250px; border-right: 1px solid #ccc; padding-right: 15px;">
-      <h3>❤️ 좋아요</h3>
-      <ul id="favoriteItems" style="list-style: none; padding: 0; font-size: 14px;">
-        {% if favorites %}
-          {% for song in favorites %}
-          <li style="margin-bottom: 10px;">
-            <a href="{% url 'lyrics_info' %}?artist={{ song.artist|urlencode }}&title={{ song.title|urlencode }}&videoId={{ song.video_id }}" 
-              style="text-decoration: none; color: black;">
-              <strong>{{ song.title }}</strong><br>
-              <small>{{ song.artist }}</small>
-            </a>
-          </li>
-        {% endfor %}
-        {% else %}
-          <li>아직 즐겨찾기한 곡이 없습니다.</li>
-        {% endif %}
-      </ul>
-    </div> -->
-
-    <!-- 🔍 검색 결과 -->
-    <div style="flex: 1;">
-      <div id="results"></div>
-    </div>
+  <div class="results-box" style="display: none;">
+    <div id="results"></div>
   </div>
+</div>
 
 
-  <script src="{% static 'js/search.js' %}"></script>
-  <script>
-    const API_KEY = "{{ youtube_api_key }}";
+<!-- <div id="favoritesList" class="favorites-box">
+  <h3><i class="fa-solid fa-thumbs-up"></i> My Playlist</h3>
+  <ul id="favoriteItems">
+    {% if favorites %}
+    {% for song in favorites %}
+    <li>
+      <strong>{{ song.title }}</strong><br>
+      <small>- {{ song.artist }}</small>
+    </li>
+    {% endfor %}
+    {% else %}
+    <li>아직 즐겨찾기한 곡이 없습니다.</li>
+    {% endif %}
+  </ul>
+</div> -->
 
-  </script>
-</body>
-</html>
+
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/base.js' %}"></script>
+<script src="{% static 'js/search.js' %}"></script>
+<script>const API_KEY = "{{ youtube_api_key }}";</script>
+{% endblock %}

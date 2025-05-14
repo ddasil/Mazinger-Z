@@ -11,6 +11,11 @@ window.onload = function () {
     setTimeout(() => {
       youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
     }, 10); // 10ms 뒤에 iframe src 세팅 (렌더링 우선)
+    // iframe 로딩되면 로딩 문구 제거
+    document.getElementById("youtubePlayer").addEventListener("load", () => {
+      const loader = document.getElementById("youtubeLoading");
+      if (loader) loader.style.display = "none";
+    });
   } else {
     youtubePlayer.src = '';
     youtubePlayer.style.display = 'none';
@@ -35,7 +40,6 @@ window.onload = function () {
 
 async function fetchLyricsTranslateAndTag(artist, title) {
   const lyricsContent = document.getElementById('lyricsContent');
-  lyricsContent.innerHTML = "🎤 가사 로딩 중...";
 
   try {
     const res = await fetch('/music/lyrics/', {
@@ -79,15 +83,15 @@ async function fetchLyricsTranslateAndTag(artist, title) {
         lyrics: data.lyrics
       })
     })
-    .then(res => res.json())
-    .then(response => {
-      if (response.status === 'success') {
-        console.log("✅ 태그 저장 완료:", response.tags);
-      } else {
-        console.warn("⚠️ 태그 저장 실패:", response.error);
-      }
-    })
-    .catch(err => console.error("🔥 저장 요청 실패:", err));
+      .then(res => res.json())
+      .then(response => {
+        if (response.status === 'success') {
+          console.log("✅ 태그 저장 완료:", response.tags);
+        } else {
+          console.warn("⚠️ 태그 저장 실패:", response.error);
+        }
+      })
+      .catch(err => console.error("🔥 저장 요청 실패:", err));
 
   } catch (err) {
     console.error("🔥 가사 요청 또는 번역 실패:", err);
@@ -114,7 +118,7 @@ function fetchTrackFromApple(query) {
           <p><strong>장르 :</strong> ${track.primaryGenreName}</p>
         `;
       } else {
-        infoContent.innerHTML = "🎵 Apple Music에서 곡 정보를 찾을 수 없습니다.";
+        infoContent.innerHTML = "🎵 유튜브에서 곡 정보를 찾을 수 없습니다.";
       }
     })
     .catch(err => {

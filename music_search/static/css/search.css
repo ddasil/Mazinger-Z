@@ -1,23 +1,26 @@
-/* 전체 레이아웃 폰트 및 정렬 */
-body {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  margin: 0;
-  text-align: center;
-  /* overflow: hidden; */
-}
-
-/* 검색창과 버튼을 묶는 컨테이너 */
 .search-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
-  margin: 40px 0;
 }
 
-.input-wrapper {
-  position: relative;
+.search-title {
+  font-size: 3rem;
+  font-family: 'Raleway', sans-serif;
+  background: linear-gradient(45deg, yellow, #9d5d18);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 40px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
 }
 
 input[type="text"] {
@@ -37,16 +40,14 @@ button {
   cursor: pointer;
   line-height: 1;
   box-sizing: border-box;
-  border: 1px solid #ccc;
-  background-color: #f4f4f4;
+  border: none;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 button:hover {
   background-color: #ddd;
   transform: scale(1.05);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+
 }
 
 button:active {
@@ -72,51 +73,6 @@ button:active {
   cursor: pointer;
 }
 
-/* 왼쪽 고정 네비게이션 바 */
-#leftNavBar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100px;
-  height: 100vh;
-  background: #333;
-  border-right: 1px solid #444;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  z-index: 1002;
-}
-
-#leftNavBar button {
-  margin-bottom: 20px;
-  background: #333;
-  color: #fff;
-  border: 1px solid #444;
-  cursor: pointer;
-  font-size: 14px;
-  letter-spacing: 1px;
-  padding: 10px 0;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  width: 100%;
-  text-align: center;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-#leftNavBar button:hover {
-  background: #555;
-  border-color: #666;
-  transform: scale(1.05);
-}
-
-#leftNavBar button:active {
-  background: #444;
-  transform: scale(1);
-  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-}
 
 /* 자동완성 목록 박스 */
 #suggestions {
@@ -124,18 +80,19 @@ button:active {
   top: 100%;
   left: 0;
   width: 100%;
-  background: #fff;
-  border: 1px solid #ccc;
+  background-color: rgb(2, 2, 2);
+  border: none;
   z-index: 100;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   display: none;
   text-align: left;
+  color: white;
 }
 
 #suggestions div {
   padding: 10px;
   cursor: pointer;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid transparent;
 }
 
 #suggestions div:last-child {
@@ -143,49 +100,7 @@ button:active {
 }
 
 #suggestions div:hover {
-  background: #f5f5f5;
-}
-
-/* 최근 검색어 목록 박스 */
-#recentKeywords {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: #fff;
-  border: 1px solid #ccc;
-  z-index: 90;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  display: none;
-  text-align: left;
-}
-
-#recentKeywords div {
-  padding: 10px;
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
-}
-
-#recentKeywords div:last-child {
-  border-bottom: none;
-}
-
-#recentKeywords div:hover {
-  background: #f5f5f5;
-}
-
-#recentKeywords button {
-  width: 100%;
-  padding: 10px;
-  background: #fafafa;
-  border: none;
-  border-top: 1px solid #ddd;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-#recentKeywords button:hover {
-  background: #f0f0f0;
+  background-color: rgba(255, 255, 255, 0.01);
 }
 
 /* 검색 결과 영역 */
@@ -196,6 +111,7 @@ button:active {
   overflow-y: auto;
   max-height: 80vh;
   position: relative;
+  width: 100vw;
 }
 
 .video {
@@ -204,7 +120,7 @@ button:active {
   padding: 10px;
   margin-bottom: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 340px;
   transition: transform 0.2s ease;
 }
@@ -236,7 +152,7 @@ button:active {
   min-width: 360px;
   height: 100%;
   background: #fff;
-  box-shadow: -4px 0 10px rgba(0,0,0,0.3);
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.3);
   padding: 20px;
   overflow: hidden;
   transition: right 0.3s ease-in-out;
@@ -276,7 +192,8 @@ audio {
   position: relative;
 }
 
-.left-panel, .right-panel {
+.left-panel,
+.right-panel {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
@@ -304,7 +221,7 @@ audio {
   height: 100%;
   background: #fefefe;
   border-left: 1px solid #ddd;
-  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
   transition: left 0.3s ease-in-out;
   padding: 20px;
   overflow-y: auto;
@@ -327,7 +244,7 @@ audio {
   height: 100%;
   background: #fff;
   border-right: 1px solid #ccc;
-  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
   transition: left 0.3s ease-in-out;
   padding: 20px;
   overflow-y: auto;
@@ -369,7 +286,8 @@ audio {
   border: none;
   color: #d00;
   cursor: pointer;
-  box-shadow: none !important;  /* ✅ 그림자 제거 */
+  box-shadow: none !important;
+  /* ✅ 그림자 제거 */
   transition: color 0.2s;
 }
 
@@ -416,33 +334,12 @@ audio {
 }
 
 /* 가사 텍스트 박스 */
-#lyricsBox, .lyrics-content {
+#lyricsBox,
+.lyrics-content {
   white-space: pre-wrap;
   line-height: 1.6;
   padding: 10px;
   padding-bottom: 80px;
-}
-
-/* 번역 버튼 스타일 */
-.translation-buttons {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  justify-content: center;
-}
-
-.translation-buttons button {
-  padding: 6px 12px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background-color: #f4f4f4;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.translation-buttons button:hover {
-  background-color: #ddd;
 }
 
 /* 숨김 클래스 */
@@ -453,7 +350,8 @@ audio {
 .video-container {
   position: relative;
   width: 100%;
-  padding-bottom: 56.25%; /* 16:9 비율 => 9/16 = 0.5625 */
+  padding-bottom: 56.25%;
+  /* 16:9 비율 => 9/16 = 0.5625 */
   height: 0;
   overflow: hidden;
 }
@@ -470,31 +368,225 @@ audio {
   display: none;
 }
 
-
-/* 진섭 검색버튼 css추가 */
-.search-box {
+.input-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 15px;
-  background: #111;
-  border-radius: 20px;
-  box-shadow: 0 0 10px #444;
 }
 
-.search-box input {
-  padding: 8px 15px;
-  font-size: 16px;
+#searchInput {
+  padding: 10px 40px 10px 15px;
+  border-radius: 6px;
   border: none;
-  outline: none;
-  background: transparent;
+  background-color: #222;
   color: white;
+  width: 400px;
+  height: 44px;
 }
 
-.search-box button {
-  background: none;
+#micBtn,
+#stopBtn {
+  position: absolute;
+  right: 10px;
+  background-color: transparent;
   border: none;
   cursor: pointer;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  color: #aaa;
+  font-size: 18px;
+}
+
+#micBtn:hover,
+#stopBtn:hover {
+  transform: none;
+}
+
+.search-btn {
+  height: 44px;
+  padding: 0 16px;
+  border: none;
+  background-color: #444;
   color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.favorites-box {
+  position: fixed;
+  top: 10%;
+  right: 50px;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  width: 15%;
+  max-height: 90vh;
+  gap: 20px;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 10;
+  color: rgb(255, 255, 255);
+  border-radius: 1%;
+  overflow-y: auto;
+}
+
+.favorites-box h3 {
+  letter-spacing: 0.1rem;
+}
+
+.favorites-box ul {
+  list-style: none;
+  padding: 0;
+  font-size: 16px;
+}
+
+.favorites-box li {
+  margin-bottom: 15px;
+}
+
+.favorites-box li small {
+  margin: 5px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.results-box {
+  flex: 1;
+}
+
+
+/* 공통 레이아웃 */
+.info-container {
+  position: relative;
+  top: 8vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 92vh;
+  overflow: hidden;
+  z-index: 10;
+  padding: 1%;
+}
+
+.info-box {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* 유튜브 iframe (16:9 비율 유지) */
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  height: 0;
+}
+
+.video-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 앨범 커버와 곡 정보 */
+.album-info {
+  display: flex;
+  gap: 20px;
+  flex-grow: 1;
+  overflow: hidden;
+  margin-top: 30px;
+  width: 100%;
+  height: 40%;
+}
+
+.album-cover {
+  flex: 1;
+}
+
+.album-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.song-info {
+  flex: 2;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  letter-spacing: 0.05rem;
+  line-height: 2rem;
+}
+
+.info-title {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+
+#favoriteBtn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* 왼쪽 정보 섹션 */
+#infoSection {
+  flex: 1;
+  border-right: 1px solid #ccc;
+  padding: 20px;
+  color: white;
+  overflow-y: auto;
+  background-color: #000000;
+}
+
+/* 오른쪽 가사 섹션 */
+#lyricsSection {
+  flex: 1;
+  padding: 20px;
+  color: white;
+  text-align: center;
+  width: 100%;
+}
+
+#lyricsContent {
+  padding: 2rem;
+  border-bottom: white 1px solid;
+  max-height: 65vh;
+  overflow-y: auto;
+  letter-spacing: 0.1rem;
+  line-height: 2rem;
+}
+
+/* 번역 버튼 */
+.translation-buttons {
+  display: flex;
+  gap: 30px;
+  margin: 20px;
+  justify-content: center;
+}
+
+.translation-buttons button {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10%;
+  cursor: pointer;
+  color: #fff;
+  width: 10%;
+}
+
+.translation-buttons button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.material-symbols-outlined {
+  font-size: 1.8rem;
 }

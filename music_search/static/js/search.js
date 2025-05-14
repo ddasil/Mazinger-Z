@@ -16,11 +16,10 @@ function analyzeTitleWithAI(title) {
 function searchMusic() {
   const query = document.getElementById('searchInput').value;
   if (!query) return;
-  
+
   // ✅ 자동완성 강제 닫기
   hideSuggestions();
 
-  saveRecentKeyword(query);
 
   fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&videoCategoryId=10&maxResults=5&key=${API_KEY}`)
     .then(res => res.json())
@@ -28,6 +27,7 @@ function searchMusic() {
       const results = document.getElementById('results');
       results.innerHTML = "";
       if (data.items) {
+        document.querySelector('.results-box').style.display = 'block';
         data.items.forEach(item => {
           const videoId = item.id.videoId;
           const title = item.snippet.title;
@@ -45,6 +45,16 @@ function searchMusic() {
     })
     .catch(err => console.error("🔥 유튜브 검색 실패:", err));
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('searchInput');
+  input.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      searchMusic();
+    }
+  });
+});
 
 // ✅ 영상 클릭 → 페이지 이동
 function openPanel(videoId, originalTitle) {
@@ -65,15 +75,13 @@ function handleInputChange() {
   // ✅ 검색 중 자동완성 재실행 방지
   if (document.activeElement !== input) return;
   const query = input.value;
-  const recentDiv = document.getElementById('recentKeywords');
   const suggestionsDiv = document.getElementById('suggestions');
 
   if (!query.trim()) {
-    showRecentKeywords();
+    suggestionsDiv.style.display = 'none';
     return;
   }
-  
-  recentDiv.style.display = 'none';
+
   suggestionsDiv.innerHTML = '';
 
   fetch(`/music/autocomplete/?q=${encodeURIComponent(query)}`)
@@ -106,67 +114,28 @@ function handleSuggestions(data) {
   suggestionsDiv.style.display = 'block';
 }
 
-// ✅ 최근 검색어
-function saveRecentKeyword(keyword) {
-  let keywords = JSON.parse(localStorage.getItem("recentKeywords") || "[]");
-  keywords = [keyword, ...keywords.filter(k => k !== keyword)].slice(0, 10);
-  localStorage.setItem("recentKeywords", JSON.stringify(keywords));
-}
 
-function showRecentKeywords() {
-  const recentDiv = document.getElementById('recentKeywords');
-  const suggestionsDiv = document.getElementById('suggestions');
-  const query = document.getElementById('searchInput').value;
 
-  recentDiv.innerHTML = '';
-  if (!query.trim()) {
-    const keywords = JSON.parse(localStorage.getItem("recentKeywords") || "[]");
-    if (keywords.length > 0) {
-      keywords.forEach(kw => {
-        const row = document.createElement("div");
-        row.textContent = kw;
-        row.onclick = () => {
-          document.getElementById("searchInput").value = kw;
-          recentDiv.style.display = 'none';
-        };
-        recentDiv.appendChild(row);
-      });
-
-      // const clearBtn = document.createElement("div");
-      // clearBtn.textContent = "전체 삭제 🗑️";
-      // clearBtn.onclick = () => {
-      //   localStorage.removeItem("recentKeywords");
-      //   showRecentKeywords();
-      // };
-
-      // recentDiv.appendChild(clearBtn);
-      recentDiv.style.display = "block";
-      suggestionsDiv.style.display = "none";
-    }
-  }
-}
-
-window.onload = function() {
+window.onload = function () {
   const urlParams = new URLSearchParams(window.location.search);
   const q = urlParams.get('q');
-  
+
   if (q) {
     document.getElementById('searchInput').value = q;
     searchMusic();
   }
   document.getElementById('searchInput').addEventListener('input', handleInputChange);
 
-  document.getElementById('searchInput').addEventListener('keydown', function(event) {
+  document.getElementById('searchInput').addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
-  
+
       // ✅ 자동완성 박스 숨기기 (두 방식 병행)
       hideSuggestions();
-      document.getElementById('recentKeywords').style.display = 'none';
-  
+
       // ✅ 포커스 강제 해제 → 자동완성 div 강제 blur 처리
       document.getElementById('searchInput').blur();
-  
+
       // ✅ 검색 실행
       searchMusic();
     }
@@ -231,12 +200,9 @@ function stopMicRecognitionUI() {
 
 function hideSuggestions() {
   const suggestions = document.getElementById('suggestions');
-  const recent = document.getElementById('recentKeywords');
   if (suggestions) {
     suggestions.style.display = 'none';
     suggestions.innerHTML = ''; // ✅ 이 줄 추가
   }
-  if (recent) {
-    recent.style.display = 'none';
-  }
+
 }

@@ -1,163 +1,69 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>가사 및 곡 정보</title>
-  <link rel="stylesheet" href="{% static 'css/search.css' %}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
 
-<div class="search-container" style="margin: 20px auto 40px;">
-  <div class="input-wrapper">
-    <input 
-      type="text" 
-      id="searchInput" 
-      placeholder="검색어를 입력하세요"
-      onfocus="showRecentKeywords()" 
-      onblur="hideSuggestions()"
-      autocomplete="off"
-    >
-    <button id="micBtn"><i class="fas fa-microphone"></i></button>
-    <button id="stopBtn" style="display: none;"><i class="fas fa-stop"></i></button>
-    <div id="suggestions"></div>
-    <div id="recentKeywords" style="display: none;"></div>
+{% block title %}가사생성 페이지{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/search.css' %}">
+
+{% endblock %}
+
+{% block content %}
+
+<div class="info-container">
+  <div class="search-bar">
+    <div class="input-wrapper">
+      <input type="text" id="searchInput" placeholder="youtube로 검색하기"
+        onkeypress="if(event.key==='Enter'){redirectSearch();}" autocomplete="off">
+      <button id="micBtn"><i class="fas fa-microphone"></i></button>
+      <button id="stopBtn" style="display: none;"><i class="fas fa-stop"></i></button>
+      <div id="suggestions"></div>
+    </div>
+    <button class="search-btn" onclick="searchMusic()"><i class="fa-brands fa-youtube"></i></button>
   </div>
-  <button onclick="searchMusic()">🔍</button>
+  <div class="info-box">
+    <!-- 왼쪽 가사 영역 -->
+    <div id="infoSection">
+      <div class="video-wrapper">
+        <iframe id="youtubePlayer" allowfullscreen></iframe>
+      </div>
+
+      <div class="album-info">
+        <div class="album-cover">
+          <img id="albumCover" src="" alt="앨범 커버">
+        </div>
+        <div class="song-info">
+          <div class="info-title">
+            <h2><i class="fa-duotone fa-solid fa-record-vinyl"></i> 곡 정보 </h2>
+          </div>
+          <div id="infoContent">정보 로딩 중...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽 정보 영역 -->
+    <div id="lyricsSection">
+      <h2><i class="xi-paper"></i> 가사</h2>
+      <div class="translation-buttons">
+        <button onclick="translateLyrics('ko')">한국어</button>
+        <button onclick="translateLyrics('en')">영어</button>
+        <button onclick="translateLyrics('ja')">일본어</button>
+        <button onclick="translateLyrics('zh')">중국어</button>
+      </div>
+      <div id="lyricsContent"><i class="xi-spinner-3 xi-spin"></i> 가사 로딩 중...</div>
+    </div>
+  </div>
 </div>
 
+{% endblock %}
 
-<div class="container" style="display: flex; min-height: 100vh; ">
-
-  <!-- 왼쪽: 영상 + 곡 정보 -->
-  <div id="infoSection" style="flex: 1; border-right: 1px solid #ccc; padding: 20px; overflow-y: auto;">
-
-    <!-- YouTube 영상 로딩 -->
-    <div id="youtubeWrapper" style="position: relative; width: 100%; padding-bottom: 50%;">
-      <div id="youtubeLoading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-          background: #000; color: white; display: flex; justify-content: center; align-items: center; z-index: 1;">
-        🎬 영상 로딩 중...
-      </div>
-      <iframe id="youtubePlayer"
-              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;"
-              allowfullscreen></iframe>
-    </div>
-
-    <!-- 앨범 + 곡 정보 -->
-    <div style="display: flex; gap: 20px; flex-grow: 1; overflow: hidden; margin-top: 10px;">
-      <div style="flex: 1;">
-        <img id="albumCover" src="" alt="앨범 커버"
-             style="width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; background: #111;">
-      </div>
-      <div style="flex: 2; overflow: hidden;">
-        <h2>🎵 곡 정보 </h2>
-
-        <div id="infoContent">정보 로딩 중...</div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- 오른쪽: 가사 -->
-  <div id="lyricsSection" style="flex: 1; padding: 20px; max-height: 80vh; overflow-y: auto;">
-    <h2>📄 가사</h2>
-    <div class="translation-buttons">
-      <button onclick="translateLyrics('original')">원본</button>
-      <button onclick="translateLyrics('ko')">한국어</button>
-      <button onclick="translateLyrics('en')">영어</button>
-      <button onclick="translateLyrics('ja')">일본어</button>
-      <button onclick="translateLyrics('zh')">중국어</button>
-    </div>
-
-    <div id="lyricsContent" style="min-height: 300px; display: flex; justify-content: center; align-items: center;">
-      🎤 가사 로딩 중...
-    </div>
-  </div>
-
-</div>
-
-<script>
-  function searchMusic() {
-    const query = document.getElementById('searchInput').value.trim();
-    if (query) {
-      window.location.href = `/search/?q=${encodeURIComponent(query)}`;
-    }
-  }
-
-  // ✅ Enter 키로도 이동
-  document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('searchInput');
-    input.addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        searchMusic();
-      }
-    });
-  });
-</script>
-
+{% block extra_script %}
+<script src="{% static 'js/base.js' %}"></script>
+<script src="{% static 'js/search.js' %}"></script>
 <script src="{% static 'js/lyrics_info.js' %}"></script>
-<!-- <script src="{% static 'js/search.js' %}"></script> -->
-<script>
-  const API_KEY = "{{ youtube_api_key }}";
-</script>
-
-<script>
-  // iframe 로딩되면 로딩 문구 제거
-  document.getElementById("youtubePlayer").addEventListener("load", () => {
-    const loader = document.getElementById("youtubeLoading");
-    if (loader) loader.style.display = "none";
-  });
-</script>
-
-
+<script>const API_KEY = "{{ youtube_api_key }}";</script>
 <script>
   const SONG_TITLE = "{{ title|escapejs }}";
   const SONG_ARTIST = "{{ artist|escapejs }}";
 </script>
-
-<!-- <script>
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('favoriteBtn');
-    if (!btn) return;
-
-    // ✅ 초기 하트 상태
-    const initial = btn.getAttribute('data-initial');
-    btn.textContent = initial === 'added' ? '❤️' : '🤍';
-
-    // ✅ 클릭 이벤트 등록
-    btn.addEventListener('click', () => {
-      const albumCover = document.getElementById('albumCover').src;
-      const videoId = new URLSearchParams(window.location.search).get('videoId'); 
-
-      fetch('/music/toggle-favorite/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-          title: SONG_TITLE,
-          artist: SONG_ARTIST,
-          albumCover,
-          videoId 
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        btn.textContent = data.status === 'added' ? '❤️' : '🤍';
-      });
-    });
-
-  });
-</script> -->
-
-</body>
-</html>
+{% endblock %}
