@@ -138,7 +138,7 @@ const translatedLyrics = {
 function translateLyrics(lang) {
   const lyricsContent = document.getElementById('lyricsContent');
   const selectedLyrics = translatedLyrics[lang] || `⚠️ 해당 언어 가사가 없습니다.`;
-  lyricsContent.innerHTML = `<p class="lyrics-content">${selectedLyrics}</p>`;
+  lyricsContent.innerHTML = `<p>${selectedLyrics}</p>`;
 }
 
 function redirectSearch() {
