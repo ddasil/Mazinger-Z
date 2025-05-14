@@ -1,0 +1,130 @@
+.board-wrapper {
+    position: relative;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 30px;
+    border-radius: 12px;
+}
+
+.category-filter {
+    justify-content: flex-start;
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-left: 20px;
+}
+
+.category-filter a {
+    padding: 8px 18px;
+    background-color: #333;
+    color: white;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 0 0 2px transparent;
+}
+
+.category-filter a.active,
+.category-filter a:hover {
+    background-color: #ffcc00;
+    color: black;
+    font-weight: bold;
+    box-shadow: inset 0 0 0 2px #000;
+}
+
+.post-list {
+    list-style: none;
+    padding: 0;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.post-list li {
+    background: #1f1f1f;
+    margin-bottom: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.post-title {
+    color: #ffc107;
+    font-size: 1.05rem;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.post-title small {
+    color: #aaa;
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 6px;
+}
+
+.post-none{
+    color: white;
+}
+
+.post-meta {
+    font-size: 0.85rem;
+    color: white;
+    margin-top: 8px;
+}
+
+.post-link {
+    text-decoration: none;
+    display: block;
+    color: inherit;
+}
+
+.post-link li {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.post-link:hover li {
+    background-color: #2a2a2a;
+}
+
+.write-button-wrapper {
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-right: 10px;
+}
+
+.board-container {
+    width: 90%;
+    max-width: 800px;
+    margin: 40px auto;
+    background-color: #272727;
+    padding: 30px;
+    border-radius: 20px;
+    z-index: 10;
+    position: relative;
+}
+
+.board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    gap: 20px;
+    padding: 0 20px;
+}
+
+.sub-button {
+    padding: 8px 20px;
+    background-color: #ffcc00;
+    color: black;
+    font-weight: bold;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+.sub-button:hover {
+    background-color: #ffdb4d;
+}
