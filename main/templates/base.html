@@ -41,29 +41,35 @@
       <div class="right-box">
         <div class="sign-box">
           {% if user.is_authenticated %}
-              <!-- 로그인된 경우에만 로그아웃 및 마이페이지 버튼을 표시 -->
-              <div class="sign-btn btn-glitch" id="logOutBtn">
-                <a href="{% url 'logout' %}">
-                    Log out
-                </a>
-              </div>
-              <div class="sign-btn btn-glitch" id="myPageBtn">
-                  <a href="{% url 'mypage' %}">
-                      My Page
-                  </a>
-              </div>
+          <!-- 로그인된 경우에만 로그아웃 및 마이페이지 버튼을 표시 -->
+          <div class="sign-btn btn-glitch" id="myPageBtn">
+            <a class="mypageBtn-content" href="{% url 'mypage' %}">
+              {% if user.profile_picture %}
+              <img src="{% static 'images/profiles/'|add:user.profile_picture %}" alt="Profile Picture"
+                class="profile-picture">
+              {% else %}
+              <img src="{% static 'images/logo-black.png' %}" alt="Default Picture" class="profile-picture">
+              {% endif %}
+              <p class="nickname-display">{{ user.nickname }}</p>
+            </a>
+          </div>
+          <div class="sign-btn btn-glitch" id="logOutBtn">
+            <a href="{% url 'logout' %}">
+              Log out
+            </a>
+          </div>
           {% else %}
-              <!-- 로그인 안 된 경우 로그인 및 회원가입 버튼을 표시 -->
-              <div class="sign-btn btn-glitch" id="signInBtn">
-                  <a href="{% url 'login' %}">
-                      Sign in
-                  </a>
-              </div>
-              <div class="sign-btn btn-glitch" id="signUpBtn">
-                  <a href="{% url 'signup' %}">
-                      Sign up
-                  </a>
-              </div>
+          <!-- 로그인 안 된 경우 로그인 및 회원가입 버튼을 표시 -->
+          <div class="sign-btn btn-glitch" id="signInBtn">
+            <a href="{% url 'login' %}">
+              Sign in
+            </a>
+          </div>
+          <div class="sign-btn btn-glitch" id="signUpBtn">
+            <a href="{% url 'signup' %}">
+              Sign up
+            </a>
+          </div>
           {% endif %}
         </div>
         <div class="nav-icon" id="navIcon">

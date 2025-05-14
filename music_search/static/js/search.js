@@ -134,7 +134,10 @@ window.onload = function () {
       hideSuggestions();
 
       // ✅ 포커스 강제 해제 → 자동완성 div 강제 blur 처리
-      document.getElementById('searchInput').blur();
+      document.getElementById('searchInput').addEventListener('focusout', () => {
+        setTimeout(() => hideSuggestions(), 100);
+      });
+
 
       // ✅ 검색 실행
       searchMusic();

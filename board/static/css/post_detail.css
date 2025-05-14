@@ -66,10 +66,12 @@
 }
 
 .post-description {
-  white-space: pre-line;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
   line-height: 1.8;
   font-size: 1.1rem;
-  color: #eee;
+  max-width: 100%;
 }
 
 /* 좋아요 버튼 */
@@ -85,4 +87,59 @@
 
 .btn-like:hover {
   background-color: #666;
+}
+
+/* 댓글 */
+.comment-section {
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 1px solid #444;
+}
+
+/* 댓글/답글 공통 */
+.comment,
+.reply {
+  margin: 10px 0;
+  background-color: #2a2a2a;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.reply {
+  margin-left: 20px;
+  background-color: #1f1f1f;
+}
+
+/* 답글 버튼 */
+.reply-btn {
+  font-size: 0.8rem;
+  margin-left: 8px;
+  background: transparent;
+  color: #ccc;
+  border: none;
+  cursor: pointer;
+}
+
+/* 대댓글 작성 폼 */
+.reply-form {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  resize: none;
+}
+
+.btn-submit {
+  margin-top: 10px;
+  background-color: #444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
 }

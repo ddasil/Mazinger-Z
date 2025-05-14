@@ -31,6 +31,7 @@ urlpatterns = [
     path('recommend/', include('recommendations.urls')), # recommendations 앱연결
     path('accounts/', include('accounts.urls')),
     path('board/', include('board.urls')), #board 앱 연결
+    path('support/', include('support.urls')), #고객센터
 
 
 ]

@@ -36,9 +36,19 @@ class PostSong(models.Model):
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')  # ✅ 대댓글용
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # 🔁 대댓글 구현용 자기참조
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+
+    def __str__(self):
+        return f"{self.user.nickname}: {self.text[:20]}"
+
+    @property
+    def is_reply(self):
+        return self.parent is not None
 
 class PostLike(models.Model):  # ✅ 명확한 모델명
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_likes')

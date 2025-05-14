@@ -35,8 +35,9 @@
 
   <!-- 본문 -->
   <div class="post-body">
-    <p class="post-description">{{ post.description }}</p>
+    <pre class="post-description">{{ post.description }}</pre>
   </div>
+
 
   <!-- 좋아요 -->
   {% if user.is_authenticated %}
@@ -53,9 +54,46 @@
     </form>
   {% endif %}
 
+  <!-- 댓글 섹션 -->
+  <div class="comment-section">
+    <h3>댓글</h3>
+
+    {% for comment in post.comments.all %}
+      {% if not comment.parent %}
+        <div class="comment">
+          <strong>{{ comment.user.nickname }}</strong>: {{ comment.text }}
+          <button class="reply-btn" data-id="{{ comment.id }}">답글</button>
+
+          <!-- 대댓글 목록 -->
+          {% for reply in comment.replies.all %}
+            <div class="reply">
+              ↳ <strong>{{ reply.user.nickname }}</strong>: {{ reply.text }}
+            </div>
+          {% endfor %}
+
+          <!-- 대댓글 폼 -->
+          <form method="post" action="{% url 'comment_reply' comment.id %}" class="reply-form hidden" id="reply-form-{{ comment.id }}">
+            {% csrf_token %}
+            <input type="text" name="text" placeholder="답글을 입력하세요" required>
+            <button type="submit">작성</button>
+          </form>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    <!-- 댓글 작성 -->
+    <form method="post" action="" id="commentForm">
+      {% csrf_token %}
+      {{ comment_form.text }}
+      {{ comment_form.parent }}
+      <button type="submit">댓글 달기</button>
+    </form>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block extra_script %}
   <script src="{% static 'js/base.js' %}"></script>
+  <script src="{% static 'js/post_detail.js' %}"></script>
 {% endblock %}

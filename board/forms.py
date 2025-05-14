@@ -1,7 +1,7 @@
 # board/forms.py
 
 from django import forms
-from .models import Post
+from .models import Post, Comment
 
 # 🎯 게시글 작성 폼 정의 (Post 모델 기반)
 class PostForm(forms.ModelForm):
@@ -14,3 +14,13 @@ class PostForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '제목 입력'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': '설명 입력'}),
         }
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['text', 'parent']  # ✅ parent 필드 포함
+        widgets = {
+            'text': forms.Textarea(attrs={'rows': 2}),
+            'parent': forms.HiddenInput()
+        }
+

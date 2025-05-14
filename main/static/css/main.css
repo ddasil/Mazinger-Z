@@ -1623,3 +1623,32 @@ button[type="submit"]:hover {
   color: white;
   text-decoration: none;
 }
+
+
+#myPageBtn {
+  max-width: 60vw;
+  height: 8vh;
+  overflow: hidden;
+}
+
+.mypageBtn-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  white-space: nowrap;
+  gap: 15px;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+}
+
+.mypageBtn-content img {
+  width: 28px;
+  height: 28px;
+}
+
+.profile-picture {
+  width: 50%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 50%;
+}
