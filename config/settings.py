@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "music_search", 
     "recommendations", #추천
     "chartsongs", # 인기차트 크롤링
+    'board', # 게시판
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}글쓰기{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/post_form.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="post-form-wrapper">
+    <div class="post-form-container">
+      <h1 class="post-form-title">새 게시글 작성</h1>
+
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="id_title">제목</label>
+        {{ form.title }}
+
+        <label for="id_description">설명</label>
+        {{ form.description }}
+
+        <label for="id_thumbnail">썸네일 이미지</label>
+        {{ form.thumbnail }}
+
+        <button type="submit" class="btn-submit">등록하기</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

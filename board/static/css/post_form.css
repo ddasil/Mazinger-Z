@@ -1,0 +1,65 @@
+.post-form-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 100px;  /* 헤더와 겹치지 않도록 */
+  width: 100%;
+}
+
+.post-form-container {
+  background-color: #222;
+  padding: 40px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px; /* ✅ 가로 최대 폭 제한 */
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.post-form-title {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+label {
+  display: block;
+  margin: 20px 0 10px;
+  font-weight: bold;
+  color: #fff;
+}
+
+input[type="text"],
+textarea,
+input[type="file"] {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  background-color: #000;
+  color: white;
+  font-size: 1rem;
+  border: 1px solid #444;
+  box-sizing: border-box;
+}
+
+input[type="text"]::placeholder,
+textarea::placeholder {
+  color: #aaa;
+}
+
+.btn-submit {
+  display: block;
+  margin: 30px auto 0;
+  padding: 12px 30px;
+  background-color: transparent;
+  color: white;
+  border: 1px solid #fff;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-submit:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}

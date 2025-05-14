@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}플레이리스트 게시판{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'css/post_list.css' %}">
+{% endblock %}
+
+{% block content %}
+  <!-- 중앙 정렬을 위한 래퍼 -->
+  <div class="board-wrapper">
+    <div class="board-container">
+
+      <!-- 🔽 상단 제목 + 글쓰기 버튼 -->
+      <div class="board-header">
+        <h1 class="board-title">Shared Playlists</h1>
+
+        {% if user.is_authenticated %}
+          <a href="{% url 'post_create' %}" class="btn-write">글쓰기</a>
+        {% endif %}
+      </div>
+
+      <!-- 게시글 목록 -->
+      {% for post in posts %}
+        <div class="post-card">
+          <!-- ✅ 기본 이미지 처리: 항상 .thumbnail.url 사용 (default는 models.py에서 지정) -->
+          {% if post.thumbnail.name == "thumbnails/default.png" %}
+            <img src="/media/thumbnails/default.png" alt="기본 썸네일" class="thumbnail">
+          {% else %}
+            <img src="{{ post.thumbnail.url }}" alt="썸네일" class="thumbnail">
+          {% endif %}
+
+
+
+          <div class="post-info">
+            <h2 class="post-title"> <!-- 게시글 목록에서 상세 페이지로 링크 연결 -->
+              <a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a> 
+            </h2>
+            <p class="post-description">{{ post.description }}</p>
+            <p class="post-meta">
+              {{ post.user.username }} · {{ post.created_at|date:"Y년 n월 j일 g:i A" }}
+            </p>
+          </div>
+        </div>
+      {% empty %}
+        <p class="no-posts">아직 게시글이 없습니다.</p>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_script %}
+  <script src="{% static 'js/base.js' %}"></script>
+{% endblock %}
+

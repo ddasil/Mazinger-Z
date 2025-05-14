@@ -1,0 +1,88 @@
+.post-detail-container {
+  max-width: 850px;
+  margin: 60px auto;
+  padding: 30px;
+  background-color: #1c1c1c;
+  color: white;
+  border-radius: 12px;
+}
+
+/* 상단 버튼들 */
+.post-detail-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.btn-back,
+.btn-write {
+  padding: 8px 16px;
+  color: white;
+  background: #333;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.btn-back:hover,
+.btn-write:hover {
+  background-color: #555;
+}
+
+/* 제목 + 썸네일 */
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.title-area {
+  flex: 1;
+}
+
+.post-title {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.post-meta {
+  color: #bbb;
+  font-size: 0.9rem;
+}
+
+/* 썸네일 이미지 */
+.post-thumbnail {
+  width: 120px;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* 본문 내용 */
+.post-body {
+  margin-top: 30px;
+}
+
+.post-description {
+  white-space: pre-line;
+  line-height: 1.8;
+  font-size: 1.1rem;
+  color: #eee;
+}
+
+/* 좋아요 버튼 */
+.btn-like {
+  padding: 10px 20px;
+  margin-top: 20px;
+  background: #444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-like:hover {
+  background-color: #666;
+}

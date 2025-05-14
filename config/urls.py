@@ -30,6 +30,7 @@ urlpatterns = [
     path('music/', include('music_search.urls')), # music_search 앱 연결
     path('recommend/', include('recommendations.urls')), # recommendations 앱연결
     path('accounts/', include('accounts.urls')),
+    path('board/', include('board.urls')), #board 앱 연결
 
 
 ]
