@@ -1,32 +1,119 @@
-/* ✅ 중앙 정렬을 위한 전체 래퍼 */
-.board-wrapper {
+/* ✅ 전체 레이아웃 */
+.board-wrapper.with-sidebar {
   display: flex;
-  justify-content: center;   /* 가로 중앙 정렬 */
-  padding: 60px 20px;
+  justify-content: space-between;
+  gap: 40px;
+  align-items: flex-start;
+  padding: 60px 20px 60px 80px; /* ← 왼쪽 여백 확보 */
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-/* ✅ 실제 컨텐츠 박스 */
 .board-container {
-  width: 100%;
-  max-width: 800px;
+  flex: 1;
+  max-width: 700px; /* ✅ 기존 800보다 줄임 */
+  margin-top: 80px;
+  min-width: 0; /* flex-shrink 방지 */
 }
 
-/* ✅ 아래는 기존 그대로 유지 */
-.board-title {
+.board-sidebar {
+  width: 280px;
   color: white;
-  text-align: center;
+  background-color: #1c1c1c;
+  padding: 20px;
+  border-radius: 12px;
+  overflow-y: auto;
+  max-height: 80vh;
+  min-width: 260px;
+  max-width: 300px;
+  margin-top: 80px;
+}
+
+/* ✅ 사이드바 내부 영역 */
+.sidebar-section {
   margin-bottom: 30px;
 }
 
+.sidebar-section h3 {
+  font-size: 1rem;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding-left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.sidebar-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid #333;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* ✅ 게시판 헤더 */
+.board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow: visible;
+  width: 100%;
+}
+
+.board-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+  flex-grow: 1;
+}
+
+/* ✅ 글쓰기 버튼 */
+.btn-write {
+  background-color: #333;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-left: 20px;
+  white-space: nowrap;
+}
+
+.btn-write:hover {
+  background-color: #555;
+}
+
+/* ✅ 게시글 카드 */
+.post-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .post-card {
+  position: relative;  /* ✅ 스크랩 버튼 위치 기준 */
   background-color: #1a1a1a;
   padding: 16px;
   border-radius: 12px;
-  margin-bottom: 20px;
+  margin-top: 30px;
+  margin-bottom: 30px;
   display: flex;
   gap: 16px;
   align-items: flex-start;
   box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1);
+}
+
+.post-card-link:hover .post-card {
+  background-color: #2a2a2a;
+  transition: background-color 0.2s ease;
 }
 
 .thumbnail {
@@ -71,7 +158,7 @@
   margin-top: 40px;
 }
 
-/* ✅ 글쓰기 버튼 */
+/* ✅ 공용 제출 버튼 */
 .btn-submit {
   background-color: #ff5e5e;
   color: white;
@@ -83,7 +170,7 @@
   font-size: 1rem;
 }
 
-/* ✅ 입력 필드 스타일 */
+/* ✅ 입력 필드 공통 스타일 */
 input[type="text"],
 textarea {
   width: 100%;
@@ -93,4 +180,39 @@ textarea {
   border-radius: 6px;
   background-color: #222;
   color: white;
+}
+
+/* 스크랩버튼 */
+.scrap-form {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.btn-scrap {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+
+.btn-scrap:hover {
+  transform: scale(1.1);
+}
+
+.scrap-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+.btn-scrap {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }

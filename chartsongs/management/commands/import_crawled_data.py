@@ -34,9 +34,6 @@ def analyze_lyrics_emotions(lyrics: str) -> dict:
     아래는 노래 가사입니다. 이 가사에 대해 다음 10가지 감정에 대해 0~1 점수로 분석해 주세요:
     감정: 사랑, 즐거움, 열정, 행복, 슬픔, 외로움, 그리움, 놀람, 분노, 두려움
 
-    가사:
-    {lyrics}
-
     감성 분석 결과를 JSON 형식으로 반환해주세요.
     예시: 
     {{
@@ -45,6 +42,9 @@ def analyze_lyrics_emotions(lyrics: str) -> dict:
       "행복": 0.4,
       "열정": 0.7
     }}
+
+    가사:
+    {lyrics}
     """
     try:
         response = client.chat.completions.create(
@@ -60,11 +60,14 @@ def analyze_lyrics_emotions(lyrics: str) -> dict:
 
 def extract_keywords_from_lyrics(lyrics):
     prompt = f"""
-    아래는 노래 가사입니다. 이 가사에서 중요한 키워드 7개를 한국어로 추출해줘.
-    - 출력 형식: ["단어1", "단어2", ..., "단어7"]
-    - 설명 없이 JSON 배열만 출력해줘
+    Generate 7 Korean hashtag-style keywords based on the mood, context, emotional tone, time, or place of the following song lyrics.
 
-    가사:
+    - All keywords must be in **Korean**.
+    - Output only a JSON array like: ["이별", "운동", "새벽", "혼자듣기좋은", "감성", "비오는날", "클럽", "우울", "트렌디", "클럽", "봄", "드라이빙"]
+    
+    Output only a JSON array like: ["tag1", "tag2", ..., "tag7"]
+
+    Lyrics:
     {lyrics}
     """
     try:

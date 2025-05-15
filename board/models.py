@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
@@ -20,9 +19,28 @@ class Post(models.Model):
         return self.title
 
     @property
-    def like_count(self):  # ✅ post_likes는 PostLike의 related_name
+    def like_count(self):
         return self.post_likes.count()
-    like_count.fget.short_description = '좋아요 수'  # ✅ admin list_display용
+    like_count.fget.short_description = '좋아요 수'
+
+    @property
+    def scrap_count(self):
+        return self.scrap_set.count()
+    scrap_count.fget.short_description = '스크랩 수'
+
+
+class PostScrap(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='scrap_set')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('post', 'user')
+        verbose_name = '게시글 스크랩'
+        verbose_name_plural = '게시글 스크랩 목록'
+
+    def __str__(self):
+        return f"{self.user.nickname} 📌 {self.post.title}"
 
 
 class PostSong(models.Model):
@@ -36,12 +54,9 @@ class PostSong(models.Model):
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')  # ✅ 대댓글용
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-
-    # 🔁 대댓글 구현용 자기참조
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
 
     def __str__(self):
         return f"{self.user.nickname}: {self.text[:20]}"
@@ -50,7 +65,8 @@ class Comment(models.Model):
     def is_reply(self):
         return self.parent is not None
 
-class PostLike(models.Model):  # ✅ 명확한 모델명
+
+class PostLike(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_likes')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -62,3 +78,13 @@ class PostLike(models.Model):  # ✅ 명확한 모델명
 
     def __str__(self):
         return f"{self.user.nickname} → {self.post.title}"
+
+# 최근본 게시물
+class PostRecentView(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    viewed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'post')
+        ordering = ['-viewed_at']
