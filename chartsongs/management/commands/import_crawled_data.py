@@ -533,6 +533,11 @@ def process_row(row):
     # ✅ 가사 + genius ID + 발매일
     lyrics, genius_id, release_date = fetch_lyrics_and_metadata(title, artist)
 
+    # ✅ genius_id 중복 확인
+    if genius_id and ChartSong.objects.filter(genius_id=genius_id).exists():
+        print(f"⛔ 중복 genius_id 건너뜀: {title} - {artist}")
+        return f"⛔ SKIP (중복 genius_id): {title} - {artist}"
+
     # ✅ 감정 태그 + 키워드 분석 (가사 있는 경우만)
     emotion_tags, keywords = [], []
     if lyrics:
