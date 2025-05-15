@@ -1,41 +1,39 @@
+# ✅ 필요한 모듈들 import
 import os
 import json
 import requests
-from openai import OpenAI
-from decouple import config
-import requests
-from bs4 import BeautifulSoup
-import lyricsgenius
-from decouple import config
+from openai import OpenAI  # OpenAI GPT API
+from decouple import config  # .env 파일로부터 키 불러오기
+from bs4 import BeautifulSoup  # HTML 파싱
+import lyricsgenius  # Genius API
 import re, time
 from datetime import datetime
-import requests
-from decouple import config
 from urllib.parse import quote_plus
 import pandas as pd
-from decouple import config
-import spotipy
+import spotipy  # Spotify API
 from spotipy.oauth2 import SpotifyClientCredentials
 
-# ✅ 장르 캐시 딕셔너리 정의 (get_genre에서 사용됨)
+# ✅ 장르 캐시 딕셔너리 (반복 요청 줄이기 위함)
 genre_cache = {}
 
-# ✅ OpenAI 클라이언트
+# ✅ 외부 API 설정
 GENIUS_TOKEN = config("GENIUS_ACCESS_TOKEN")
 genius = lyricsgenius.Genius(GENIUS_TOKEN, skip_non_songs=True, remove_section_headers=True)
+
 SPOTIFY_CLIENT_ID = config('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = config('SPOTIFY_CLIENT_SECRET')
 LASTFM_API_KEY = config('LASTFM_API_KEY')
-client = OpenAI(api_key=config("OPENAI_API_KEY"))
 
+# ✅ OpenAI 클라이언트 생성
+gpt_client = OpenAI(api_key=config("OPENAI_API_KEY"))
+
+# ✅ Spotify 클라이언트 생성
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-    client_id=config("SPOTIFY_CLIENT_ID"),
-    client_secret=config("SPOTIFY_CLIENT_SECRET")
+    client_id=SPOTIFY_CLIENT_ID,
+    client_secret=SPOTIFY_CLIENT_SECRET
 ))
 
-
-
-# ✅ 감성 분석 (GPT 기반)
+# ✅ GPT로 감성 분석 요청 (0~1 점수)
 def analyze_lyrics_emotions(lyrics: str) -> dict:
     prompt = f"""
     아래는 노래 가사입니다. 이 가사에 대해 다음 10가지 감정에 대해 0~1 점수로 분석해 주세요:
@@ -45,15 +43,10 @@ def analyze_lyrics_emotions(lyrics: str) -> dict:
     {lyrics}
 
     감성 분석 결과를 JSON 형식으로 반환해주세요.
-    예시: {{
-      "사랑": 0.8,
-      "슬픔": 0.2,
-      "행복": 0.4,
-      "열정": 0.7
-    }}
+    예시: {{"사랑": 0.8, "슬픔": 0.2}}
     """
     try:
-        response = client.chat.completions.create(
+        response = gpt_client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.6,
@@ -64,7 +57,7 @@ def analyze_lyrics_emotions(lyrics: str) -> dict:
         print("🔥 감성 분석 오류:", e)
         return {"error": str(e)}
 
-# ✅ 감성 점수 정규화 (합이 100%)
+# ✅ 점수를 백분율(%)로 정규화
 def normalize_emotion_scores(raw_scores: dict) -> dict:
     if "error" in raw_scores:
         return raw_scores
@@ -73,7 +66,7 @@ def normalize_emotion_scores(raw_scores: dict) -> dict:
         return raw_scores
     return {k: round((v / total) * 100, 2) for k, v in raw_scores.items()}
 
-# ✅ 키워드 추출 (GPT 기반)
+# ✅ GPT로 가사 키워드 7개 추출 (한국어)
 def extract_keywords_from_lyrics(lyrics):
     prompt = f"""
     아래는 노래 가사입니다. 이 가사에서 중요한 키워드 7개를 한국어로 추출해줘.
@@ -84,7 +77,7 @@ def extract_keywords_from_lyrics(lyrics):
     {lyrics}
     """
     try:
-        response = client.chat.completions.create(
+        response = gpt_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0
@@ -95,58 +88,7 @@ def extract_keywords_from_lyrics(lyrics):
         print("❌ 키워드 추출 실패:", e)
         return []
 
-
-
-
-# ✅ LastFM 기반 장르 추출
-def get_lastfm_genre(title, artist):
-    try:
-        res = requests.get("http://ws.audioscrobbler.com/2.0/",
-            params={
-                "method": "track.getTopTags",
-                "artist": artist,
-                "track": title,
-                "api_key": config("LASTFM_API_KEY"),
-                "format": "json"
-            })
-        tags = res.json().get('toptags', {}).get('tag', [])
-        return ', '.join([tag['name'] for tag in tags[:2]]) if tags else ''
-    except:
-        return ''
-
-# ✅ 장르 정규화 (영문 → 한글 통일)
-
-GENRE_MAP = {
-    'k-pop': '댄스', 'k-rap': '랩/힙합', 'k-ballad': '발라드', 'k-rock': '록/메탈',
-    'soundtrack': 'OST', 'pop': '팝', 'r&b': '알앤비', 'hip hop': '랩/힙합',
-    'indie': '인디', 'edm': '일렉트로닉', 'electronic': '일렉트로닉', 'house': '하우스',
-    'techno': '테크노', 'jazz': '재즈', 'blues': '블루스', 'folk': '포크',
-    'classical': '클래식', 'reggae': '레게'
-}
-
-
-
-
-def normalize_genre(genre):
-    if pd.isna(genre) or not genre:
-        return '기타'
-    genre_parts = [g.strip().lower() for g in genre.split(',')]
-    for g in genre_parts:
-        if g in GENRE_MAP:
-            return GENRE_MAP[g]
-    # 매핑 안 되는 경우 → 원래 영문 장르 그대로 반환 (기타로 덮어쓰지 않음)
-    return genre
-
-def get_spotify_genre(title, artist):
-    try:
-        res = sp.search(q=f"{title} {artist}", type='track', limit=1)
-        track = res['tracks']['items'][0]
-        artist_id = track['artists'][0]['id']
-        artist_info = sp.artist(artist_id)
-        return ', '.join(artist_info.get('genres', []))
-    except:
-        return ''
-
+# ✅ Last.fm API 기반 장르 추출 (보조 용도)
 def get_lastfm_genre(title, artist):
     try:
         res = requests.get("http://ws.audioscrobbler.com/2.0/",
@@ -157,6 +99,37 @@ def get_lastfm_genre(title, artist):
     except:
         return ''
 
+# ✅ 다양한 장르명 표기를 통일시키기 위한 매핑 테이블
+GENRE_MAP = {
+    'k-pop': '댄스', 'k-rap': '랩/힙합', 'k-ballad': '발라드', 'k-rock': '록/메탈',
+    'soundtrack': 'OST', 'pop': '팝', 'r&b': '알앤비', 'hip hop': '랩/힙합',
+    'indie': '인디', 'edm': '일렉트로닉', 'electronic': '일렉트로닉', 'house': '하우스',
+    'techno': '테크노', 'jazz': '재즈', 'blues': '블루스', 'folk': '포크',
+    'classical': '클래식', 'reggae': '레게'
+}
+
+# ✅ 위 장르 매핑 테이블 기반 정규화 함수
+def normalize_genre(genre):
+    if pd.isna(genre) or not genre:
+        return '기타'
+    genre_parts = [g.strip().lower() for g in genre.split(',')]
+    for g in genre_parts:
+        if g in GENRE_MAP:
+            return GENRE_MAP[g]
+    return genre  # 매핑 안된 장르는 그대로 반환
+
+# ✅ Spotify API로 장르 추출
+def get_spotify_genre(title, artist):
+    try:
+        res = sp.search(q=f"{title} {artist}", type='track', limit=1)
+        track = res['tracks']['items'][0]
+        artist_id = track['artists'][0]['id']
+        artist_info = sp.artist(artist_id)
+        return ', '.join(artist_info.get('genres', []))
+    except:
+        return ''
+
+# ✅ 멜론 웹페이지에서 장르 추출 (크롤링)
 def get_melon_genre(song_id):
     try:
         res = requests.get(f"https://www.melon.com/song/detail.htm?songId={song_id}",
@@ -169,9 +142,9 @@ def get_melon_genre(song_id):
     except:
         return ''
 
+# ✅ 지니 웹페이지에서 장르 추출 (크롤링)
 def get_genie_genre(song_id):
     try:
-        # f-string으로 URL을 잘 생성하도록 수정
         res = requests.get(f"https://www.genie.co.kr/detail/songInfo?xgnm={song_id}",
                            headers={"User-Agent": "Mozilla/5.0"})
         soup = BeautifulSoup(res.text, "html.parser")
@@ -184,6 +157,7 @@ def get_genie_genre(song_id):
         print(f"❌ {e}")
         return ''
 
+# ✅ 여러 플랫폼에서 장르 추출을 시도하고 캐시 처리까지 포함한 함수
 def get_genre(song_id, title, artist, platform):
     key = (title.lower(), artist.lower())
     if key in genre_cache:
@@ -197,7 +171,7 @@ def get_genre(song_id, title, artist, platform):
         genre = get_melon_genre(song_id)
         print("melon →", genre)
     if not genre:
-        genre = get_genie_genre(song_id)  # 여기에서 제대로 song_id가 전달되는지 확인
+        genre = get_genie_genre(song_id)
         print("genie →", genre)
     if not genre:
         genre = get_spotify_genre(title, artist)
@@ -209,6 +183,7 @@ def get_genre(song_id, title, artist, platform):
     genre_cache[key] = genre or ''
     return genre or ''
 
+# ✅ Genius API를 통한 가사 추출
 def get_lyrics(title, artist, country="global"):
     try:
         song = genius.search_song(title, artist)
@@ -219,8 +194,8 @@ def get_lyrics(title, artist, country="global"):
     except Exception as e:
         print("❌ get_lyrics 실패:", e)
         return "❌ 가사 없음"
-    
-# 🎯 Genius 웹페이지에서 발매일 크롤링 (새 구조 대응)
+
+# ✅ Genius 웹페이지에서 발매일자 크롤링
 def get_release_date_from_genius_url(song_url):
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
@@ -236,31 +211,26 @@ def get_release_date_from_genius_url(song_url):
             ]):
                 if any(char.isdigit() for char in text):
                     try:
-                        # ✅ 문자열 날짜를 datetime.date 객체로 변환
-                        parsed = datetime.strptime(text, "%b. %d, %Y").date()
-                        return parsed
+                        return datetime.strptime(text, "%b. %d, %Y").date()
                     except ValueError:
-                        pass  # 구조는 맞지만 변환 안되면 넘어감
-
+                        pass
     except Exception as e:
         print("❌ 발매일 크롤링 실패:", e)
-
     return None
 
-# ✅ 가사에서 불필요한 메타 정보 제거
+# ✅ 가사 내 불필요한 정보 정리 및 정제
 def clean_lyrics(raw_lyrics: str) -> str:
     lines = raw_lyrics.strip().splitlines()
 
-    # ✅ 1. 첫 줄이 설명문 (5단어 이상, [Verse] 아님)이면 제거
+    # 첫 줄이 설명문일 경우 제거 (예: 유튜브 링크 등)
     if lines and len(lines[0].split()) >= 5 and not re.match(r"\[.*\]", lines[0]):
         lines = lines[1:]
 
-    # ✅ 2. contributor, read more, translator 정보 제거
+    # contributor, read more, translator 등 제거
     lines = [line for line in lines if not re.search(r'(contributor|translator|read more)', line.lower())]
 
-    # ✅ 3. 너무 많은 줄바꿈 정리
+    # 줄바꿈이 너무 많을 경우 압축
     lyrics = '\n'.join(lines)
     lyrics = re.sub(r'\n{3,}', '\n\n', lyrics)
 
     return lyrics.strip()
-
