@@ -1,158 +1,41 @@
 import os
 import json
 import requests
-from dotenv import load_dotenv
 from openai import OpenAI
+from decouple import config
+import requests
 from bs4 import BeautifulSoup
 import lyricsgenius
+from decouple import config
+import re, time
+from datetime import datetime
+import requests
+from decouple import config
+from urllib.parse import quote_plus
+import pandas as pd
+from decouple import config
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from transformers import pipeline
 
-# 🔥 Hugging Face 감정 분석기 로드
-emotion_classifier = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base", top_k=None)
+# ✅ 장르 캐시 딕셔너리 정의 (get_genre에서 사용됨)
+genre_cache = {}
 
-load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-GENIUS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
-genius = lyricsgenius.Genius(GENIUS_TOKEN, skip_non_songs=True, excluded_terms=["(Remix)", "(Live)"])
-
-SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
-SPOTIPY_CLIENT_SECRET = os.getenv("SPOTIPY_CLIENT_SECRET")
+# ✅ OpenAI 클라이언트
+GENIUS_TOKEN = config("GENIUS_ACCESS_TOKEN")
+genius = lyricsgenius.Genius(GENIUS_TOKEN, skip_non_songs=True, remove_section_headers=True)
+SPOTIFY_CLIENT_ID = config('SPOTIFY_CLIENT_ID')
+SPOTIFY_CLIENT_SECRET = config('SPOTIFY_CLIENT_SECRET')
+LASTFM_API_KEY = config('LASTFM_API_KEY')
+client = OpenAI(api_key=config("OPENAI_API_KEY"))
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-    client_id=SPOTIPY_CLIENT_ID,
-    client_secret=SPOTIPY_CLIENT_SECRET
+    client_id=config("SPOTIFY_CLIENT_ID"),
+    client_secret=config("SPOTIFY_CLIENT_SECRET")
 ))
 
-# ✅ Lyrics.ovh API
-def get_lyrics_from_lyrics_ovh(artist, title):
-    url = f"https://api.lyrics.ovh/v1/{artist}/{title}"
-    try:
-        res = requests.get(url)
-        if res.status_code == 200:
-            data = res.json()
-            lyrics = data.get('lyrics', '❌ 가사를 찾을 수 없습니다')
-            return lyrics if lyrics.strip() else '❌ 가사를 찾을 수 없습니다'
-        return '❌ 가사를 찾을 수 없습니다'
-    except Exception as e:
-        print(f"🔥 Lyrics.ovh API 오류 발생: {e}")
-        return '❌ 가사를 찾을 수 없습니다'
-
-# ✅ Melon (예제용)
-def get_lyrics_from_melon(title, artist):
-    try:
-        url = 'https://www.melon.com/chart/index.htm'
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get(url, headers=headers)
-        res.raise_for_status()
-        soup = BeautifulSoup(res.text, 'html.parser')
-        return '❌ 멜론 크롤링은 아직 구현되지 않았습니다'
-    except Exception as e:
-        print(f"🔥 Melon 크롤링 오류 발생: {e}")
-        return '❌ 멜론 크롤링 실패'
-
-# ✅ J-Lyrics (예제용)
-def get_lyrics_from_jlyrics(title, artist):
-    try:
-        search_url = f"http://search.j-lyric.net/index.php?kt={title}&ct={artist}"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get(search_url, headers=headers)
-        res.raise_for_status()
-        soup = BeautifulSoup(res.text, 'html.parser')
-        return '❌ J-Lyrics 크롤링은 아직 구현되지 않았습니다'
-    except Exception as e:
-        print(f"🔥 J-Lyrics 크롤링 오류 발생: {e}")
-        return '❌ J-Lyrics 크롤링 실패'
-
-# ✅ GPT 백업 (주석처리)
-# def generate_lyrics_by_title(song_title: str) -> str:
-#     prompt = f"""
-#     "{song_title}"라는 노래의 전체 가사를 검색해서 가사를 최대한 정확하고 길게 작성해줘.
-#     가사는 반드시 줄바꿈(\n)을 포함해줘. 1절부터 끝까지 자세히.
-#     모르는 부분이 있으면 더 찾아봐서 정확하게 작성해줘줘
-#     피처링, 앨범 정보, 가사, OST, MV 등은 무시하고 곡의 가사만 추출해줘.
-#     """
-#     response = client.chat.completions.create(
-#         model="gpt-3.5-turbo",
-#         messages=[{"role": "user", "content": prompt}],
-#         temperature=0.7,
-#     )
-#     return response.choices[0].message.content
-
-# ✅ Genius API
-def search_lyrics_from_genius(artist: str, title: str) -> str:
-    try:
-        song = genius.search_song(f"{title} {artist}", artist)
-        if not song or not song.lyrics:
-            song = genius.search_song(title, artist)
-        if not song or not song.url:
-            return "❌ Genius에서 곡을 찾을 수 없습니다."
-
-        res = requests.get(song.url)
-        soup = BeautifulSoup(res.text, 'html.parser')
-
-        page_title = soup.find("title").get_text().lower()
-        if 'english translation' in page_title:
-            return "❌ 영어 번역 가사를 제외했습니다."
-
-        lyrics_divs = soup.find_all("div", attrs={"data-lyrics-container": "true"})
-        if not lyrics_divs:
-            lyrics_divs = soup.find_all("div", class_="Lyrics__Container")
-        if not lyrics_divs:
-            return "❌ 가사를 찾을 수 없습니다."
-
-        raw_lyrics = "\n".join(div.get_text(separator="\n").strip() for div in lyrics_divs)
-
-        def clean_lyrics(raw: str) -> str:
-            skip_keywords = [
-                "Contributors", "Translations", "Romanization",
-                "English", "Français", "Deutsch", "Español",
-                "Read More", "Song Info", "Artist", "You may also like", "Copyright",
-                "About this song"
-            ]
-            lines = raw.splitlines()
-            filtered = [line.strip() for line in lines if line.strip() and not any(kw in line for kw in skip_keywords)]
-            return "\n".join(filtered).strip()
-
-        cleaned_lyrics = clean_lyrics(raw_lyrics)
-        print("Cleaned lyrics:", cleaned_lyrics)
-        return cleaned_lyrics or "❌ 가사를 찾을 수 없습니다."
-
-    except Exception as e:
-        print(f"🔥 Genius API 오류 발생: {e}")
-        return "❌ Genius 호출 실패"
-
-# ✅ 통합 가사 가져오기
-def get_lyrics(title: str, artist: str, country='global') -> str:
-    lyrics = search_lyrics_from_genius(artist, title)
-    if "❌" not in lyrics and len(lyrics) >= 30:
-        return lyrics
-
-    print("⚠️ Genius 실패 → Lyrics.ovh 시도")
-    lyrics = get_lyrics_from_lyrics_ovh(artist, title)
-    if "❌" not in lyrics and len(lyrics) >= 30:
-        return lyrics
-
-    if country == 'kr':
-        print("⚠️ Genius 실패 → Melon 시도")
-        lyrics = get_lyrics_from_melon(title, artist)
-        if "❌" not in lyrics and len(lyrics) >= 30:
-            return lyrics
-
-    if country == 'jp':
-        print("⚠️ Genius 실패 → J-Lyrics 시도")
-        lyrics = get_lyrics_from_jlyrics(title, artist)
-        if "❌" not in lyrics and len(lyrics) >= 30:
-            return lyrics
-
-    # print("⚠️ 모든 소스 실패 → GPT 생성 시도")
-    # lyrics = generate_lyrics_by_title(title)
-
-    return '❌ 가사를 찾을 수 없습니다'
 
 
-# ✅ 감성 분석
+# ✅ 감성 분석 (GPT 기반)
 def analyze_lyrics_emotions(lyrics: str) -> dict:
     prompt = f"""
     아래는 노래 가사입니다. 이 가사에 대해 다음 10가지 감정에 대해 0~1 점수로 분석해 주세요:
@@ -162,13 +45,11 @@ def analyze_lyrics_emotions(lyrics: str) -> dict:
     {lyrics}
 
     감성 분석 결과를 JSON 형식으로 반환해주세요.
-    예시: 
-    {{
+    예시: {{
       "사랑": 0.8,
       "슬픔": 0.2,
-      "기쁨": 0.4,
-      "열정": 0.7,
-      ...
+      "행복": 0.4,
+      "열정": 0.7
     }}
     """
     try:
@@ -183,7 +64,7 @@ def analyze_lyrics_emotions(lyrics: str) -> dict:
         print("🔥 감성 분석 오류:", e)
         return {"error": str(e)}
 
-# 감정 점수를 %로 변환
+# ✅ 감성 점수 정규화 (합이 100%)
 def normalize_emotion_scores(raw_scores: dict) -> dict:
     if "error" in raw_scores:
         return raw_scores
@@ -192,29 +73,194 @@ def normalize_emotion_scores(raw_scores: dict) -> dict:
         return raw_scores
     return {k: round((v / total) * 100, 2) for k, v in raw_scores.items()}
 
-# ✅ 표준 아티스트 이름 가져오기
-def get_standard_artist_name(artist_name):
+# ✅ 키워드 추출 (GPT 기반)
+def extract_keywords_from_lyrics(lyrics):
+    prompt = f"""
+    아래는 노래 가사입니다. 이 가사에서 중요한 키워드 7개를 한국어로 추출해줘.
+    - 출력 형식: ["단어1", "단어2", ..., "단어7"]
+    - 설명 없이 JSON 배열만 출력해줘
+
+    가사:
+    {lyrics}
+    """
     try:
-        url = f"https://musicbrainz.org/ws/2/artist/?query={artist_name}&fmt=json"
-        headers = {'User-Agent': 'YourAppName/1.0 ( your@email.com )'}
-        response = requests.get(url, headers=headers)
-        data = response.json()
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0
+        )
+        result = response.choices[0].message.content.strip()
+        return json.loads(result) if result.startswith("[") else []
+    except Exception as e:
+        print("❌ 키워드 추출 실패:", e)
+        return []
 
-        if 'artists' not in data or not data['artists']:
-            return artist_name
 
-        artist = data['artists'][0]
-        standard_name = artist.get('name', artist_name)
 
-        if 'aliases' in artist:
-            for alias in artist['aliases']:
-                if alias.get('name', '').lower() == artist_name.lower():
-                    return standard_name
 
-        return standard_name
+# ✅ LastFM 기반 장르 추출
+def get_lastfm_genre(title, artist):
+    try:
+        res = requests.get("http://ws.audioscrobbler.com/2.0/",
+            params={
+                "method": "track.getTopTags",
+                "artist": artist,
+                "track": title,
+                "api_key": config("LASTFM_API_KEY"),
+                "format": "json"
+            })
+        tags = res.json().get('toptags', {}).get('tag', [])
+        return ', '.join([tag['name'] for tag in tags[:2]]) if tags else ''
+    except:
+        return ''
+
+# ✅ 장르 정규화 (영문 → 한글 통일)
+
+GENRE_MAP = {
+    'k-pop': '댄스', 'k-rap': '랩/힙합', 'k-ballad': '발라드', 'k-rock': '록/메탈',
+    'soundtrack': 'OST', 'pop': '팝', 'r&b': '알앤비', 'hip hop': '랩/힙합',
+    'indie': '인디', 'edm': '일렉트로닉', 'electronic': '일렉트로닉', 'house': '하우스',
+    'techno': '테크노', 'jazz': '재즈', 'blues': '블루스', 'folk': '포크',
+    'classical': '클래식', 'reggae': '레게'
+}
+
+
+
+
+def normalize_genre(genre):
+    if pd.isna(genre) or not genre:
+        return '기타'
+    genre_parts = [g.strip().lower() for g in genre.split(',')]
+    for g in genre_parts:
+        if g in GENRE_MAP:
+            return GENRE_MAP[g]
+    # 매핑 안 되는 경우 → 원래 영문 장르 그대로 반환 (기타로 덮어쓰지 않음)
+    return genre
+
+def get_spotify_genre(title, artist):
+    try:
+        res = sp.search(q=f"{title} {artist}", type='track', limit=1)
+        track = res['tracks']['items'][0]
+        artist_id = track['artists'][0]['id']
+        artist_info = sp.artist(artist_id)
+        return ', '.join(artist_info.get('genres', []))
+    except:
+        return ''
+
+def get_lastfm_genre(title, artist):
+    try:
+        res = requests.get("http://ws.audioscrobbler.com/2.0/",
+            params={"method": "track.getTopTags", "artist": artist, "track": title,
+                    "api_key": LASTFM_API_KEY, "format": "json"})
+        tags = res.json().get('toptags', {}).get('tag', [])
+        return ', '.join([tag['name'] for tag in tags[:2]]) if tags else ''
+    except:
+        return ''
+
+def get_melon_genre(song_id):
+    try:
+        res = requests.get(f"https://www.melon.com/song/detail.htm?songId={song_id}",
+                           headers={"User-Agent": "Mozilla/5.0"})
+        soup = BeautifulSoup(res.text, "html.parser")
+        for dt in soup.select("div.meta > dl > dt"):
+            if "장르" in dt.text:
+                dd = dt.find_next_sibling("dd")
+                return dd.text.strip() if dd else ''
+    except:
+        return ''
+
+def get_genie_genre(song_id):
+    try:
+        # f-string으로 URL을 잘 생성하도록 수정
+        res = requests.get(f"https://www.genie.co.kr/detail/songInfo?xgnm={song_id}",
+                           headers={"User-Agent": "Mozilla/5.0"})
+        soup = BeautifulSoup(res.text, "html.parser")
+        for dt in soup.select("div.info-zone dt"):
+            if "장르" in dt.text:
+                dd = dt.find_next_sibling("dd")
+                a_tag = dd.find("a") if dd else None
+                return a_tag.text.strip() if a_tag else (dd.text.strip() if dd else '')
+    except Exception as e:
+        print(f"❌ {e}")
+        return ''
+
+def get_genre(song_id, title, artist, platform):
+    key = (title.lower(), artist.lower())
+    if key in genre_cache:
+        print("🟡 [cache hit]")
+        return genre_cache[key]
+
+    print(f"🔍 [get_genre] Trying to get genre for: {title} - {artist}")
+    genre = ''
+
+    if platform == 'melon':
+        genre = get_melon_genre(song_id)
+        print("melon →", genre)
+    if not genre:
+        genre = get_genie_genre(song_id)  # 여기에서 제대로 song_id가 전달되는지 확인
+        print("genie →", genre)
+    if not genre:
+        genre = get_spotify_genre(title, artist)
+        print("spotify →", genre)
+    if not genre:
+        genre = get_lastfm_genre(title, artist)
+        print("lastfm →", genre)
+
+    genre_cache[key] = genre or ''
+    return genre or ''
+
+def get_lyrics(title, artist, country="global"):
+    try:
+        song = genius.search_song(title, artist)
+        if song and song.lyrics:
+            return song.lyrics
+        else:
+            return "❌ 가사 없음"
+    except Exception as e:
+        print("❌ get_lyrics 실패:", e)
+        return "❌ 가사 없음"
+    
+# 🎯 Genius 웹페이지에서 발매일 크롤링 (새 구조 대응)
+def get_release_date_from_genius_url(song_url):
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        res = requests.get(song_url, headers=headers)
+        soup = BeautifulSoup(res.text, "html.parser")
+
+        spans = soup.find_all("span")
+        for span in spans:
+            text = span.get_text(strip=True)
+            if any(month in text for month in [
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            ]):
+                if any(char.isdigit() for char in text):
+                    try:
+                        # ✅ 문자열 날짜를 datetime.date 객체로 변환
+                        parsed = datetime.strptime(text, "%b. %d, %Y").date()
+                        return parsed
+                    except ValueError:
+                        pass  # 구조는 맞지만 변환 안되면 넘어감
 
     except Exception as e:
-        print(f"🔥 MusicBrainz API 오류 발생: {e}")
-        return artist_name
+        print("❌ 발매일 크롤링 실패:", e)
 
+    return None
+
+# ✅ 가사에서 불필요한 메타 정보 제거
+def clean_lyrics(raw_lyrics: str) -> str:
+    lines = raw_lyrics.strip().splitlines()
+
+    # ✅ 1. 첫 줄이 설명문 (5단어 이상, [Verse] 아님)이면 제거
+    if lines and len(lines[0].split()) >= 5 and not re.match(r"\[.*\]", lines[0]):
+        lines = lines[1:]
+
+    # ✅ 2. contributor, read more, translator 정보 제거
+    lines = [line for line in lines if not re.search(r'(contributor|translator|read more)', line.lower())]
+
+    # ✅ 3. 너무 많은 줄바꿈 정리
+    lyrics = '\n'.join(lines)
+    lyrics = re.sub(r'\n{3,}', '\n\n', lyrics)
+
+    return lyrics.strip()
 

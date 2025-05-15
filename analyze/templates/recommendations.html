@@ -20,8 +20,8 @@
           <span class="artist">- {{ song.artist }}</span>
           <span class="tags">
             감정 태그:
-            {% if song.top2_emotions %}
-              {% for emotion in song.top2_emotions %}
+            {% if song.emotion_tags %}
+              {% for emotion in song.emotion_tags %}
                 <span class="tag">{{ emotion }}</span>{% if not forloop.last %},{% endif %}
               {% endfor %}
             {% else %}

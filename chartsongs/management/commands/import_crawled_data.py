@@ -640,6 +640,91 @@ def fetch_spotify_chart():
     os.remove(latest_file)
     return df
 
+# class Command(BaseCommand):
+#     help = '멜론, 지니, 스포티파이 차트 + 장르 + 가사 통합 저장'
+
+#     def handle(self, *args, **options):
+#         fetch_spotify_csv()
+#         melon_df = fetch_melon_chart()
+#         genie_df = fetch_genie_chart()
+#         spotify_df = fetch_spotify_chart()
+#         combined_df = pd.concat([melon_df, genie_df, spotify_df], ignore_index=True)
+#         combined_df.drop_duplicates(subset=['title', 'artist'], inplace=True)
+#         # combined_df = combined_df.tail(20)  # ✅ 주석 풀면 하위 20개만 실행
+
+#         for _, row in combined_df.iterrows():
+#             title, artist, song_id, platform = row.get('title'), row.get('artist'), row.get('song_id', ''), row.get('platform', 'spotify')
+#             genre = get_genre(song_id, title, artist, platform)
+#             normalized_genre = normalize_genre(genre)
+#             obj, _ = ChartSong.objects.get_or_create(title=title, artist=artist, normalized_genre=normalized_genre)
+#             if not obj.lylics:
+#                 obj.lylics = fetch_lyrics(artist, title)
+#                 obj.save()
+#             print(f"✅ 저장 완료: {title} - {artist} ({normalized_genre})")
+
+#         self.stdout.write(self.style.SUCCESS('✅ 모든 곡 DB 저장 및 가사/장르 업데이트 완료!'))
+
+
+
+
+
+# ✅ 추가: 감정 분석 + 키워드 추출 + 저장 로직
+
+from openai import OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def analyze_lyrics_emotions(lyrics: str) -> dict:
+    prompt = f"""
+    아래는 노래 가사입니다. 이 가사에 대해 다음 10가지 감정에 대해 0~1 점수로 분석해 주세요:
+    감정: 사랑, 즐거움, 열정, 행복, 슬픔, 외로움, 그리움, 놀람, 분노, 두려움
+
+    가사:
+    {lyrics}
+
+    감성 분석 결과를 JSON 형식으로 반환해주세요.
+    예시: 
+    {{
+      "사랑": 0.8,
+      "슬픔": 0.2,
+      "행복": 0.4,
+      "열정": 0.7
+    }}
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.6,
+        )
+        content = response.choices[0].message.content
+        return json.loads(content)
+    except Exception as e:
+        print("🔥 감성 분석 오류:", e)
+        return {"error": str(e)}
+
+def extract_keywords_from_lyrics(lyrics):
+    prompt = f"""
+    아래는 노래 가사입니다. 이 가사에서 중요한 키워드 7개를 한국어로 추출해줘.
+    - 출력 형식: ["단어1", "단어2", ..., "단어7"]
+    - 설명 없이 JSON 배열만 출력해줘
+
+    가사:
+    {lyrics}
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0
+        )
+        result = response.choices[0].message.content.strip()
+        return json.loads(result) if result.startswith("[") else []
+    except Exception as e:
+        print("❌ 키워드 추출 실패:", e)
+        return []
+
+
+
 class Command(BaseCommand):
     help = '멜론, 지니, 스포티파이 차트 + 장르 + 가사 통합 저장'
 
@@ -653,13 +738,34 @@ class Command(BaseCommand):
         # combined_df = combined_df.tail(20)  # ✅ 주석 풀면 하위 20개만 실행
 
         for _, row in combined_df.iterrows():
-            title, artist, song_id, platform = row.get('title'), row.get('artist'), row.get('song_id', ''), row.get('platform', 'spotify')
-            genre = get_genre(song_id, title, artist, platform)
-            normalized_genre = normalize_genre(genre)
-            obj, _ = ChartSong.objects.get_or_create(title=title, artist=artist, normalized_genre=normalized_genre)
-            if not obj.lylics:
-                obj.lylics = fetch_lyrics(artist, title)
-                obj.save()
-            print(f"✅ 저장 완료: {title} - {artist} ({normalized_genre})")
+                    title, artist, song_id, platform = row.get('title'), row.get('artist'), row.get('song_id', ''), row.get('platform', 'spotify')
+                    genre = get_genre(song_id, title, artist, platform)
+                    normalized_genre = normalize_genre(genre)
 
-        self.stdout.write(self.style.SUCCESS('✅ 모든 곡 DB 저장 및 가사/장르 업데이트 완료!'))
+                    if ChartSong.objects.filter(title=title, artist=artist, normalized_genre=normalized_genre).exists():
+                        print(f"⚠️ 이미 존재: {title} - {artist} ({normalized_genre})")
+                        continue
+
+                    lyrics = fetch_lyrics(artist, title)
+                    if not lyrics:
+                        print(f"❌ 가사 없음: {title} - {artist}")
+                        continue
+
+                    # ✅ 감성 분석 실행 (GPT)
+                    emotion_scores = analyze_lyrics_emotions(lyrics)
+                    if "error" in emotion_scores:
+                        continue
+                    top3_emotions = sorted(emotion_scores.items(), key=lambda x: -x[1])[:3]
+                    emotion_tags = [k for k, v in top3_emotions]
+
+                    keywords = extract_keywords_from_lyrics(lyrics)
+
+                    ChartSong.objects.create(
+                        title=title,
+                        artist=artist,
+                        normalized_genre=normalized_genre,
+                        lylics=lyrics,
+                        emotion_tags=emotion_tags,
+                        keywords=keywords
+                    )
+                    print(f"✅ 저장 및 분석 완료: {title} - {artist} ({normalized_genre})")
