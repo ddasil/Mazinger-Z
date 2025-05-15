@@ -1,39 +1,44 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block content %}
-<div class="search-results-container"
-     style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            min-height: 100vh; color: white; padding: 120px 60px 60px; text-align: center;">
 
-  <div class="search-box" id="searchBox" style="margin-bottom: 40px;">
+{% block title %}검색 결과{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/search_results.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="search-results-container">
+  <div class="search-box" id="searchBox">
     <input type="search" placeholder="와 씨 그냥 집에 가고 싶다" />
     <button><i class="fa-solid fa-magnifying-glass"></i></button>
   </div>
 
-  <h2 style="margin-bottom: 30px;">"{{ query }}" 검색 결과</h2>
+  <h2 class="search-title">"{{ query }}" 검색 결과</h2>
 
   {% if results %}
-    <ul style="list-style: none; padding: 0;">
+    <ul class="search-result-list">
       {% for song in results %}
-        <li style="margin-bottom: 25px;">
-          <strong>{{ song.title }}</strong> - {{ song.artist }}      
-          <br>
-          <small style="color: #aaa;">장르: {{ song.normalized_genre }}</small>
+        <li>
+          <a href="{% url 'music_info' %}?title={{ song.title|urlencode }}&artist={{ song.artist|urlencode }}">
+            <strong>{{ song.title }}</strong> - {{ song.artist }}
+            <br>
+            <small>장르: {{ song.normalized_genre }}</small>
+          </a>
         </li>
       {% endfor %}
     </ul>
 
-    <!-- ✅ 페이지네이션 바 -->
-    <div class="pagination" style="margin-top: 30px;">
+    <div class="pagination">
       {% if results.has_previous %}
         <a href="?q={{ query }}&page={{ results.previous_page_number }}">이전</a>
       {% endif %}
 
       {% for num in results.paginator.page_range %}
         {% if num == results.number %}
-          <strong style="margin: 0 10px;">{{ num }}</strong>
+          <strong>{{ num }}</strong>
         {% else %}
-          <a href="?q={{ query }}&page={{ num }}" style="margin: 0 10px;">{{ num }}</a>
+          <a href="?q={{ query }}&page={{ num }}">{{ num }}</a>
         {% endif %}
       {% endfor %}
 
@@ -41,10 +46,10 @@
         <a href="?q={{ query }}&page={{ results.next_page_number }}">다음</a>
       {% endif %}
     </div>
-
   {% else %}
-    <p>검색 결과가 없습니다.</p>
+    <p class="no-result">검색 결과가 없습니다.</p>
   {% endif %}
 </div>
+
 <script src="{% static 'js/main.js' %}"></script>
 {% endblock %}

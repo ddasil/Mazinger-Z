@@ -11,6 +11,8 @@ from chartsongs.models import ChartSong
 # from analyze.models import Song
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+from .models import Lovelist
 
 
 
@@ -245,5 +247,69 @@ def search_results_view(request):
         'query': query,
         'results': results,
     })
+
+
+
+def results_music_info_view(request):
+    title = request.GET.get('title')
+    artist = request.GET.get('artist')
+    song_obj = ChartSong.objects.filter(title=title, artist=artist).first()
+
+    is_liked = False
+    liked_songs = []
+    like_count = Lovelist.objects.filter(title=title, artist=artist).count()  # ✅ 이 줄 추가
+
+    if song_obj:
+        # 기본 정보
+        genre = song_obj.normalized_genre
+        release_date = getattr(song_obj, 'release_date', '')
+        cover_url = getattr(song_obj, 'album_cover_url', '')
+        lyrics = getattr(song_obj, 'lylics', '') 
+        
+
+        song_info = {
+            'title': title,
+            'artist': artist,
+            'genre': genre,
+            'release_date': release_date,
+            'cover_url': cover_url,
+            'lyrics': lyrics, # ✅ 가사도 전달
+        }
+
+
+        if request.user.is_authenticated:
+            is_liked = Lovelist.objects.filter(user=request.user, title=title, artist=artist).exists()
+            liked_songs = Lovelist.objects.filter(user=request.user)
+
+    else:
+        song_info = {}
+
+    return render(request, 'results_music_info.html', {
+        'song': song_info,
+        'is_liked': is_liked,
+        'liked_songs': liked_songs,
+        'like_count': like_count,  # ✅ 추가
+        })
+
+def check_auth(request):
+    return JsonResponse({"is_authenticated": request.user.is_authenticated})
+
+@login_required
+def add_or_remove_like(request):
+    data = json.loads(request.body)
+    title = data.get("title")
+    artist = data.get("artist")
+
+    obj, created = Lovelist.objects.get_or_create(
+        user=request.user, title=title, artist=artist
+    )
+
+    if not created:
+        obj.delete()
+        count = Lovelist.objects.filter(title=title, artist=artist).count()
+        return JsonResponse({"status": "removed", "count": count})
+    
+    count = Lovelist.objects.filter(title=title, artist=artist).count()
+    return JsonResponse({"status": "added", "count": count})
 
 #추가끝끝

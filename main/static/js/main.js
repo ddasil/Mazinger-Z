@@ -266,3 +266,63 @@ document.querySelectorAll('#searchBox').forEach(searchBox => {
     });
   }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  // ✅ 가사 버튼 토글
+  const btn = document.getElementById("toggle-lyrics");
+  const preview = document.getElementById("lyrics-preview");
+  if (btn && preview) {
+    let expanded = false;
+    btn.addEventListener("click", () => {
+      expanded = !expanded;
+      preview.style.maxHeight = expanded ? "none" : "22em";
+      btn.innerText = expanded ? "접기 ▲" : "더보기 ▼";
+    });
+  }
+
+  // ✅ 좋아요 버튼
+  const likeButton = document.getElementById("likeButton");
+  if (likeButton) {
+    likeButton.addEventListener("click", () => {
+      const title = likeButton.dataset.title;
+      const artist = likeButton.dataset.artist;
+
+      fetch("/check-auth/")
+        .then(res => res.json())
+        .then(data => {
+          if (!data.is_authenticated) {
+            alert("로그인이 필요합니다.");
+            const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = "/accounts/login/?next=" + nextUrl;
+            return;
+          }
+
+          fetch("/toggle-like/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCSRFToken(),
+            },
+            body: JSON.stringify({ title, artist })
+          })
+          .then(res => res.json())
+          .then(result => {
+            if (result.status === "added") {
+              likeButton.innerText = "❤️";
+            } else if (result.status === "removed") {
+              likeButton.innerText = "🤍";
+            }
+          
+            const countSpan = document.getElementById("likeCountValue");
+            if (countSpan) {
+              countSpan.innerText = result.count ?? 0;
+            }
+          });
+        });
+    });
+  }
+  
+  function getCSRFToken() {
+    return document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+  }
+});
