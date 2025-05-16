@@ -4,34 +4,38 @@
   justify-content: space-between;
   gap: 40px;
   align-items: flex-start;
-  padding: 60px 20px 60px 80px; /* ← 왼쪽 여백 확보 */
+  padding: 60px 20px 60px 80px;
   max-width: 1100px;
   margin: 0 auto;
 }
 
 .board-container {
   flex: 1;
-  max-width: 700px; /* ✅ 기존 800보다 줄임 */
+  max-width: 700px;
   margin-top: 80px;
-  min-width: 0; /* flex-shrink 방지 */
+  min-width: 0;
 }
 
+/* ✅ 사이드바 전체 박스 */
 .board-sidebar {
   width: 280px;
   color: white;
   background-color: #1c1c1c;
   padding: 20px;
   border-radius: 12px;
-  overflow-y: auto;
-  max-height: 80vh;
-  min-width: 260px;
-  max-width: 300px;
   margin-top: 80px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  max-height: 80vh;
 }
 
-/* ✅ 사이드바 내부 영역 */
+/* ✅ 섹션 상단 제목은 고정하고 리스트만 스크롤되도록 구조 분리 */
 .sidebar-section {
-  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-section h3 {
@@ -39,15 +43,34 @@
   margin-bottom: 10px;
   border-bottom: 1px solid #444;
   padding-bottom: 5px;
+  flex-shrink: 0; /* 제목 고정 */
 }
 
-.sidebar-list {
-  list-style: none;
-  padding-left: 0;
-  max-height: 200px;
+/* ✅ 리스트 스크롤 영역 */
+.scroll-box {
+  max-height: 110px; /* 약 3줄 */
   overflow-y: auto;
 }
 
+/* ✅ 스크롤바 디자인 */
+.scroll-box::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-box::-webkit-scrollbar-thumb {
+  background-color: #bb9b9b;
+  border-radius: 8px;
+}
+.scroll-box::-webkit-scrollbar-track {
+  background-color: #222;
+}
+
+/* ✅ 리스트 항목 스타일 */
+.sidebar-list li a {
+  color: white;                 /* 글씨 색 흰색 */
+  text-decoration: none;       /* 밑줄 제거 */
+  display: inline-block;       /* transform 적용 가능하게 */
+  transition: transform 0.2s ease;
+}
 .sidebar-list li {
   padding: 6px 0;
   border-bottom: 1px solid #333;
@@ -55,24 +78,35 @@
   cursor: pointer;
 }
 
+.sidebar-list li a:hover {
+  transform: scale(1.05);      /* 호버 시 살짝 확대 */
+}
+
 /* ✅ 게시판 헤더 */
 .board-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: nowrap;
-  overflow: visible;
   width: 100%;
 }
-
 .board-title {
   font-size: 2rem;
   font-weight: bold;
   color: white;
   white-space: nowrap;
-  overflow: visible;
-  text-overflow: unset;
-  flex-grow: 1;
+}
+
+/* ✅ 페이지 제목 링크 스타일 초기화 */
+.page-title-link {
+  color: white;
+  text-decoration: none;
+}
+
+/* ✅ 호버 시 스타일도 유지 */
+.page-title-link:hover {
+  color: white;
+  text-decoration: none;
+  opacity: 0.9;
 }
 
 /* ✅ 글쓰기 버튼 */
@@ -84,9 +118,7 @@
   text-decoration: none;
   font-size: 0.9rem;
   margin-left: 20px;
-  white-space: nowrap;
 }
-
 .btn-write:hover {
   background-color: #555;
 }
@@ -96,26 +128,23 @@
   text-decoration: none;
   color: inherit;
   display: block;
-}
 
+}
 .post-card {
-  position: relative;  /* ✅ 스크랩 버튼 위치 기준 */
-  background-color: #1a1a1a;
-  padding: 16px;
-  border-radius: 12px;
-  margin-top: 30px;
-  margin-bottom: 30px;
   display: flex;
+  flex-direction: row;
   gap: 16px;
   align-items: flex-start;
+  padding: 48px 16px 16px 16px;;
+  border-radius: 12px;
+  margin: 30px 0;
+  background-color: #1a1a1a;
   box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1);
+  position: relative;
+  min-height: 130px;
 }
 
-.post-card-link:hover .post-card {
-  background-color: #2a2a2a;
-  transition: background-color 0.2s ease;
-}
-
+/* ✅ 썸네일 이미지 */
 .thumbnail {
   width: 100px;
   height: 100px;
@@ -123,35 +152,44 @@
   border-radius: 8px;
 }
 
-.post-info {
-  flex: 1;
+/* ✅ 게시글 정보 */
+.post-contents {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
 }
 
+.post-thumbnail {
+  flex-shrink: 0;
+}
+
+.post-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 450px;  /* ✅ 최대 너비 제한 추가 */
+  word-break: break-word;
+}
 .post-title {
   font-size: 1.2rem;
   color: white;
   margin: 0 0 8px 0;
 }
-
 .post-description {
   color: #ccc;
   margin-bottom: 8px;
-
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal;
   word-break: break-word;
 }
-
 .post-meta {
   color: #999;
   font-size: 0.85rem;
 }
-
 .no-posts {
   color: gray;
   text-align: center;
@@ -170,7 +208,7 @@
   font-size: 1rem;
 }
 
-/* ✅ 입력 필드 공통 스타일 */
+/* ✅ 입력 필드 공통 */
 input[type="text"],
 textarea {
   width: 100%;
@@ -182,37 +220,89 @@ textarea {
   color: white;
 }
 
-/* 스크랩버튼 */
+/* ✅ 스크랩 버튼 위치 및 아이콘 */
 .scrap-form {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 5px;
+  right: -10px;
+  z-index: 3; /* 필요시 유지 */
 }
-
-.btn-scrap {
+.btn-scrap,
+.guest-scrap {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: none;
   border: none;
-  color: #aaa;
-  font-size: 1.2rem;
+  padding: 4px;
   cursor: pointer;
+  z-index: 2;
 }
-
-
+.scrap-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  opacity: 1;
+}
 .btn-scrap:hover {
   transform: scale(1.1);
 }
 
-.scrap-icon {
-  width: 20px;
-  height: 20px;
-  vertical-align: middle;
+/* ✅ 수정/삭제 버튼 */
+.post-actions {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 8px;
 }
-.btn-scrap {
+
+/* ✅ 수정/삭제 버튼 통일 스타일 */
+.post-actions a,
+.post-actions form button {
+  font-size: 1rem;
+  color: #ccc;
+  margin-right: 6px;
   background: none;
   border: none;
-  padding: 0;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  height: 24px;         /* ✅ 높이 통일 */
+  line-height: 1;       /* ✅ 수직 정렬 */
+  vertical-align: middle;
+  text-decoration: none;  /* 밑줄 제거 */
+}
+
+.post-actions a:hover,
+.post-actions form button:hover {
+  transform: scale(1.2);
+}
+
+
+/* ✅ 페이지네이션 */
+.pagination {
+  text-align: center;
+  margin-top: 20px;
+}
+.pagination a,
+.pagination strong {
+  margin: 0 5px;
+  color: white;
+}
+/* 검색 */
+.board-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-form input[type="text"] {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #222;
+  color: white;
+  font-size: 0.9rem;
 }

@@ -6,7 +6,6 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/main.css' %}">
 <style>
-  /* 🔴 오류 메시지 빨간색으로 표시 */
   .errorlist {
     color: red;
     list-style: none;
@@ -22,18 +21,13 @@
   .form-group label {
     display: block;
     margin-bottom: 5px;
+    color: white;
   }
 
   .form-group input {
     width: 100%;
     padding: 8px;
     font-size: 1rem;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: white; /* ✅ label 텍스트를 흰색으로 */
   }
 </style>
 {% endblock %}
@@ -42,10 +36,10 @@
 <div class="login-container">
   <div class="login-form">
     <h1>SIGN IN</h1>
-    <form method="POST">
+    <form method="POST" action="{% url 'login' %}">
       {% csrf_token %}
+      <input type="hidden" name="next" value="{{next}}">
 
-      <!-- ✅ 폼 전체 에러 메시지 -->
       {% if form.non_field_errors %}
         <ul class="errorlist">
           {% for error in form.non_field_errors %}
@@ -54,7 +48,6 @@
         </ul>
       {% endif %}
 
-      <!-- ✅ username 필드 -->
       <div class="form-group">
         {{ form.username.label_tag }}
         {{ form.username }}
@@ -67,7 +60,6 @@
         {% endif %}
       </div>
 
-      <!-- ✅ password 필드 -->
       <div class="form-group">
         {{ form.password.label_tag }}
         {{ form.password }}
@@ -83,7 +75,6 @@
       <button class="btn-glitch" type="submit">SIGN IN</button>
     </form>
 
-    <!-- ✅ 계정 관련 링크 -->
     <div class="account-links">
       <a class="btn-glitch" href="{% url 'find_username' %}">아이디 찾기</a>
       <a class="btn-glitch" href="{% url 'find_password' %}">비밀번호 찾기</a>

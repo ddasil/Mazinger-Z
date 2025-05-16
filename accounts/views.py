@@ -9,6 +9,9 @@ from django.contrib.auth import get_user_model # 비밀번호찾기
 from django.http import HttpResponse # 비밀번호찾기
 from django.contrib.auth.hashers import make_password # 비밀번호 재설정
 from .forms import PasswordResetForm
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.conf import settings
+from urllib.parse import urlencode
 
 def signup_view(request):
     if request.method == 'POST':
@@ -24,22 +27,24 @@ def signup_view(request):
 
 # 로그인뷰
 def login_view(request):
+    next_url = request.POST.get('next') or request.GET.get('next')  # ✅ GET도 체크
+
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('main')  # 또는 '/'
-
+            return redirect(next_url or 'main')  # ✅ next가 있으면 그곳으로 이동
     else:
         form = CustomAuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+
+    return render(request, 'login.html', {'form': form, 'next': next_url})
 
 # 로그아웃 뷰
 def logout_view(request):
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or 'main'
     logout(request)
-    return redirect('main')
-
+    return redirect(next_url)
 
 def check_nickname(request):
     nickname = request.GET.get('nickname')

@@ -10,89 +10,135 @@
 {% endblock %}
 
 {% block content %}
-<!-- 좌우 정렬을 위한 단일 래퍼 -->
 <div class="board-wrapper with-sidebar">
-  
-  <!-- 📋 메인 게시판 영역 -->
   <div class="board-container">
-    <!-- 🔽 상단 제목 + 글쓰기 버튼 -->
+    <!-- 🔼 상단 제목 + 검색 + 글쓰기 -->
     <div class="board-header">
-      <h1 class="board-title">Shared Playlists</h1>
-
-      {% if user.is_authenticated %}
-        <a href="{% url 'post_create' %}" class="btn-write">글쓰기</a>
-      {% endif %}
-    </div>
-
-    <!-- 게시글 목록 -->
-    {% for post in posts %}
-      <div class="post-card">
-        <!-- ✅ 스크랩 버튼 (우측 상단) -->
-        {% if user.is_authenticated %}
-          <form method="post" action="{% url 'scrap_post' post.pk %}" class="scrap-form">
-            {% csrf_token %}
-            <button type="submit" class="btn-scrap">
-              <img 
-                src="{% static 'images/' %}{% if post|scrapped:user %}scrap_on.png{% else %}scrap_off.png{% endif %}" 
-                alt="스크랩 상태" 
-                class="scrap-icon">
-            </button>
-          </form>
-        {% else %}
-          <button class="btn-scrap" onclick="alert('로그인이 필요한 항목입니다.')">
-            <img src="{% static 'images/scrap_off.png' %}" alt="스크랩 아이콘" class="scrap-icon">
-          </button>
-        {% endif %}
-
-        <!-- ✅ 링크 전체 카드 감싸기 -->
-        <a href="{% url 'post_detail' post.pk %}" class="post-card-link">
-          {% if post.thumbnail.name == "thumbnails/default.png" %}
-            <img src="/media/thumbnails/default.png" alt="기본 썸네일" class="thumbnail">
-          {% else %}
-            <img src="{{ post.thumbnail.url }}" alt="썸네일" class="thumbnail">
-          {% endif %}
-
-          <div class="post-info">
-            <h2 class="post-title">{{ post.title }}</h2>
-            <p class="post-description">{{ post.description }}</p>
-            <p class="post-meta">
-              {{ post.user.nickname }} · {{ post.created_at|date:"Y년 n월 j일 g:i A" }}
-            </p>
-          </div>
+      <h1 class="board-title">
+        <a href="{% url 'post_list' %}" class="page-title-link" style="color: white; text-decoration: none;">Shared Playlists</a>
+      </h1>
+      <div class="board-actions">
+        <form method="get" action="{% url 'post_list' %}" class="search-form">
+          <input type="text" name="q" placeholder="제목 검색" value="{{ request.GET.q }}">
+        </form>
+        <a href="{% if user.is_authenticated %}{% url 'post_create' %}{% else %}#{% endif %}"
+          class="btn-write{% if not user.is_authenticated %} not-logged-in-write{% endif %}">
+          글쓰기
         </a>
       </div>
-    {% empty %}
-      <p class="no-posts">아직 게시글이 없습니다.</p>
+    </div>
+
+    <!-- 🔽 게시글 카드 -->
+    {% for post in posts %}
+      <div class="post-card" data-post-id="{{ post.pk }}">
+        <form method="post" action="{% if user.is_authenticated %}{% url 'scrap_post' post.pk %}{% else %}#{% endif %}" class="scrap-form">
+          {% csrf_token %}
+          <button type="submit" class="btn-scrap{% if not user.is_authenticated %} not-logged-in{% endif %}">
+            <img src="{% static 'images/' %}{% if user.is_authenticated and post|scrapped:user %}scrap_on.png{% else %}scrap_off.png{% endif %}" alt="스크랩 상태" class="scrap-icon">
+          </button>
+        </form>
+
+        <!-- ✅ 썸네일 + 정보 묶어서 정렬 -->
+        <div class="post-contents">
+          <div class="post-thumbnail">
+            {% if post.thumbnail and post.thumbnail.name == "thumbnails/default.png" %}
+              <img src="/media/thumbnails/default.png" alt="기본 썸네일" class="thumbnail">
+            {% elif post.thumbnail %}
+              <img src="{{ post.thumbnail.url }}" alt="썸네일" class="thumbnail">
+            {% else %}
+              <img src="/media/thumbnails/default.png" alt="기본 썸네일" class="thumbnail">
+            {% endif %}
+          </div>
+
+          <a href="{% url 'post_detail' post.pk %}" class="post-card-link">
+            <div class="post-info">
+              <h2 class="post-title">{{ post.title }}</h2>
+              <p class="post-description">{{ post.description }}</p>
+              <p class="post-meta">{{ post.user.nickname }} · {{ post.created_at|date:"Y년 n월 j일 g:i A" }}</p>
+            </div>
+          </a>
+        </div>
+
+        <!-- ✅ 수정/삭제 -->
+        <div class="post-actions">
+          {% if user == post.user %}
+            <a href="{% url 'post_edit' post.pk %}" class="edit-btn">수정</a>
+            <form method="post" action="{% url 'post_delete' post.pk %}" onsubmit="return confirm('정말로 삭제하시겠습니까?')" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="delete-btn">삭제</button>
+            </form>
+          {% else %}
+            <div style="height: 24px;"></div>
+          {% endif %}
+        </div>
+      </div>
+
     {% endfor %}
+
+    <form method="post" action="{% url 'toggle_lovelist' %}">
+      {% csrf_token %}
+      <input type="hidden" name="title" value="{{ song.title }}">
+      <input type="hidden" name="artist" value="{{ song.artist }}">
+      <input type="hidden" name="cover_url" value="{{ song.cover_url }}">
+      <button type="submit" class="btn-like">
+        {% if song in user_lovelist %}❤️{% else %}🤍{% endif %}
+      </button>
+    </form>
+
+
+    <!-- ✅ 페이지네이션 -->
+    {% if posts.paginator.num_pages > 1 %}
+      <div class="pagination">
+        {% if posts.has_previous %}
+          <a href="?page={{ posts.previous_page_number }}">이전</a>
+        {% endif %}
+        {% for num in posts.paginator.page_range %}
+          {% if posts.number == num %}
+            <strong>{{ num }}</strong>
+          {% else %}
+            <a href="?page={{ num }}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if posts.has_next %}
+          <a href="?page={{ posts.next_page_number }}">다음</a>
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
 
-  <!-- ✅ 우측 사이드바 -->
+  <!-- ✅ 사이드바 -->
   <div class="board-sidebar">
     <div class="sidebar-section">
-      <h3>📌 스크랩</h3>
-      <ul class="sidebar-list">
-        {% for post in scrapped_posts|slice:":3" %}
-          <li><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></li>
-        {% endfor %}
-      </ul>
+      <h3>스크랩</h3>
+      <div class="scroll-box">
+        <ul class="sidebar-list">
+          {% for post in scrapped_posts %}
+            <li><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
 
     <div class="sidebar-section">
-      <h3>🕒 최근 본</h3>
-      <ul class="sidebar-list">
-        {% for post in recent_posts|slice:":3" %}
-          <li><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></li>
-        {% endfor %}
-      </ul>
+      <h3>최근 본</h3>
+      <div class="scroll-box">
+        <ul class="sidebar-list">
+          {% for post in recent_posts %}
+            <li><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
 
     <div class="sidebar-section">
-      <h3>📝 내가 쓴 글</h3>
-      <ul class="sidebar-list">
-        {% for post in my_posts|slice:":3" %}
-          <li><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></li>
-        {% endfor %}
-      </ul>
+      <h3>내가 쓴 글</h3>
+      <div class="scroll-box">
+        <ul class="sidebar-list">
+          {% for post in my_posts %}
+            <li><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
   </div>
 </div>

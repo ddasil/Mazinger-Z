@@ -4,6 +4,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}MUSICTASTE{% endblock %}</title>
 
@@ -54,14 +55,14 @@
             </a>
           </div>
           <div class="sign-btn btn-glitch" id="logOutBtn">
-            <a href="{% url 'logout' %}">
+            <a href="{% url 'logout' %}?next={{ request.get_full_path|urlencode }}">
               Log out
             </a>
           </div>
           {% else %}
           <!-- 로그인 안 된 경우 로그인 및 회원가입 버튼을 표시 -->
           <div class="sign-btn btn-glitch" id="signInBtn">
-            <a href="{% url 'login' %}">
+            <a href="{% url 'login' %}?next={{ request.get_full_path }}">
               Sign in
             </a>
           </div>

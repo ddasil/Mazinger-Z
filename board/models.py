@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from main.models import Lovelist  # 좋아요 목록 참조용
 
 User = get_user_model()
 
@@ -14,6 +15,9 @@ class Post(models.Model):
         default='thumbnails/default.png'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # ✅ 사용자의 Lovelist 곡 중 선택하여 게시글에 연결
+    lovelist_songs = models.ManyToManyField(Lovelist, blank=True, related_name='posts')
 
     def __str__(self):
         return self.title
@@ -79,7 +83,7 @@ class PostLike(models.Model):
     def __str__(self):
         return f"{self.user.nickname} → {self.post.title}"
 
-# 최근본 게시물
+
 class PostRecentView(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)

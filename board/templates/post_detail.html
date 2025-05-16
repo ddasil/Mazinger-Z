@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load post_tags %}
 
 {% block title %}{{ post.title }}{% endblock %}
 
@@ -11,21 +12,28 @@
 {% block content %}
 <div class="post-detail-container">
 
-  <!-- 상단: 뒤로가기 + 글쓰기 버튼 -->
+  <!-- 상단: 뒤로가기 + 글쓰기 + 스크랩 -->
   <div class="post-detail-actions">
     <a href="{% url 'post_list' %}" class="btn-back">← 게시판으로</a>
-    {% if user.is_authenticated %}
+
+    <div class="top-buttons">
       <a href="{% url 'post_create' %}" class="btn-write">글쓰기</a>
-    {% endif %}
+
+      <form method="post" action="{% if user.is_authenticated %}{% url 'scrap_post' post.pk %}{% else %}#{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-scrap top-scrap {% if not user.is_authenticated %}not-logged-in{% endif %}">
+          <img src="{% static 'images/' %}{% if user.is_authenticated and post|scrapped:user %}scrap_on.png{% else %}scrap_off.png{% endif %}" alt="스크랩" class="scrap-icon">
+        </button>
+      </form>
+    </div>
   </div>
+
 
   <!-- 제목 + 작성자 + 썸네일 -->
   <div class="post-header">
     <div class="title-area">
       <h1 class="post-title">{{ post.title }}</h1>
-      <p class="post-meta">
-        {{ post.user.nickname }} · {{ post.created_at|date:"Y년 n월 j일 g:i A" }}
-      </p>
+      <p class="post-meta">{{ post.user.nickname }} · {{ post.created_at|date:"Y년 n월 j일 g:i A" }}</p>
     </div>
 
     {% if post.thumbnail %}
@@ -38,23 +46,33 @@
     <pre class="post-description">{{ post.description }}</pre>
   </div>
 
+  <!-- 좋아요 + 수정/삭제 같은 줄 -->
+  {% if user.is_authenticated or user == post.user %}
+    <div class="post-footer-actions-container">
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'like_post' post.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-like">
+            {% if liked %}❤️ 좋아요 취소{% else %}🤍 좋아요{% endif %} ({{ post.post_likes.count }})
+          </button>
+        </form>
+      {% endif %}
 
-  <!-- 좋아요 -->
-  {% if user.is_authenticated %}
-    <form method="post" action="{% url 'like_post' post.id %}">
-      {% csrf_token %}
-      <button type="submit" class="btn-like">
-        {% if liked %}
-          ❤️ 좋아요 취소
-        {% else %}
-          🤍 좋아요
-        {% endif %}
-        ({{ post.post_likes.count }})
-      </button>
-    </form>
+      {% if user == post.user %}
+        <div class="post-actions">
+          <form method="get" action="{% url 'post_edit' post.pk %}" style="display:inline;">
+            <button type="submit" class="delete-btn">수정</button>
+          </form>
+          <form method="post" action="{% url 'post_delete' post.pk %}" onsubmit="return confirm('정말로 삭제하시겠습니까?')" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="delete-btn">삭제</button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
   {% endif %}
 
-  <!-- 댓글 섹션 -->
+  <!-- 댓글 -->
   <div class="comment-section">
     <h3>댓글</h3>
 
@@ -64,14 +82,10 @@
           <strong>{{ comment.user.nickname }}</strong>: {{ comment.text }}
           <button class="reply-btn" data-id="{{ comment.id }}">답글</button>
 
-          <!-- 대댓글 목록 -->
           {% for reply in comment.replies.all %}
-            <div class="reply">
-              ↳ <strong>{{ reply.user.nickname }}</strong>: {{ reply.text }}
-            </div>
+            <div class="reply">↳ <strong>{{ reply.user.nickname }}</strong>: {{ reply.text }}</div>
           {% endfor %}
 
-          <!-- 대댓글 폼 -->
           <form method="post" action="{% url 'comment_reply' comment.id %}" class="reply-form hidden" id="reply-form-{{ comment.id }}">
             {% csrf_token %}
             <input type="text" name="text" placeholder="답글을 입력하세요" required>
@@ -89,11 +103,10 @@
       <button type="submit">댓글 달기</button>
     </form>
   </div>
-
 </div>
 {% endblock %}
 
 {% block extra_script %}
-  <script src="{% static 'js/base.js' %}"></script>
-  <script src="{% static 'js/post_detail.js' %}"></script>
+<script src="{% static 'js/base.js' %}"></script>
+<script src="{% static 'js/post_detail.js' %}"></script>
 {% endblock %}

@@ -22,4 +22,5 @@ urlpatterns = [
     path('music-info/', results_music_info_view, name='music_info'),#진섭이 추가
     path("check-auth/", views.check_auth, name="check_auth"),
     path("toggle-like/", views.add_or_remove_like, name="toggle_like"),
+    path('board/', include('board.urls')),  # 🔥 게시판 앱 연결
 ]
