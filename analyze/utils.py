@@ -13,6 +13,7 @@ import pandas as pd
 import spotipy  # Spotify API
 from spotipy.oauth2 import SpotifyClientCredentials
 
+
 # ✅ 장르 캐시 딕셔너리 (반복 요청 줄이기 위함)
 genre_cache = {}
 
@@ -39,15 +40,21 @@ def analyze_lyrics_emotions(lyrics: str) -> dict:
     아래는 노래 가사입니다. 이 가사에 대해 다음 10가지 감정에 대해 0~1 점수로 분석해 주세요:
     감정: 사랑, 즐거움, 열정, 행복, 슬픔, 외로움, 그리움, 놀람, 분노, 두려움
 
+    감성 분석 결과를 JSON 형식으로 반환해주세요.
+    예시: 
+    {{
+      "사랑": 0.8,
+      "슬픔": 0.2,
+      "행복": 0.4,
+      "열정": 0.7
+    }}
+
     가사:
     {lyrics}
-
-    감성 분석 결과를 JSON 형식으로 반환해주세요.
-    예시: {{"사랑": 0.8, "슬픔": 0.2}}
     """
     try:
         response = gpt_client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.6,
         )
@@ -69,11 +76,14 @@ def normalize_emotion_scores(raw_scores: dict) -> dict:
 # ✅ GPT로 가사 키워드 7개 추출 (한국어)
 def extract_keywords_from_lyrics(lyrics):
     prompt = f"""
-    아래는 노래 가사입니다. 이 가사에서 중요한 키워드 7개를 한국어로 추출해줘.
-    - 출력 형식: ["단어1", "단어2", ..., "단어7"]
-    - 설명 없이 JSON 배열만 출력해줘
+    Generate 7 Korean hashtag-style keywords based on the mood, context, emotional tone, time, or place of the following song lyrics.
 
-    가사:
+    - All keywords must be in **Korean**.
+    - Output only a JSON array like: ["#이별", "#운동", "#새벽", "#혼자듣기좋은", "#감성", "#비오는날", "#클럽", "#우울", "#트렌디", "#클럽", "#봄", "#드라이빙"]
+    
+    Output only a JSON array like: ["#tag1", "#tag2", ..., "#tag7"]
+
+    Lyrics:
     {lyrics}
     """
     try:
@@ -187,13 +197,43 @@ def get_genre(song_id, title, artist, platform):
 def get_lyrics(title, artist, country="global"):
     try:
         song = genius.search_song(title, artist)
-        if song and song.lyrics:
-            return song.lyrics
+        if song and song.url:
+            headers = {"User-Agent": "Mozilla/5.0"}
+            res = requests.get(song.url, headers=headers)
+            soup = BeautifulSoup(res.text, "html.parser")
+
+            lyrics_divs = soup.select("div[data-lyrics-container='true']")
+            raw_lines = []
+            for div in lyrics_divs:
+                lines = div.get_text(separator="\n").split("\n")
+                for line in lines:
+                    cleaned = line.strip()
+
+                    if not cleaned:
+                        continue  # 빈 줄 제거
+
+                    # ✅ 1. 언어/표시줄 제거
+                    lowered = cleaned.lower()
+                    if any(x in lowered for x in [
+                        "translation", "romanization", "lyrics", "english", "français", "한국어", "日本語", "中文"
+                    ]):
+                        continue
+
+                    # ✅ 2. 대괄호 감싸진 구간 제거 (ex. [Intro], [크러쉬 "미워" 가사])
+                    if re.match(r"^\[.*\]$", cleaned):
+                        continue
+
+                    raw_lines.append(cleaned)
+
+            full_lyrics = "\n".join(raw_lines)
+            return full_lyrics.strip() if full_lyrics else "❌ 가사 없음"
         else:
             return "❌ 가사 없음"
     except Exception as e:
         print("❌ get_lyrics 실패:", e)
         return "❌ 가사 없음"
+
+
 
 # ✅ Genius 웹페이지에서 발매일자 크롤링
 def get_release_date_from_genius_url(song_url):
@@ -222,14 +262,17 @@ def get_release_date_from_genius_url(song_url):
 def clean_lyrics(raw_lyrics: str) -> str:
     lines = raw_lyrics.strip().splitlines()
 
-    # 첫 줄이 설명문일 경우 제거 (예: 유튜브 링크 등)
-    if lines and len(lines[0].split()) >= 5 and not re.match(r"\[.*\]", lines[0]):
-        lines = lines[1:]
+    # ✅ 1. 첫 줄이 비가사일 가능성이 높은 경우만 제거
+    if lines:
+        first_line = lines[0].lower()
+        unwanted_keywords = ['provided to', 'official', 'youtube', 'music by', 'album', 'track', '℗', '©']
+        if any(kw in first_line for kw in unwanted_keywords):
+            lines = lines[1:]
 
-    # contributor, read more, translator 등 제거
+    # ✅ 2. contributor, read more, translator 정보 제거
     lines = [line for line in lines if not re.search(r'(contributor|translator|read more)', line.lower())]
 
-    # 줄바꿈이 너무 많을 경우 압축
+    # ✅ 3. 너무 많은 줄바꿈 정리
     lyrics = '\n'.join(lines)
     lyrics = re.sub(r'\n{3,}', '\n\n', lyrics)
 

@@ -20,7 +20,7 @@ class ChartSong(models.Model):
     keywords = models.JSONField(blank=True, null=True)
 
     # 🆔 Genius에서 수집한 곡 고유 ID
-    genius_id = models.CharField(max_length=100, blank=True, null=True)
+    genius_id = models.IntegerField(unique=True, blank=True, null=True)
 
     # 🖼️ 앨범 커버 이미지 URL (벅스 등 백업 수단으로 수집 가능)
     album_cover_url = models.URLField(blank=True, null=True)
