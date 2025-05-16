@@ -1,117 +1,250 @@
 from django.shortcuts import render, redirect
-from .utils import get_lyrics, analyze_lyrics_emotions, normalize_emotion_scores, get_standard_artist_name
-from .models import UserSong, Song
-from django.contrib.auth.decorators import login_required
-import random
+from .utils import (
+    get_lyrics,  # Genius에서 가사 크롤링
+    analyze_lyrics_emotions,  # GPT로 감정 점수 분석
+    extract_keywords_from_lyrics,  # GPT로 감성 키워드 추출
+    get_genre,  # 장르 크롤링 (Melon/Genie/Spotify 등)
+    normalize_genre,  # 장르 이름 통일화
+    get_release_date_from_genius_url,  # Genius 웹페이지에서 발매일 추출
+    normalize_emotion_scores,  # 감정 점수를 백분율로 정규화
+    clean_lyrics  # 가사 전처리
+)
 
-# 🎯 분석 입력 및 처리 뷰
-# @login_required
+from chartsongs.models import ChartSong
+from lyricsgenius import Genius  # Genius API 클라이언트
+from decouple import config  # .env 환경변수 로드
+import random
+from analyze.models import UserSong  # 사용자별 분석 결과 저장용 모델
+from difflib import SequenceMatcher  # 가사 유사도 비교용
+
+# ✅ Genius API 클라이언트 초기화
+genius = Genius(
+    config("GENIUS_ACCESS_TOKEN"),
+    skip_non_songs=True,
+    remove_section_headers=True
+)
+
+# ✅ 감성 분석 메인 뷰
+# - 입력: 제목, 아티스트, 수동 가사 입력(optional)
+# - 기능: 가사 분석, DB 저장 or 보완, 결과 리턴
+# - 조건: 기존 DB에 존재 → 업데이트 / 없다면 → 분석 후 새로 저장
+
 def analyze_input_view(request):
     if request.method == "POST":
-        # 📌 사용자 입력값 수집
+        # 사용자 입력값 가져오기
         title_input = request.POST.get("title").strip()
         artist_input = request.POST.get("artist").strip()
         manual_lyrics = request.POST.get("manual_lyrics")
         country = request.POST.get("country", "global")
 
-        # 📌 정규화 및 표준화
-        title_clean = title_input.lower()
-        standard_artist_raw = get_standard_artist_name(artist_input)
-        standard_artist_clean = standard_artist_raw.lower()
+        try:
+            # ✅ 기존 곡이 이미 DB에 있을 경우
+            existing = ChartSong.objects.get(title=title_input, artist=artist_input)
+            lyrics = clean_lyrics(existing.lylics)
+            print("✅ DB에서 가사 불러옴")
 
-        # 📌 가사 수집
-        if manual_lyrics:
-            lyrics = manual_lyrics.strip()
-        else:
-            lyrics = get_lyrics(title_clean, artist_input, country=country)
-            if (
-                "❌" in lyrics or
-                len(lyrics) < 30 or
-                "죄송" in lyrics or
-                "찾을 수 없습니다" in lyrics
-            ):
+            updated = False  # 변경된 항목이 있는지 확인용
+
+            # 🔍 감정 태그 없으면 분석 후 저장
+            if not existing.emotion_tags:
+                emotion_scores = analyze_lyrics_emotions(lyrics)
+                emotion_scores = normalize_emotion_scores(emotion_scores)
+                top3_emotions = [k for k, v in sorted(emotion_scores.items(), key=lambda x: -x[1])[:3]]
+                emotion_tags = [f"#{tag}" for tag in top3_emotions]  # DB 저장용은 # 붙임
+                existing.emotion_tags = emotion_tags
+                updated = True
+            else:
+                # 감정 분석은 다시 하지만 기존 태그 유지
+                emotion_scores = analyze_lyrics_emotions(lyrics)
+                emotion_scores = normalize_emotion_scores(emotion_scores)
+                top3_emotions = [k for k, v in sorted(emotion_scores.items(), key=lambda x: -x[1])[:3]]
+                emotion_tags = existing.emotion_tags
+
+            # 🔍 키워드 없으면 추출
+            if not existing.keywords:
+                keywords = extract_keywords_from_lyrics(lyrics)
+                existing.keywords = keywords
+                updated = True
+            else:
+                keywords = existing.keywords
+
+            # 🔍 장르 정보 없으면 크롤링
+            if not existing.normalized_genre:
+                platform = request.POST.get("platform", "melon")
+                song_id = ""
+                genre = get_genre(song_id, title_input, artist_input, platform)
+                normalized_genre = normalize_genre(genre)
+                existing.normalized_genre = normalized_genre
+                updated = True
+
+            # 🔍 발매일 없으면 Genius에서 추출
+            if not existing.release_date:
+                song = genius.search_song(title_input, artist_input)
+                if song and song.url:
+                    existing.release_date = get_release_date_from_genius_url(song.url)
+                    if not existing.album_cover_url:
+                        existing.album_cover_url = song.song_art_image_url
+                    if not existing.genius_id:
+                        existing.genius_id = song.id
+                    updated = True
+
+            if updated:
+                existing.save()
+
+        except ChartSong.DoesNotExist:
+            # ✅ DB에 해당 곡이 없을 경우
+            if manual_lyrics:
+                # 🎯 수동 입력 가사 있는 경우
+                lyrics = clean_lyrics(manual_lyrics.strip())
+
+                if len(lyrics) < 30:
+                    return render(request, "manual_lyrics_input.html", {
+                        "title": title_input,
+                        "artist": artist_input,
+                    })
+
+                # 분석 및 추출
+                emotion_scores = analyze_lyrics_emotions(lyrics)
+                emotion_scores = normalize_emotion_scores(emotion_scores)
+                top3_emotions = [k for k, v in sorted(emotion_scores.items(), key=lambda x: -x[1])[:3]]
+                emotion_tags = [f"#{tag}" for tag in top3_emotions]
+                keywords = extract_keywords_from_lyrics(lyrics)
+
+                # Genius에서 해당 곡 정보 탐색
+                song = genius.search_song(title_input, artist_input)
+                genius_id = song.id if song else None
+                album_cover_url = song.song_art_image_url if song else None
+                release_date = get_release_date_from_genius_url(song.url) if song and song.url else None
+
+                # ✅ 가사 유사도 80% 이상일 경우에만 저장
+                matched = False
+                if song and song.lyrics:
+                    genius_lyrics = clean_lyrics(song.lyrics)
+                    similarity = SequenceMatcher(None, lyrics, genius_lyrics).ratio()
+                    matched = similarity >= 0.8
+                    print(f"🎯 가사 유사도: {similarity:.2f} → {'매치' if matched else '불일치'}")
+
+                if genius_id and matched and not ChartSong.objects.filter(genius_id=genius_id).exists():
+                    ChartSong.objects.create(
+                        title=title_input,
+                        artist=artist_input,
+                        normalized_genre=None,
+                        lylics=lyrics,
+                        emotion_tags=emotion_tags,
+                        keywords=keywords,
+                        genius_id=genius_id,
+                        album_cover_url=album_cover_url,
+                        release_date=release_date
+                    )
+
+                    if request.user.is_authenticated:
+                        try:
+                            UserSong.objects.get(user=request.user, title=title_input, artist=artist_input)
+                        except UserSong.DoesNotExist:
+                            UserSong.objects.create(
+                                user=request.user,
+                                title=title_input,
+                                artist=artist_input,
+                                top3_emotions=emotion_tags
+                            )
+
+                # 결과 페이지 렌더링
+                top3 = [(tag, emotion_scores[tag]) for tag in top3_emotions]
+                return render(request, "analyze_result.html", {
+                    "title": title_input,
+                    "artist": artist_input,
+                    "result": emotion_scores,
+                    "top3": top3,
+                    "keywords": keywords,
+                    "lyrics": lyrics
+                })
+
+            # 🎯 수동 입력이 없으면 자동 크롤링 시도
+            lyrics = get_lyrics(title_input, artist_input, country=country)
+            lyrics = clean_lyrics(lyrics)
+
+            if "❌" in lyrics or len(lyrics) < 30:
                 return render(request, "manual_lyrics_input.html", {
                     "title": title_input,
                     "artist": artist_input,
                 })
 
-        # ✅ 감성 분석
-        raw_result = analyze_lyrics_emotions(lyrics)
-        if "error" in raw_result:
-            return render(request, "analyze_result.html", {
-                "title": title_input,
-                "artist": artist_input,
-                "lyrics": lyrics,
-                "result": {},
-                "top3": [],
-                "top3_emotions": [],
-                "warning": "감성 분석에 실패했습니다."
-            })
+            # 분석 및 저장
+            emotion_scores = analyze_lyrics_emotions(lyrics)
+            emotion_scores = normalize_emotion_scores(emotion_scores)
+            top3_emotions = [k for k, v in sorted(emotion_scores.items(), key=lambda x: -x[1])[:3]]
+            emotion_tags = [f"#{tag}" for tag in top3_emotions]
+            keywords = extract_keywords_from_lyrics(lyrics)
 
-        # ✅ 결과 정리
-        result = normalize_emotion_scores(raw_result)
-        sorted_result = sorted(result.items(), key=lambda x: x[1], reverse=True)
-        top3 = sorted_result[:3]  # ✅ (감정, 점수) 튜플
-        top3_emotions = [emotion for emotion, _ in top3]  # ✅ 감정 이름 리스트
+            platform = request.POST.get("platform", "melon")
+            song_id = ""
+            genre = get_genre(song_id, title_input, artist_input, platform)
+            normalized_genre = normalize_genre(genre)
 
-        # ✅ DB 저장
-        if not Song.objects.filter(title__iexact=title_clean, artist__iexact=standard_artist_clean).exists():
-            Song.objects.create(
-                title=title_clean,
-                artist=standard_artist_raw,
-                top2_emotions=top3_emotions[:2],
-                top3_emotions=top3_emotions
-            )
+            song = genius.search_song(title_input, artist_input)
+            genius_id = song.id if song else None
+            album_cover_url = song.song_art_image_url if song else None
+            release_date = get_release_date_from_genius_url(song.url) if song and song.url else None
 
-        if request.user.is_authenticated:
-            if not UserSong.objects.filter(user=request.user, title__iexact=title_clean, artist__iexact=standard_artist_clean).exists():
-                UserSong.objects.create(
-                    user=request.user,
-                    title=title_clean,
-                    artist=standard_artist_raw,
-                    top3_emotions=top3_emotions
+            if genius_id and not ChartSong.objects.filter(genius_id=genius_id).exists():
+                ChartSong.objects.create(
+                    title=title_input,
+                    artist=artist_input,
+                    normalized_genre=normalized_genre,
+                    lylics=lyrics,
+                    emotion_tags=emotion_tags,
+                    keywords=keywords,
+                    genius_id=genius_id,
+                    album_cover_url=album_cover_url,
+                    release_date=release_date
                 )
 
-                
-        # ✅ 분석 결과 렌더링
+                if request.user.is_authenticated:
+                    try:
+                        UserSong.objects.get(user=request.user, title=title_input, artist=artist_input)
+                    except UserSong.DoesNotExist:
+                        UserSong.objects.create(
+                            user=request.user,
+                            title=title_input,
+                            artist=artist_input,
+                            top3_emotions=emotion_tags
+                        )
+
+        # ✅ 최종 감정 결과 렌더링
+        top3 = [(tag, emotion_scores[tag]) for tag in top3_emotions]
         return render(request, "analyze_result.html", {
             "title": title_input,
             "artist": artist_input,
-            "lyrics": lyrics,
-            "result": result,
-            "top3": top3,  # ✅ 감정+점수 튜플
-            "top3_emotions": top3_emotions,  # ✅ 감정 이름만 리스트 (추천 링크용)
-            "warning": ""
+            "result": emotion_scores,
+            "top3": top3,
+            "keywords": keywords,
+            "lyrics": lyrics
         })
 
+    # ✅ GET 요청이면 입력폼 보여줌
     return render(request, "analyze_input.html")
 
-
-# 🎯 홈 접근 시 자동 분석 페이지로 리디렉션
+# 홈 리디렉션 (기본 분석 페이지로 이동)
 def home_redirect(request):
     return redirect('analyze')
 
-
-# 🎯 추천곡 필터링 뷰: 감정 태그 기준으로 추천
+# 감정 태그 기반 추천곡 뷰
 def recommend_by_emotion(request, tag):
     try:
-        # 📌 가장 최근 분석한 곡을 제외 (중복 방지 목적)
-        last_song = Song.objects.latest('created_at')
-        all_songs = Song.objects.exclude(title=last_song.title, artist=last_song.artist)
-    except Song.DoesNotExist:
-        # 📌 데이터가 없을 경우 예외 처리
-        all_songs = Song.objects.all()
+        last_song = ChartSong.objects.latest('id')
+        all_songs = ChartSong.objects.exclude(title=last_song.title, artist=last_song.artist)
+    except ChartSong.DoesNotExist:
+        all_songs = ChartSong.objects.all()
 
-    # ✅ 해당 감정을 포함하는 곡만 필터링
+    # 감정 태그 포함 곡 필터링
     filtered_songs = [
         song for song in all_songs
-        if tag.strip() in [t.strip() for t in song.top2_emotions]
+        if tag.strip() in [t.strip() for t in song.emotion_tags or []]
     ]
 
-    # ✅ 최대 5곡만 무작위 샘플링
-    filtered_songs = random.sample(filtered_songs, min(len(filtered_songs), 5))
+    # 랜덤 추천
+    filtered_songs = random.sample(filtered_songs, min(len(filtered_songs), 5)) 
 
-    # ✅ 추천곡 페이지 렌더링
     return render(request, "recommendations.html", {
         "tag": tag,
         "songs": filtered_songs
