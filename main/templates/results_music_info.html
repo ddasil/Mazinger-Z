@@ -24,22 +24,64 @@
 
     <!-- (1,2): 곡 정보 -->
     <div class="song-info">
-      <h2> {{ song.title }}</h2>
-      <p><strong>가수:</strong> {{ song.artist }}</p>
-      <p><strong>발매일:</strong> {{ song.release_date }}</p>
-      <p><strong>장르:</strong> {{ song.genre }}</p>
 
-      <!-- ❤️ 좋아요 -->
-      <button id="likeButton"
-              data-title="{{ song.title }}"
-              data-artist="{{ song.artist }}"
-              class="like-btn">
-        {% if is_liked %}❤️{% else %}🤍{% endif %}
-      </button>
-      <p id="likeCountDisplay">
-        ❤️ <span id="likeCountValue">{{ like_count|default:"0" }}</span>명 좋아요
-      </p>
+      <!-- 동건 변경 -->
+      <div class="title-row">
+        <h2 class="song-title">{{ song.title }}</h2>
+        <div class="like-wrapper">
+          <button id="likeButton" class="like-btn" data-title="{{ song.title }}" data-artist="{{ song.artist }}">
+            {% if is_liked %}❤️{% else %}🤍{% endif %}
+          </button>
+          <span id="likeCountDisplay">
+            <span id="likeCountValue">{{ like_count|default:"0" }}</span>명 좋아요
+          </span>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <span class="label">가수</span>
+        <span class="colon">:</span>
+        <span class="value">{{ song.artist }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">발매일</span>
+        <span class="colon">:</span>
+        <span class="value">{{ song.release_date }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">장르</span>
+        <span class="colon">:</span>
+        <span class="value">{{ song.genre }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">곡 태그</span>
+        <span class="colon">:</span>
+        <span class="value">
+          {% if song.keywords %}
+          {{ song.keywords|join:", " }}
+          {% else %}
+          없음
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">감정 태그</span>
+        <span class="colon">:</span>
+        <span class="value">
+          {% if song.emotion_tags %}
+          {{ song.emotion_tags|join:", " }}
+          {% else %}
+          없음
+          {% endif %}
+        </span>
+      </div>
     </div>
+      <!-- 동건 변경 끝 -->
+
 
     <!-- (1~2,3): 좋아요 목록 -->
     <div class="like-box">
@@ -47,12 +89,12 @@
       <div class="like-box-scroll">
         <ul class="like-list">
           {% for liked_song in liked_songs %}
-            <li>
-              <strong>{{ liked_song.title }}</strong><br>
-              <span>{{ liked_song.artist }}</span>
-            </li>
+          <li>
+            <strong>{{ liked_song.title }}</strong><br>
+            <span>{{ liked_song.artist }}</span>
+          </li>
           {% empty %}
-            <li>좋아요한 곡이 없습니다.</li>
+          <li>좋아요한 곡이 없습니다.</li>
           {% endfor %}
         </ul>
       </div>
@@ -63,7 +105,7 @@
       <h3> 가사</h3><br>
       <div id="lyrics-preview">
         {% for line in song.lyrics.splitlines %}
-          <div>{{ line }}</div>
+        <div>{{ line }}</div>
         {% endfor %}
       </div>
       <button id="toggle-lyrics" class="toggle-lyrics-btn">더보기 ▼</button>

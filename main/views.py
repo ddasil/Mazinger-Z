@@ -30,8 +30,16 @@ def main(request):
 
     first_song = random.choice(songs)
 
+    # ✅ 동건 추가, section2용 최신 앨범 커버 이미지 5개
+    # top5 = ChartSong.objects.exclude(album_cover_url='').order_by('-id')[:5] # 상위 5개
+    all_cover_songs = list(ChartSong.objects.exclude(album_cover_url='')) # 랜덤 5개
+    random.shuffle(all_cover_songs) # 랜덤 5개
+    top5 = all_cover_songs[:5] # 랜덤 5개
+    cover_songs = top5
+
     return render(request, 'index.html', {
         'quiz_song': first_song,
+        'cover_songs': top5,   # 👉 동건 추가, section2 용
     })
 
 def preference_view(request):
@@ -265,6 +273,23 @@ def results_music_info_view(request):
         release_date = getattr(song_obj, 'release_date', '')
         cover_url = getattr(song_obj, 'album_cover_url', '')
         lyrics = getattr(song_obj, 'lylics', '') 
+        emotion_tags = song_obj.emotion_tags  # 동건 추가
+        keywords = song_obj.keywords          # 동건 추가
+        
+        # 동건 추가
+        # ✅ 문자열이면 json.loads() 처리
+        if isinstance(emotion_tags, str):
+            try:
+                emotion_tags = json.loads(emotion_tags)
+            except:
+                emotion_tags = []
+
+        # 동건 추가
+        if isinstance(keywords, str):
+            try:
+                keywords = json.loads(keywords)
+            except:
+                keywords = []
         
 
         song_info = {
@@ -274,6 +299,8 @@ def results_music_info_view(request):
             'release_date': release_date,
             'cover_url': cover_url,
             'lyrics': lyrics, # ✅ 가사도 전달
+            'emotion_tags': emotion_tags,   # 동건 추가
+            'keywords': keywords,           # 동건 추가
         }
 
 
@@ -313,3 +340,5 @@ def add_or_remove_like(request):
     return JsonResponse({"status": "added", "count": count})
 
 #추가끝끝
+
+
