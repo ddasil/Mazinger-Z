@@ -8,18 +8,31 @@ from dotenv import load_dotenv
 from django.core.files.base import ContentFile
 from .models import GeneratedLyrics
 
+
+
 # 환경 변수에서 OpenAI API 키 로딩
 load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 def lyrics_home(request):
+    open_id = request.GET.get('open_id')
+    
     if request.user.is_authenticated:
         all_lyrics = GeneratedLyrics.objects.filter(user=request.user).order_by('-created_at')[:5]
     else:
         temp_user_id = request.session.session_key
         all_lyrics = GeneratedLyrics.objects.filter(temp_user_id=temp_user_id).order_by('-created_at')[:5] if temp_user_id else None
+
+    selected_lyrics = None
+    if open_id:
+        try:
+            selected_lyrics = GeneratedLyrics.objects.get(id=open_id)
+        except GeneratedLyrics.DoesNotExist:
+            selected_lyrics = None
+
     return render(request, 'lyrics.html', {
-        'all_lyrics': all_lyrics
+        'all_lyrics': all_lyrics,
+        'selected_lyrics': selected_lyrics,  # 👉 여기에 담아서 템플릿에 넘김
     })
 
 def generate_lyrics(request):

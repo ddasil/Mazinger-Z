@@ -7,6 +7,10 @@ from django.http import JsonResponse
 from accounts.forms import CustomUserChangeForm
 from django.db import IntegrityError
 
+from lyricsgen.models import GeneratedLyrics
+
+
+
 
 @login_required
 def mypage(request):
@@ -36,8 +40,25 @@ def mypage(request):
     else:
         form = CustomUserChangeForm(instance=user)
         return render(request, 'mypage.html', {'form': form})
+    
+# 진섭추가
+# ✅ 여기에 추가: 유저별 GeneratedLyrics 목록 JSON 반환
+@login_required
+def user_generated_lyrics(request):
+    user = request.user
+    lyrics_qs = GeneratedLyrics.objects.filter(user=user).order_by('-created_at')
 
-
+    data = [
+        {
+            'id': lyric.id,
+            'prompt': lyric.prompt,
+            'style': lyric.style,
+            'language': lyric.language,
+            "created_at": lyric.created_at.strftime('%Y-%m-%d'),
+        }
+        for lyric in lyrics_qs
+    ]
+    return JsonResponse({'lyrics': data})
 
 @login_required
 def verify_password(request):

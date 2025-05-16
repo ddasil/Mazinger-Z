@@ -1,18 +1,22 @@
 .mypage-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 80vh;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  height: auto;
+  padding: 80px 60px 60px 400px;   /* ✅ 상단 여백 확보 (기존 padding 변경) */
+  flex-wrap: nowrap;  /* ✅ 한 줄에만 정렬되게 */
+  gap: 40px;                        /* 프로필과 버튼 사이 간격 */
 }
 
 .profile-box {
   text-align: center;
   margin-bottom: 30px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(16, 2, 2, 0.985);
   padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid white;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(22, 19, 19, 0.948);
   color: white;
 }
 
@@ -36,17 +40,31 @@
 
 .link-buttons {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  flex-wrap: nowrap;
+  margin-top: 90px;
+  gap: 1px;
+  align-items: center;
+  flex-direction: row;
+  margin-left: 100px;  
 }
 
 .mypage-link-btn {
   padding: 10px 20px;
   background: #444;
+  background-color: rgba(16, 2, 2, 0.985);
+  border-bottom: 1px solid white;
+  border-right: 1px solid white;
   color: white;
   text-decoration: none;
   border-radius: 6px;
   text-align: center;
+}
+
+.mypage-link-btn.active {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  border: 2px solid white;
 }
 
 /* ✅ 모달 팝업 강제 중앙 고정 */
@@ -129,4 +147,142 @@ select option {
   border-radius: 50%;
   border: 2px solid white;
   margin-top: 10px;
+}
+
+/* 추가 진섭이 위에도 조금 추가함함 */
+
+#user-lyrics-list-wrapper {
+  margin-top: 80px;
+  padding: 20px 60px;
+  color: white;
+
+  
+}
+
+#user-lyrics-list {
+  margin-top: 30px;         /* 버튼들과 충분한 거리 */
+  text-align: center;        /* 텍스트 중앙 정렬 */
+  color: white;
+  z-index: 10;               /* LP보다 위로 나오게 */
+  position: relative;
+  margin-left: 100px; 
+}
+
+#user-lyrics-list div {
+  margin-bottom: 12px;
+  font-size: 16px;
+  background-color: rgba(23, 21, 21, 0.05);
+  padding: 10px 16px;
+  border-radius: 8px;
+  width: fit-content;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#user-lyrics-list div:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.link-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255);
+  margin-top: 30px;
+  margin-bottom: 40px;
+
+  /* ✅ 버튼들과 위치 및 너비 일치 */
+  width: fit-content;
+  min-width: 765px;        /* 버튼들 너비에 맞게 (원하면 더 정확히 조정 가능) */
+  margin-left: 100px;      /* ✅ "내가 만든 가사" 기준 왼쪽 여백 (직접 확인해서 조정) */
+}
+
+.lyrics-table {
+  width: 100%;
+  color: white;
+  margin-left: 100px;
+  border-collapse: collapse;
+  margin-top: 30px;
+}
+
+.lyrics-table th, .lyrics-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: left;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.lyrics-table th {
+  font-weight: bold;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ✅ 본문 행만 hover 적용 */
+.lyrics-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.lyrics-controls {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 30px; /* 삭제 버튼과 페이지네이션 사이 간격 */
+  margin: 40px 0 0 100px; /* 목록 왼쪽 정렬선과 맞추기 + 위 여백 */
+}
+
+.delete-btn {
+  padding: 8px 16px;
+  background-color: #a00;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.delete-btn:hover {
+  background-color: #c33;
+}
+/* 페이지네비바 */
+.lyrics-controls-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.left-controls {
+  align-self: flex-start;
+  margin-left: 100px;
+  margin-bottom: 10px;
+}
+
+.center-pagination {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pagination button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: color 0.2s, text-decoration 0.2s;
+}
+
+.pagination button:hover {
+  text-decoration: underline;
+}
+
+.pagination button.active {
+  font-weight: bold;
+  text-decoration: underline;
 }

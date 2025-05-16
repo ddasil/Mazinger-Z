@@ -18,8 +18,8 @@
 {% block content %}
 <!-- 🔵 마이페이지 상단 프로필 영역 -->
 <div class="mypage-container">
+  <!-- 왼쪽 프로필 박스 -->
   <div class="profile-box">
-    <!-- ✅ 현재 설정된 프로필 이미지 표시 (없으면 기본 이미지) -->
     {% if form.profile_picture.value %}
       <img src="{% static 'images/profiles/'|add:form.profile_picture.value %}" alt="Profile Picture" class="profile-picture">
     {% else %}
@@ -30,10 +30,46 @@
     <button id="openPasswordBtn" class="edit-profile-btn">프로필 수정</button>
   </div>
 
-  <!-- 🔗 내가 만든 가사 / 플레이리스트 바로가기 -->
-  <div class="link-buttons">
-    <a href="{% url 'lyrics_root' %}" class="mypage-link-btn">내가 만든 가사</a>
-    <a href="/music/" class="mypage-link-btn">내 플레이 리스트</a>
+  <!-- 오른쪽 컨텐츠: 버튼 + 목록 -->
+  <div class="content-box">
+    <div class="link-buttons">
+      <a href="javascript:void(0);" class="mypage-link-btn lyrics-btn" data-type="lyrics">내가 만든 가사</a>
+      <a href="/music/" class="mypage-link-btn">내 플레이 리스트</a>
+      <a href="#" class="mypage-link-btn" data-type="button3">테스트 모델1</a>
+      <a href="#" class="mypage-link-btn" data-type="button4">테스트 모델1</a>
+      <a href="#" class="mypage-link-btn" data-type="button5">테스트 모델1</a>
+
+    </div>
+    <!-- 버튼 아래 구분선 추가 -->
+    <!-- <div class="link-divider"></div> -->
+
+    <table id="user-lyrics-table" class="lyrics-table" style="display: none;">
+      <thead>
+        <tr class="table-header">
+          <th class="col-select">
+            <input type="checkbox" id="select-all" title="전체 선택">
+          </th>
+          <th class="col-title">
+             <span class="th-title-main">제목</span>
+            <span class="th-title-sub">   (장르 / 언어) </span>
+          </th>
+          <th class="col-date"> 작성일</th>
+        </tr>
+      </thead>
+      <tbody id="user-lyrics-body">
+        <!-- JS로 동적으로 추가됨 -->
+      </tbody>
+    </table>
+
+    <!-- ✅ 삭제 버튼 + 페이지네이션 분리 -->
+    <div class="lyrics-controls-wrapper">
+      <div class="left-controls">
+        <button id="delete-selected" class="delete-btn">선택 삭제</button>
+      </div>
+      <div class="center-pagination">
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
   </div>
 </div>
 

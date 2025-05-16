@@ -81,3 +81,6 @@ function stopMicRecognitionUI() {
   micBtn.style.display = "inline";
   stopBtn.style.display = "none";
 }
+
+
+// 진섭이 추가 

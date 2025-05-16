@@ -109,4 +109,18 @@
 {% block extra_script %}
 <script src="{% static 'js/base.js' %}"></script>
 <script src="{% static 'js/lyrics.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const openId = new URLSearchParams(window.location.search).get("open_id");
+
+    // ✅ sessionStorage를 이용해서 한 세션 내에서 딱 1번만 모달 자동 열기
+    if (openId && !sessionStorage.getItem(`modal_once_shown`)) {
+      const prompt = `{{ selected_lyrics.prompt|escapejs }}`;
+      const lyrics = `{{ selected_lyrics.lyrics|escapejs }}`;
+      showLyricsModal(prompt, lyrics);
+      sessionStorage.setItem(`modal_once_shown`, 'true'); // ✅ 최초 진입 이후 다시 안 뜨게
+    }
+  });
+</script>
 {% endblock %}
+

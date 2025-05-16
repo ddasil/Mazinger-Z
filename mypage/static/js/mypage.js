@@ -54,8 +54,8 @@ function formatPhoneNumber(value) {
 }
 
 // 📞 전화번호 유효성 검사
-function validatePhoneNumber(phone) {
-  return /^010-\d{4}-\d{4}$/.test(phone);
+function validatePhoneNumber(콜) {
+  return /^010-\d{4}-\d{4}$/.test(콜);
 }
 
 // 🔄 제출 버튼 활성화 여부 갱신
@@ -210,4 +210,160 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ✅ 최초 로딩 시 닉네임 중복 여부 초기 검사
   checkNicknameDuplicate(nicknameInput.value.trim(), updateSubmitState);
+});
+
+const itemsPerPage = 10;
+let allLyricsData = [];
+
+// ✅ 전체 가사 목록 불러오기 + 초기 렌더링
+function loadLyricsTable(page = 1) {
+  const table = document.getElementById('user-lyrics-table');
+  table.style.display = 'table';
+
+  fetch('/accounts/user-generated-lyrics/')
+    .then(res => res.json())
+    .then(data => {
+      allLyricsData = data.lyrics || [];
+      renderLyricsPage(page);
+    })
+    .catch(error => {
+      console.error('❌ 가사 불러오기 실패:', error);
+    });
+}
+
+// ✅ 현재 페이지의 가사 목록 렌더링
+function renderLyricsPage(page) {
+  const tbody = document.getElementById('user-lyrics-body');
+  tbody.innerHTML = '';
+
+  const start = (page - 1) * itemsPerPage;
+  const pageData = allLyricsData.slice(start, start + itemsPerPage);
+
+  if (pageData.length === 0) {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 3;
+    cell.textContent = '등록된 가사가 없습니다.';
+    row.appendChild(cell);
+    tbody.appendChild(row);
+    return;
+  }
+
+  pageData.forEach(item => {
+    const row = document.createElement('tr');
+    row.dataset.lyricId = item.id;  // ✅ 여기 추가!
+
+    const selectTd = document.createElement('td');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    selectTd.appendChild(checkbox);
+
+    const titleTd = document.createElement('td');
+    titleTd.textContent = `${item.prompt} (${item.style}/${item.language})`;
+
+    const dateTd = document.createElement('td');
+    dateTd.textContent = item.created_at || '날짜 없음';
+
+    row.appendChild(selectTd);
+    row.appendChild(titleTd);
+    row.appendChild(dateTd);
+
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', (e) => {
+      if (e.target.tagName.toLowerCase() !== 'input') {
+        sessionStorage.removeItem('modal_once_shown');
+        window.location.href = `/lyricsgen/?open_id=${item.id}`;
+      }
+    });
+
+    tbody.appendChild(row);
+  });
+
+  renderPagination(Math.ceil(allLyricsData.length / itemsPerPage), page);
+  bindSelectAll();
+}
+
+// ✅ 페이지네이션 버튼 생성
+function renderPagination(totalPages, currentPage) {
+  const pagination = document.getElementById("pagination");
+  pagination.innerHTML = '';
+
+  const safeTotalPages = Math.max(totalPages, 1);
+  for (let i = 1; i <= safeTotalPages; i++) {
+    const button = document.createElement('button');
+    button.textContent = i;
+    if (i === currentPage) button.classList.add('active');
+    button.addEventListener('click', () => renderLyricsPage(i));
+    pagination.appendChild(button);
+  }
+}
+
+// ✅ 체크박스 전체 선택 기능
+function bindSelectAll() {
+  const selectAllCheckbox = document.getElementById('select-all');
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function () {
+      const checkboxes = document.querySelectorAll('#user-lyrics-body input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+  }
+}
+
+// ✅ 버튼 클릭 시 동작
+document.querySelectorAll('.mypage-link-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.querySelectorAll('.mypage-link-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+
+    const type = this.dataset.type;
+    if (type === "lyrics") {
+      loadLyricsTable();
+    } else {
+      console.log("다른 버튼 클릭");
+    }
+  });
+});
+
+// ✅ 첫 페이지 진입 시 자동으로 "내가 만든 가사" 클릭
+document.addEventListener("DOMContentLoaded", function () {
+  const firstBtn = document.querySelector('.mypage-link-btn.lyrics-btn');
+  if (firstBtn) firstBtn.click();
+});
+
+document.getElementById('delete-selected').addEventListener('click', function () {
+  const checkedRows = document.querySelectorAll('#user-lyrics-body tr input[type="checkbox"]:checked');
+  if (checkedRows.length === 0) {
+    alert("삭제할 항목을 선택하세요.");
+    return;
+  }
+
+  const idsToDelete = Array.from(checkedRows).map(cb => {
+    return cb.closest('tr').dataset.lyricId;
+  });
+
+  if (!confirm("정말 삭제하시겠습니까?")) return;
+
+  // ✅ CSRF 토큰 추출
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+  fetch('/accounts/delete-lyrics/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify({ ids: idsToDelete })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("삭제되었습니다.");
+      loadLyricsTable();  // 목록 갱신
+    } else {
+      alert("삭제 실패. 다시 시도해주세요.");
+    }
+  })
+  .catch(err => {
+    console.error("❌ 삭제 요청 실패:", err);
+  });
 });

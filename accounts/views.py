@@ -12,6 +12,10 @@ from .forms import PasswordResetForm
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.conf import settings
 from urllib.parse import urlencode
+from django.views.decorators.csrf import csrf_exempt
+import json
+from lyricsgen.models import GeneratedLyrics
+from django.views.decorators.csrf import csrf_exempt
 
 def signup_view(request):
     if request.method == 'POST':
@@ -105,3 +109,17 @@ def check_username(request):
     return JsonResponse({'available': not exists})
 
 
+@csrf_exempt
+def delete_lyrics(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            ids = data.get('ids', [])
+            if not ids:
+                return JsonResponse({'success': False, 'error': 'No IDs provided'})
+
+            GeneratedLyrics.objects.filter(id__in=ids).delete()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)

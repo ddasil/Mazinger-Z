@@ -280,13 +280,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 동건 수정
   // ✅ 좋아요 버튼
   const likeButton = document.getElementById("likeButton");
-  if (likeButton) {
+  const countSpan = document.getElementById("likeCountValue");
+  
+  if (likeButton && countSpan) {
     likeButton.addEventListener("click", () => {
       const title = likeButton.dataset.title;
       const artist = likeButton.dataset.artist;
-
+  
       fetch("/check-auth/")
         .then(res => res.json())
         .then(data => {
@@ -296,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "/accounts/login/?next=" + nextUrl;
             return;
           }
-
+  
           fetch("/toggle-like/", {
             method: "POST",
             headers: {
@@ -307,22 +310,27 @@ document.addEventListener("DOMContentLoaded", () => {
           })
           .then(res => res.json())
           .then(result => {
-            if (result.status === "added") {
-              likeButton.innerText = "❤️";
-            } else if (result.status === "removed") {
-              likeButton.innerText = "🤍";
-            }
-          
-            const countSpan = document.getElementById("likeCountValue");
-            if (countSpan) {
-              countSpan.innerText = result.count ?? 0;
-            }
+            const isLiked = result.status === "added";
+            const newIcon = isLiked ? "❤️" : "🤍";
+            const count = result.count ?? 0;
+  
+            likeButton.innerText = newIcon;
+            countSpan.innerText = count;
           });
         });
     });
   }
-  
-  function getCSRFToken() {
-    return document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
-  }
+    
 });
+
+function getCSRFToken() {
+  const match = document.cookie.match(/csrftoken=([^;]+)/);
+  return match ? match[1] : null;
+}
+
+// 동건 추가, 섹션2
+// ✅ 자동 슬라이드 기능 추가
+setInterval(() => {
+  currentIndex = (currentIndex + 1) % cards.length;
+  updateCards(currentIndex);
+}, 6000); // n초마다 전환
