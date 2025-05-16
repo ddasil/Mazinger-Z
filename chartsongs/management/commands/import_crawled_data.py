@@ -48,7 +48,7 @@ def analyze_lyrics_emotions(lyrics: str) -> dict:
     """
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.6,
         )
@@ -428,20 +428,32 @@ def fetch_spotify_chart():
     return df
 
 # 발매일 크롤링
-def get_genius_release_date(song_url: str) -> str:
+def get_genius_release_date(song_url: str):
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
         res = requests.get(song_url, headers=headers, timeout=10)
         soup = BeautifulSoup(res.text, "html.parser")
-        text = soup.get_text()
 
-        # 📌 날짜 형식: Jun. 26, 2020 또는 June 26, 2020
-        match = re.search(r'(Jan\.?|Feb\.?|Mar\.?|Apr\.?|May\.?|Jun\.?|Jul\.?|Aug\.?|Sep\.?|Oct\.?|Nov\.?|Dec\.?)\s+\d{1,2},\s+\d{4}', text)
-        if match:
-            return match.group(0)
+        spans = soup.find_all("span")
+        for span in spans:
+            text = span.get_text(strip=True)
+            if any(month in text for month in [
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            ]) and any(char.isdigit() for char in text):
+                try:
+                    dt = datetime.strptime(text, "%b. %d, %Y")
+                    return dt.date().isoformat()
+                except ValueError:
+                    continue  # 혹시 %b %d, %Y 형식일 수도?
+                try:
+                    dt = datetime.strptime(text, "%b %d, %Y")
+                    return dt.date().isoformat()
+                except ValueError:
+                    continue
     except Exception as e:
-        print(f"⚠️ 발매일 크롤링 실패: {song_url} → {e}")
-    return ''
+        print("❌ 발매일 크롤링 실패:", e)
+    return None
 
 
 # class Command(BaseCommand):
@@ -548,8 +560,9 @@ def process_row(row):
         print(f"🎯 감정 분석 결과: {scores}")
         if "error" not in scores:
             top3 = sorted(scores.items(), key=lambda x: -x[1])[:3]
-            emotion_tags = [k for k, _ in top3]
-        keywords = extract_keywords_from_lyrics(lyrics)
+            emotion_tags = [f"#{k}" for k, _ in top3]  # ✅ 해시태그로 저장
+        raw_keywords = extract_keywords_from_lyrics(lyrics)
+        keywords = [f"#{kw}" for kw in raw_keywords if kw]  # ✅ 해시태그로 저장
         print(f"🔑 키워드 추출 결과: {keywords}")
 
     # ✅ DB 저장: 동일한 title + artist가 있는 경우 가져옴

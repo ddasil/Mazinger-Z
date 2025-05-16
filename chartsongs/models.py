@@ -14,17 +14,17 @@ class ChartSong(models.Model):
     # 📝 가사 (오타는 나중에 수정 예정)
     lylics = models.TextField(blank=True, null=True)
 
-    # 💬 감정 기반 태그 (예: ["슬픔", "위로", "비오는날"])
+    # 💬 감정 기반 태그 (예: ["#슬픔", "#위로", "#비오는날"])
     emotion_tags = models.JSONField(blank=True, null=True)
 
-    # 🧠 가사 키워드 태그 (예: ["사랑", "계절", "눈물"])
+    # 🧠 가사 키워드 태그 (예: ["#사랑", "#계절", "#눈물"])
     keywords = models.JSONField(blank=True, null=True)
 
     # 🖼 앨범 커버 이미지 URL
     album_cover_url = models.URLField(blank=True, null=True)
 
     # 📅 발매일 (문자열로 저장 중)
-    release_date = models.CharField(max_length=50, blank=True, null=True)
+    release_date = models.DateField(blank=True, null=True)
 
     # 🆔 Genius 고유 ID (중복 방지)
     genius_id = models.IntegerField(blank=True, null=True, unique=True)
