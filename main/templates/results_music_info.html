@@ -29,7 +29,7 @@
       <div class="title-row">
         <h2 class="song-title">{{ song.title }}</h2>
         <div class="like-wrapper">
-          <button id="likeButton" class="like-btn" data-title="{{ song.title }}" data-artist="{{ song.artist }}">
+          <button id="likeButton" class="like-btn" data-title="{{ song.title }}" data-artist="{{ song.artist }}" data-cover="{{ song.cover_url }}">
             {% if is_liked %}❤️{% else %}🤍{% endif %}
           </button>
           <span id="likeCountDisplay">

@@ -289,6 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
     likeButton.addEventListener("click", () => {
       const title = likeButton.dataset.title;
       const artist = likeButton.dataset.artist;
+      const cover_url = likeButton.dataset.cover;  // ✅ 앨범 이미지 URL도 가져오기
   
       fetch("/check-auth/")
         .then(res => res.json())
@@ -306,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
               "Content-Type": "application/json",
               "X-CSRFToken": getCSRFToken(),
             },
-            body: JSON.stringify({ title, artist })
+            body: JSON.stringify({ title, artist, cover_url })
           })
           .then(res => res.json())
           .then(result => {

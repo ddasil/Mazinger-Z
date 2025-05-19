@@ -10,22 +10,20 @@ from django.db.models import Q
 from main.models import Lovelist
 from django.views.decorators.http import require_POST
 
-# ✅ 게시글 목록 (사이드바 포함)
+# ✅ 게시글 목록
 def post_list(request):
     q = request.GET.get('q', '')
-    post_queryset = Post.objects.all().order_by('-created_at')  # 기본 queryset
+    post_queryset = Post.objects.all().order_by('-created_at')
 
     if q:
         post_queryset = post_queryset.filter(
             Q(title__icontains=q) | Q(description__icontains=q)
         )
 
-    # ✅ 페이지네이션
     paginator = Paginator(post_queryset, 4)
     page_number = request.GET.get('page')
     posts = paginator.get_page(page_number)
 
-    # ✅ 사이드바 구성
     user = request.user
     scrapped_posts, recent_posts, my_posts = [], [], []
 
@@ -43,30 +41,40 @@ def post_list(request):
         'scrapped_posts': scrapped_posts,
         'recent_posts': recent_posts,
         'my_posts': my_posts,
-        'query': q,  # 검색창에 값 유지
+        'query': q,
     })
 
 
 # ✅ 게시글 작성
 @login_required
 def post_create(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
             post.user = request.user
             post.save()
-            return redirect('post_list')
+
+            # ✅ 선택한 곡 ID 연결
+            selected_ids = request.POST.getlist('songs')
+            post.lovelist_songs.set(Lovelist.objects.filter(id__in=selected_ids))
+            return redirect('post_detail', pk=post.pk)
     else:
         form = PostForm()
-    return render(request, 'post_form.html', {'form': form})
+
+    lovelist = Lovelist.objects.filter(user=request.user, is_liked=True)
+    return render(request, 'post_form.html', {
+        'form': form,
+        'lovelist': lovelist,
+        'selected_songs': []
+    })
 
 
-# ✅ 게시글 상세 + 최근 본 처리
+# ✅ 게시글 상세
 def post_detail(request, pk):
     post = get_object_or_404(Post, id=pk)
 
-    # 최근 본 처리
+    # ✅ 최근 본 처리
     if request.user.is_authenticated:
         PostRecentView.objects.update_or_create(
             user=request.user,
@@ -76,13 +84,13 @@ def post_detail(request, pk):
     else:
         recent = request.session.get('recent_posts', [])
         if pk not in recent:
-            recent = [pk] + recent[:2]  # 최대 3개 유지
+            recent = [pk] + recent[:2]
             request.session['recent_posts'] = recent
 
-    # 좋아요 상태 확인
+    # ✅ 좋아요 상태
     liked = post.post_likes.filter(user=request.user).exists() if request.user.is_authenticated else False
 
-    # 댓글 처리
+    # ✅ 댓글 처리
     if request.method == "POST":
         form = CommentForm(request.POST)
         if form.is_valid():
@@ -94,11 +102,54 @@ def post_detail(request, pk):
     else:
         form = CommentForm()
 
+    # ✅ 선택된 곡
+    selected_songs = post.lovelist_songs.all()
+
     return render(request, 'post_detail.html', {
         'post': post,
         'liked': liked,
-        'comment_form': form
+        'comment_form': form,
+        'selected_songs': selected_songs,
     })
+
+# ✅ 게시글 수정
+@login_required
+def post_edit(request, pk):
+    post = get_object_or_404(Post, pk=pk, user=request.user)
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            post = form.save()
+            selected_ids = request.POST.getlist('songs')
+            post.lovelist_songs.set(Lovelist.objects.filter(id__in=selected_ids))
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm(instance=post)
+
+    selected_songs = post.lovelist_songs.all()
+    selected_song_ids = [str(song.id) for song in selected_songs]  # ✅ 이 줄이 핵심!
+
+    user_lovelist = list(Lovelist.objects.filter(user=request.user))
+    missing_songs = [s for s in selected_songs if s not in user_lovelist]
+    lovelist = user_lovelist + missing_songs
+
+    return render(request, 'post_form.html', {
+        'form': form,
+        'lovelist': lovelist,
+        'selected_songs': selected_songs,
+        'selected_song_ids': selected_song_ids,  # ✅ 이 줄도 중요!
+    })
+
+# ✅ 게시글 삭제
+@login_required
+def post_delete(request, pk):
+    post = get_object_or_404(Post, pk=pk, user=request.user)
+    if request.method == 'POST':
+        post.delete()
+        messages.success(request, '게시글이 삭제되었습니다.')
+        return redirect('post_list')
+    return render(request, 'post_confirm_delete.html', {'post': post})
 
 
 # ✅ 좋아요 토글
@@ -113,7 +164,7 @@ def like_post(request, pk):
     return redirect('post_detail', pk=pk)
 
 
-# ✅ 대댓글 작성
+# ✅ 댓글 대댓글 작성
 @login_required
 def comment_reply(request, comment_id):
     parent_comment = get_object_or_404(Comment, id=comment_id)
@@ -143,53 +194,10 @@ def scrap_post(request, pk):
         PostScrap.objects.create(post=post, user=user)
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
-# ✅ 게시글 수정
-@login_required
-def post_edit(request, pk):
-    post = get_object_or_404(Post, pk=pk, user=request.user)  # 작성자만 수정 가능
-    if request.method == 'POST':
-        form = PostForm(request.POST, request.FILES, instance=post)
-        if form.is_valid():
-            form.save()
-            return redirect('post_detail', pk=post.pk)
-    else:
-        form = PostForm(instance=post)
-    return render(request, 'post_form.html', {'form': form})
 
-# ✅ 게시글 삭제
-@login_required
-def post_delete(request, pk):
-    post = get_object_or_404(Post, pk=pk, user=request.user)  # 작성자만 삭제 가능
-    if request.method == 'POST':
-        post.delete()
-        messages.success(request, '게시글이 삭제되었습니다.')
-        return redirect('post_list')
-    return render(request, 'post_confirm_delete.html', {'post': post})
-
-def post_create(request):
-    if request.method == 'POST':
-        form = PostForm(request.POST, request.FILES)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.user = request.user
-            post.save()
-
-            selected_ids = request.POST.getlist('songs')
-            post.lovelist_songs.set(Lovelist.objects.filter(id__in=selected_ids))
-
-            return redirect('post_detail', post.pk)
-    else:
-        form = PostForm()
-
-    # 유저의 좋아요 리스트
-    lovelist = Lovelist.objects.filter(user=request.user)
-    return render(request, 'post_form.html', {
-        'form': form,
-        'lovelist': lovelist,
-        'selected_songs': []
-    })
-
+# ✅ 좋아요한 곡 추가/삭제
 @require_POST
+@login_required
 def toggle_lovelist(request):
     title = request.POST['title']
     artist = request.POST['artist']
@@ -199,10 +207,19 @@ def toggle_lovelist(request):
         user=request.user,
         title=title,
         artist=artist,
-        defaults={'cover_url': cover_url}
+        defaults={'cover_url': cover_url, 'is_liked': True}
     )
 
+    print("🔁 toggle_lovelist 실행됨")
+    print("   → song:", song.title)
+    print("   → created:", created)
+
     if not created:
-        song.delete()
+        song.is_liked = not song.is_liked
+        song.save()
+        print("   → 상태 변경됨: is_liked =", song.is_liked)
+    else:
+        print("   → 신규 생성됨: 기본 좋아요 상태 유지")
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
+

@@ -6,7 +6,7 @@
   background-color: #1c1c1c;
   color: white;
   border-radius: 12px;
-  position: relative;  /* ⭐ 필수 */
+  position: relative;
 }
 
 /* ✅ 상단 버튼: 뒤로가기 / 글쓰기 */
@@ -208,10 +208,73 @@
 .post-actions {
   display: flex;
   gap: 8px;
-  position: static; /* 기존 absolute 제거 */
+  position: static;
 }
 
 /* ✅ 좋아요 버튼 여백 제거 */
 .btn-like {
   margin-top: 0;
 }
+
+.selected-songs-container {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #444;
+}
+
+.selected-song-list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 200px;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #555 transparent;
+  margin-top: 16px;
+}
+
+.selected-song-list::-webkit-scrollbar {
+  height: 6px;
+}
+
+.selected-song-list::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.song-card {
+  background: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 5px;
+  width: 180px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.album-cover {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.like-btn {
+  margin-top: 10px;
+  background: transparent;
+  border: none;
+  color: #ff7070;
+  cursor: pointer;
+}
+
+.song-info-link {
+  color: white;
+  text-decoration: none;
+}
+
+.song-info-link:hover {
+  text-decoration: underline;
+}
+

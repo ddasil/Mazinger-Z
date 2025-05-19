@@ -28,14 +28,12 @@
     </div>
   </div>
 
-
   <!-- 제목 + 작성자 + 썸네일 -->
   <div class="post-header">
     <div class="title-area">
       <h1 class="post-title">{{ post.title }}</h1>
       <p class="post-meta">{{ post.user.nickname }} · {{ post.created_at|date:"Y년 n월 j일 g:i A" }}</p>
     </div>
-
     {% if post.thumbnail %}
       <img src="{{ post.thumbnail.url }}" alt="썸네일" class="post-thumbnail">
     {% endif %}
@@ -46,14 +44,51 @@
     <pre class="post-description">{{ post.description }}</pre>
   </div>
 
-  <!-- 좋아요 + 수정/삭제 같은 줄 -->
+  <!-- ✅ 선택된 곡 정보 -->
+  {% if selected_songs %}
+  <div class="selected-songs-container">
+    <h3>🎵 선택된 곡</h3>
+    <div class="selected-song-list">
+      {% for song in selected_songs %}
+      <div class="song-card">
+        <a href="{% url 'music_info' %}?title={{ song.title|urlencode }}&artist={{ song.artist|urlencode }}" class="song-info-link">
+          {% if song.cover_url %}
+          <img src="{{ song.cover_url }}" alt="앨범 커버" class="album-cover">
+          {% endif %}
+          <div class="song-info">
+            <p><strong>{{ song.title }}</strong></p>
+            <p>{{ song.artist }}</p>
+          </div>
+        </a>
+        <form method="post" action="{% url 'toggle_lovelist' %}">
+          {% csrf_token %}
+          <input type="hidden" name="title" value="{{ song.title }}">
+          <input type="hidden" name="artist" value="{{ song.artist }}">
+          <input type="hidden" name="cover_url" value="{{ song.cover_url }}">
+          <button type="submit" class="like-btn">
+            {% if song.is_liked %}
+              ❤️ 좋아요 취소
+            {% else %}
+              🤍 좋아요 추가
+            {% endif %}
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <p style="margin-top: 20px; color: #ccc;">선택된 곡이 없습니다.</p>
+  {% endif %}
+
+  <!-- 좋아요 + 수정/삭제 -->
   {% if user.is_authenticated or user == post.user %}
     <div class="post-footer-actions-container">
       {% if user.is_authenticated %}
         <form method="post" action="{% url 'like_post' post.id %}">
           {% csrf_token %}
           <button type="submit" class="btn-like">
-            {% if liked %}❤️ 좋아요 취소{% else %}🤍 좋아요{% endif %} ({{ post.post_likes.count }})
+            {% if liked %}❤️ 추천 취소{% else %}🤍 추천{% endif %} ({{ post.post_likes.count }})
           </button>
         </form>
       {% endif %}

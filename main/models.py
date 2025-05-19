@@ -7,6 +7,8 @@ class Lovelist(models.Model):
     artist = models.CharField(max_length=255)
     cover_url = models.URLField(blank=True, null=True)
 
+    is_liked = models.BooleanField(default=True)  # ✅ 좋아요 상태만 표시
+
     class Meta:
         unique_together = ('user', 'title', 'artist')
 

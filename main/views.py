@@ -303,7 +303,7 @@ def results_music_info_view(request):
 
         if request.user.is_authenticated:
             is_liked = Lovelist.objects.filter(user=request.user, title=title, artist=artist).exists()
-            liked_songs = Lovelist.objects.filter(user=request.user)
+            liked_songs = Lovelist.objects.filter(user=request.user, is_liked=True)
 
     else:
         song_info = {}
@@ -318,22 +318,33 @@ def results_music_info_view(request):
 def check_auth(request):
     return JsonResponse({"is_authenticated": request.user.is_authenticated})
 
+@csrf_exempt
 @login_required
 def add_or_remove_like(request):
     data = json.loads(request.body)
     title = data.get("title")
     artist = data.get("artist")
+    cover_url = data.get("cover_url", "")
 
     obj, created = Lovelist.objects.get_or_create(
-        user=request.user, title=title, artist=artist
+        user=request.user,
+        title=title,
+        artist=artist,
+        defaults={'cover_url': cover_url, 'is_liked': True}
     )
 
+    # ✅ 이미 존재하면 좋아요 상태 반전
     if not created:
-        obj.delete()
-        count = Lovelist.objects.filter(title=title, artist=artist).count()
-        return JsonResponse({"status": "removed", "count": count})
-    
-    count = Lovelist.objects.filter(title=title, artist=artist).count()
-    return JsonResponse({"status": "added", "count": count})
+        obj.is_liked = not obj.is_liked
+        if not obj.cover_url and cover_url:
+            obj.cover_url = cover_url
+        obj.save()
+        count = Lovelist.objects.filter(title=title, artist=artist, is_liked=True).count()
+        return JsonResponse({
+            "status": "removed" if not obj.is_liked else "added",
+            "count": count
+        })
 
-#추가끝끝
+    # ✅ 새로 생성된 경우
+    count = Lovelist.objects.filter(title=title, artist=artist, is_liked=True).count()
+    return JsonResponse({"status": "added", "count": count})

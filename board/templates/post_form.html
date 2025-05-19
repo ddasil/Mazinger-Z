@@ -17,7 +17,7 @@
       <div class="lovelist-select">
         {% for song in lovelist %}
           <label>
-            <input type="checkbox" name="songs" value="{{ song.id }}">
+            <input type="checkbox" name="songs" class="song-checkbox" value="{{ song.id }}">
             🎵 {{ song.title }} - {{ song.artist }}
           </label><br>
         {% empty %}
@@ -33,7 +33,7 @@
     <div class="post-form-container">
       <h1 class="post-form-title">새 게시글 작성</h1>
 
-      <form method="POST" enctype="multipart/form-data">
+      <form method="POST" enctype="multipart/form-data" id="postForm">
         {% csrf_token %}
 
         <label for="id_title">제목</label>
@@ -42,23 +42,30 @@
         <label for="id_description">설명</label>
         {{ form.description }}
 
-        <label for="id_songs">곡 선택 (좋아요 목록)</label>
+        <label>곡 선택 (좋아요 목록)</label>
         <button type="button" id="openLovelistModal">🎵 곡 등록</button>
+
+        <!-- ✅ 여기에 선택된 곡 hidden input이 들어갈 곳 -->
+        <div id="selectedSongsHiddenInputs"></div>
 
         <div id="selectedSongsPreview" class="selected-songs-preview">
           <p class="no-selection">선택된 곡이 없습니다.</p>
         </div>
-        
+
         <label for="id_thumbnail">썸네일 이미지</label>
         {{ form.thumbnail }}
 
         <button type="submit" class="btn-submit">등록하기</button>
       </form>
+
     </div>
   </div>
 {% endblock %}
 
 {% block extra_script %}
+  <script>
+    const previouslySelectedSongIds = {{ selected_song_ids|default:"[]"|safe }};
+  </script>
   <script src="{% static 'js/base.js' %}"></script>
   <script src="{% static 'js/post_form.js' %}"></script>
 {% endblock %}
