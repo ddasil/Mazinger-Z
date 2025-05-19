@@ -17,7 +17,7 @@
 .results-grid {
   padding-left: 200px;
   display: grid;
-  grid-template-columns: 1fr 1fr 0.5fr;
+  grid-template-columns: 1fr 1fr 0.7fr;
   grid-template-rows: auto 1fr;
   gap: 30px;
   width: 90%;
@@ -68,18 +68,53 @@
 
 .value {
   color: #ddd;
-  word-break: break-word;
+  word-break: keep-all;
   white-space: normal;          /* ✅ 줄바꿈 허용 */
   text-align: left;
   line-height: 1.6;
 }
 
+/* 태그 검색 */
+.tag-link {
+  color: #ffffff;
+  text-decoration: none;
+  margin-right: 8px;
+  font-weight: 400;
+}
+
+.tag-link:hover {
+  text-decoration: underline;
+  color: #66ccff;
+}
+
+/* 좋아요 목록 검색 */
+.like-list li a {
+  text-decoration: none;
+  color: white;
+  display: block;
+  word-break: keep-all;
+}
+
+.like-list li a:hover {
+  text-decoration: underline;
+  color: #66ccff;
+}
+
+.artist-name {
+  font-size: 0.85rem;
+  color: #aaa;           /* 회색으로 구분 */
+  margin-left: 2px;
+}
+
 /* 하트버튼 및 위치 */
 .title-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   width: 100%;
+  gap: 12px;
+  flex-wrap: wrap;
+  position: relative;
 }
 
 .song-title {
@@ -87,6 +122,8 @@
   font-weight: bold;
   margin: 0;
   color: white;
+  word-break: keep-all;
+  max-width: calc(100% - 100px);  /* ✅ 우측 좋아요 버튼 공간 확보 */
 }
 
 .like-wrapper {
@@ -95,6 +132,9 @@
   gap: 6px;
   font-size: 1rem;
   color: white;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .like-btn {

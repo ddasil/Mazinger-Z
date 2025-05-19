@@ -33,7 +33,7 @@
             {% if is_liked %}❤️{% else %}🤍{% endif %}
           </button>
           <span id="likeCountDisplay">
-            <span id="likeCountValue">{{ like_count|default:"0" }}</span>명 좋아요
+            <span id="likeCountValue">{{ like_count|default:"0" }}</span>명
           </span>
         </div>
       </div>
@@ -61,7 +61,9 @@
         <span class="colon">:</span>
         <span class="value">
           {% if song.keywords %}
-          {{ song.keywords|join:", " }}
+          {% for tag in song.keywords %}
+          <a href="/search/?q={{ tag }}" class="tag-link">{{ tag }}</a>
+          {% endfor %}
           {% else %}
           없음
           {% endif %}
@@ -73,14 +75,16 @@
         <span class="colon">:</span>
         <span class="value">
           {% if song.emotion_tags %}
-          {{ song.emotion_tags|join:", " }}
+          {% for tag in song.emotion_tags %}
+          <a href="/search/?q={{ tag }}" class="tag-link">{{ tag }}</a>
+          {% endfor %}
           {% else %}
           없음
           {% endif %}
         </span>
       </div>
     </div>
-      <!-- 동건 변경 끝 -->
+    <!-- 동건 변경 끝 -->
 
 
     <!-- (1~2,3): 좋아요 목록 -->
@@ -90,8 +94,10 @@
         <ul class="like-list">
           {% for liked_song in liked_songs %}
           <li>
-            <strong>{{ liked_song.title }}</strong><br>
-            <span>{{ liked_song.artist }}</span>
+            <a href="/music-info/?title={{ liked_song.title|urlencode }}&artist={{ liked_song.artist|urlencode }}">
+              <strong>{{ liked_song.title }}</strong><br>
+              <span class="artist-name">{{ liked_song.artist }}</span>
+            </a>
           </li>
           {% empty %}
           <li>좋아요한 곡이 없습니다.</li>

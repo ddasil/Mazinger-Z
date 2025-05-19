@@ -245,7 +245,9 @@ def search_results_view(request):
         results_queryset = ChartSong.objects.filter(
             Q(title__icontains=query) |
             Q(artist__icontains=query) |
-            Q(lylics__icontains=query)
+            Q(lylics__icontains=query) |
+            Q(emotion_tags__icontains=query) |
+            Q(keywords__icontains=query)
         ).distinct()
         
         paginator = Paginator(results_queryset, 10)  # 10개씩 나눔
