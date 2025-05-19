@@ -40,7 +40,7 @@ def analyze_input_view(request):
         try:
             # ✅ 기존 곡이 이미 DB에 있을 경우
             existing = ChartSong.objects.get(title=title_input, artist=artist_input)
-            lyrics = clean_lyrics(existing.lylics)
+            lyrics = clean_lyrics(existing.lyrics)
             print("✅ DB에서 가사 불러옴")
 
             updated = False  # 변경된 항목이 있는지 확인용
@@ -129,7 +129,7 @@ def analyze_input_view(request):
                         title=title_input,
                         artist=artist_input,
                         normalized_genre=None,
-                        lylics=lyrics,
+                        lyrics=lyrics,
                         emotion_tags=emotion_tags,
                         keywords=keywords,
                         genius_id=genius_id,
@@ -191,7 +191,7 @@ def analyze_input_view(request):
                     title=title_input,
                     artist=artist_input,
                     normalized_genre=normalized_genre,
-                    lylics=lyrics,
+                    lyrics=lyrics,
                     emotion_tags=emotion_tags,
                     keywords=keywords,
                     genius_id=genius_id,

@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -15,7 +14,7 @@
        data-lyrics="{{ quiz_song.lylics|slice:':90' }}...">
 
     {% if quiz_song %}
-      <h2 class="quiz-title">이 노래의 제목은 무엇일까요?</h2>
+      <h3 class="quiz-title">이 노래의 제목은 무엇일까요?</h3>
 
       <p id="lyricSnippet" class="quiz-snippet">
         {{ quiz_song.lylics|slice:":90" }}...

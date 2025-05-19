@@ -1440,6 +1440,17 @@ button[type="submit"]:hover {
   padding: 20px;
   overflow-y: auto;
   color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preference-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .progress-bar {
@@ -1536,6 +1547,9 @@ button[type="submit"]:hover {
 .quiz-container {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  height: 60%;
+  width: 80%;
   padding: 20px;
   border-radius: 12px;
   text-align: center;
@@ -1543,7 +1557,7 @@ button[type="submit"]:hover {
   /* 추가: 내부 내용 가운데 정렬 */
 }
 
-.quiz-container h2,
+.quiz-container h3,
 .quiz-container p {
   margin-bottom: 10px;
   /* 한 줄로 강제 */
@@ -1557,6 +1571,12 @@ button[type="submit"]:hover {
   gap: 10px;
   /* input과 button 사이 간격 */
   width: 100%;
+}
+
+.quiz-snippet {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  width: 80%;
 }
 
 .quiz-container input {

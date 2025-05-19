@@ -12,12 +12,7 @@
 <body>
 
   <div class="preference-container">
-
-    <!-- ✅ STEP: 질문 진행 바 -->
-    <div class="progress-bar" id="progress-bar">
-      <div class="progress" id="progress"></div>
-    </div>
-
+    
     <!-- ✅ STEP: 질문 박스 -->
     <div id="question-box">
       <!-- JS에서 질문 및 버튼 생성 -->
@@ -26,7 +21,7 @@
         <button id="next-btn" onclick="loadQuestion()">다음</button>
       </div>
     </div>
-
+    
     <!-- ✅ STEP: 지역 선택 (문항 끝나면 등장) -->
     <div id="region-question" class="center-block">
       <h2>오늘의 날씨에 맞춰서 추천해줘요!</h2>
@@ -43,6 +38,11 @@
         <button id="result-btn" onclick="calculateResult()" disabled>결과 보기</button>
         <button id="restart-btn" onclick="restartPreference()" class="restart-btn">다시 하기</button>
       </div>
+    </div>
+    
+    <!-- ✅ STEP: 질문 진행 바 -->
+    <div class="progress-bar" id="progress-bar">
+      <div class="progress" id="progress"></div>
     </div>
 
     <!-- ✅ 결과 출력 -->
