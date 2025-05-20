@@ -2,14 +2,29 @@ from django.shortcuts import render, redirect
 from .models import SupportPost, SupportReply
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import get_object_or_404
-
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 def support_board_list(request):
     category = request.GET.get('category')
-    posts = SupportPost.objects.filter(category=category).order_by('-created_at') if category else SupportPost.objects.all().order_by('-created_at')
+    query = request.GET.get('q')
+    page_number = request.GET.get('page', 1)
+
+    posts_queryset = SupportPost.objects.all().order_by('-created_at')
+
+    if category:
+        posts_queryset = posts_queryset.filter(category=category)
+
+    if query:
+        posts_queryset = posts_queryset.filter(
+            Q(title__icontains=query) | Q(message__icontains=query)
+        )
+
+    paginator = Paginator(posts_queryset, 5)
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'board_list.html', {
-        'posts': posts,
+        'posts': page_obj,
         'selected_category': category,
         'is_general': category == "general",
         'is_bug': category == "bug",
@@ -17,6 +32,7 @@ def support_board_list(request):
         'is_account': category == "account",
         'is_other': category == "other"
     })
+
 
 
 
@@ -64,3 +80,20 @@ def support_board_delete(request, pk):
         post.delete()
         return redirect('support_board_list')
     return render(request, 'board_delete_confirm.html', {'post': post})
+
+
+@login_required
+def support_board_update(request, pk):
+    post = get_object_or_404(SupportPost, pk=pk)
+
+    if request.user != post.user:
+        return HttpResponseForbidden("본인 게시글만 수정할 수 있습니다.")
+
+    if request.method == 'POST':
+        post.title = request.POST.get('title')
+        post.message = request.POST.get('message')
+        post.category = request.POST.get('category')
+        post.save()
+        return redirect('support_board_detail', pk=post.pk)
+
+    return render(request, 'board_update.html', {'post': post})

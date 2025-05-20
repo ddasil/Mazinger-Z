@@ -53,17 +53,17 @@ def search_song(request): # gpt 이용 검색
         if query:
             prompt = f"""
             노래 제목이 '{query}'야. 이 노래 분위기에 어울리는 
-            1. 책 {count}권 (제목과 작가만),
-            2. 여행지 {count}곳 (장소명만)
+            1. 책 {count}권 (제목, 작가, 추천 이유 포함),
+            2. 여행지 {count}곳 (장소명과 추천 이유 포함)
 
-            번호를 붙여서 아래 형식으로 추천해줘:
+            아래 형식으로 추천해줘:
 
             책 추천:
-            1. '제목' - 작가
+            1. '제목' - 작가 : 추천 이유
             2. ...
 
             여행지 추천:
-            1. 장소명
+            1. 장소명 : 추천 이유
             2. ...
             """
 
@@ -81,22 +81,24 @@ def search_song(request): # gpt 이용 검색
 
             books = []
             for line in book_lines:
-                match = re.match(r"\d+\.\s*['\"]?(.+?)['\"]?\s*-\s*(.+)", line)
+                match = re.match(r"\d+\.\s*['\"]?(.+?)['\"]?\s*-\s*(.+?)\s*:\s*(.+)", line)
                 if match:
-                    title, author = match.groups()
+                    title, author, reason = match.groups()
                     books.append({
                         "title": title.strip(),
                         "author": author.strip(),
+                        "reason": reason.strip(),
                         "image": get_book_image(title)
                     })
 
             travels = []
             for line in travel_lines:
-                match = re.match(r"\d+\.\s*(.+)", line)
+                match = re.match(r"\d+\.\s*(.+?)\s*:\s*(.+)", line)
                 if match:
-                    place = match.group(1).strip()
+                    place, reason = match.groups()
                     travels.append({
-                        "place": place,
+                        "place": place.strip(),
+                        "reason": reason.strip(),
                         "image": get_place_image(place)
                     })
 

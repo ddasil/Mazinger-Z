@@ -128,3 +128,102 @@
 .sub-button:hover {
     background-color: #ffdb4d;
 }
+
+
+.pagination {
+  margin-top: 40px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pagination a,
+.pagination strong {
+  display: inline-block;
+  min-width: 36px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  text-decoration: none;
+  background-color: #2a2a2a;
+  color: #fff;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.pagination a:hover {
+  background-color: #ffcc00;
+  color: black;
+  transform: scale(1.05);
+}
+
+.pagination strong {
+  background-color: #ffcc00;
+  color: #000;
+  pointer-events: none;
+  font-weight: bold;
+}
+
+/* 페이지 번호 중앙 정렬이 아닌 숫자 출력 방지용 */
+.pagination a:before,
+.pagination strong:before {
+  content: attr(data-label);
+}
+
+.reply-status {
+  margin-left: 8px;
+  font-size: 0.8rem;
+  font-weight: normal;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.reply-status.done {
+  background-color: #28a745;
+  color: white;
+}
+
+.reply-status.pending {
+  background-color: #ffc107;
+  color: black;
+}
+
+
+.back-arrow {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 1.8rem;
+  padding: 10px;
+  border-radius: 50%;
+  z-index: 999;
+  background-color: #333;
+  color: white !important;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.back-arrow:visited,
+.back-arrow:active,
+.back-arrow:focus {
+  color: white !important;
+}
+
+.back-arrow i {
+  color: white !important;
+  transition: color 0.3s ease;
+}
+
+.back-arrow:hover {
+  background-color: #ffcc00;
+}
+
+.back-arrow:hover i {
+  color: black !important;
+}
+

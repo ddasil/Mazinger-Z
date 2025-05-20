@@ -140,7 +140,7 @@
   width: 100%;
   height: auto;
   background-color: #101010;
-  border-radius:1%;
+  border-radius: 1%;
   padding: 20px;
   color: rgba(255, 255, 255, 0.786);
 }
@@ -155,7 +155,7 @@
 
 .sec h2 {
   margin-bottom: 30px;
-  text-align:center;
+  text-align: center;
 }
 
 .items {
@@ -232,4 +232,64 @@
 
 .retry-btn:hover::before {
   width: 200%;
+}
+
+
+.hover-box {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.hover-box img {
+  display: block;
+  max-width: 100%;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+
+.hover-box:hover img {
+  transform: scale(1.02);
+  opacity: 0.6;
+}
+
+
+.hover-box:hover .popup-reason {
+  opacity: 1;
+}
+
+/* 중앙 팝업 */
+#reason-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(20, 20, 20, 0.95);
+  padding: 30px 40px;
+  border-radius: 16px;
+  color: #fff;
+  font-size: 1.05rem;
+  text-align: center;
+  max-width: 600px;
+  width: 80%;
+  z-index: 9999;
+  line-height: 1.8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  display: none;
+}
+
+.reason-popup-hidden {
+  display: none !important;
+}
+
+#reason-popup:not(.reason-popup-hidden) {
+  display: block;
+}
+
+
+.popup-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #ffda6b;
 }

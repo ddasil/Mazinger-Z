@@ -26,8 +26,13 @@
                 <div class="items">
                     {% for book in books %}
                     <div class="item">
-                        <img src="{{ book.image }}" alt="책 이미지">
-                        <p>{{ book.title }}<br><small>{{ book.author }}</small></p>
+                        <div class="hover-box" data-reason="{{ book.reason }}">
+                            <img src="{{ book.image }}" alt="책 이미지">
+                        </div>
+                        <p>
+                            <strong>{{ book.title }}</strong><br>
+                            <small>{{ book.author }}</small>
+                        </p>
                     </div>
                     {% endfor %}
                 </div>
@@ -39,8 +44,12 @@
                 <div class="items">
                     {% for travel in travels %}
                     <div class="item">
-                        <img src="{{ travel.image }}" alt="여행지 이미지">
-                        <p>{{ travel.place }}</p>
+                        <div class="hover-box" data-reason="{{ travel.reason }}">
+                            <img src="{{ travel.image }}" alt="여행지 이미지">
+                        </div>
+                        <p>
+                            <strong>{{ travel.place }}</strong>
+                        </p>
                     </div>
                     {% endfor %}
                 </div>
@@ -48,7 +57,10 @@
             <div class="btn-sec">
                 <a href="/recommend/" class="retry-btn"><i class="fa-solid fa-magnifying-glass"></i> 다른 검색</a>
             </div>
-
+            <div id="reason-popup" class="reason-popup-hidden">
+                <h3 id="reason-title" class="popup-title"></h3>
+                <p id="reason-text"></p>
+            </div>
         </div>
     </div>
     {% endblock %}
