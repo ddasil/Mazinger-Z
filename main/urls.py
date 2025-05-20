@@ -22,4 +22,5 @@ urlpatterns = [
     path('music-info/', results_music_info_view, name='music_info'),#진섭이 추가
     path("check-auth/", views.check_auth, name="check_auth"),
     path("toggle-like/", views.add_or_remove_like, name="toggle_like"),
+    path("liked-songs-html/", views.liked_songs_html, name="liked_songs_html"),  # 0520 동건 추가 좋아요 목록 비동기 최신화
 ]

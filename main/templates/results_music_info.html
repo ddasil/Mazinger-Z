@@ -62,7 +62,7 @@
         <span class="value">
           {% if song.keywords %}
           {% for tag in song.keywords %}
-          <a href="/search/?q={{ tag }}" class="tag-link">{{ tag }}</a>
+          <a href="/search/?q={{ tag|urlencode }}" class="tag-btn">{{ tag }}</a>
           {% endfor %}
           {% else %}
           없음
@@ -76,7 +76,7 @@
         <span class="value">
           {% if song.emotion_tags %}
           {% for tag in song.emotion_tags %}
-          <a href="/search/?q={{ tag }}" class="tag-link">{{ tag }}</a>
+          <a href="/search/?q={{ tag|urlencode }}" class="tag-btn">{{ tag }}</a>
           {% endfor %}
           {% else %}
           없음
@@ -91,7 +91,7 @@
     <div class="like-box">
       <h3 class="like-box-title">❤️ 좋아요 목록</h3>
       <div class="like-box-scroll">
-        <ul class="like-list">
+        <ul class="like-list" id="likeList">
           {% for liked_song in liked_songs %}
           <li>
             <a href="/music-info/?title={{ liked_song.title|urlencode }}&artist={{ liked_song.artist|urlencode }}">

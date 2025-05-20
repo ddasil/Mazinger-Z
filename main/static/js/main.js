@@ -316,6 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
             likeButton.innerText = newIcon;
             countSpan.innerText = count;
+            updateLikedListInline();
           });
         });
     });
@@ -334,3 +335,24 @@ setInterval(() => {
   currentIndex = (currentIndex + 1) % cards.length;
   updateCards(currentIndex);
 }, 6000); // n초마다 전환
+
+
+// 0520 동건 추가, 곡 상세페이지 좋아요 목록 비동기 최신화
+function updateLikedListInline() {
+  fetch("/liked-songs-html/")
+    .then(res => {
+      if (!res.ok) throw new Error("HTML fetch 실패");
+      return res.text();
+    })
+    .then(html => {
+      const listEl = document.getElementById("likeList");
+      if (listEl) {
+        listEl.innerHTML = html;
+      } else {
+        console.warn("likeList DOM 요소를 찾을 수 없음");
+      }
+    })
+    .catch(err => {
+      console.error("좋아요 목록 갱신 중 오류 발생:", err);
+    });
+}
