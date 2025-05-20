@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}홈페이지{% endblock %}
+
+{% block content %}
+<section class="section" id="section1">
+  <div class="main-content">
+    <div class="main-image" id="mainImage">
+      <img src="{% static 'images/main.jpg' %}">
+    </div>
+    <div class="main-text" id="mainText">
+      <div class="text-mask">
+        <h1><span id="yellow">S</span>HOW<br>Y<span id="yellow">O</span>UR<br>MU<span id="yellow">SIC</span>TASTE
+        </h1>
+      </div>
+    </div>
+  </div>
+  <div class="search-box" id="searchBox">
+    <input type="search" placeholder="와 씨 그냥 집에 가고 싶다" />
+    <button><i class="fa-solid fa-magnifying-glass"></i></button>
+  </div>
+</section>
+
+<section class="section" id="section2">
+  <h2 class="section2-title">주간 인기 검색어</h2> <!--동건 고침-->
+  <div class="card-container">  <!--동건 고침-->
+    {% for song in cover_songs %}
+    <div 
+    class="card" 
+    data-index="{{ forloop.counter0 }}" 
+    data-link="/music-info/?title={{ song.title|urlencode }}&artist={{ song.artist|urlencode }}"
+    style="background-image: url('{{ song.album_cover_url }}');"
+    >
+      <div class="card-info">
+        <p class="card-title">{{ song.title }}</p>
+        <p class="card-artist">{{ song.artist }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="section3" data-answer="{{ quiz_song.title|escapejs|lower }}"
+        data-lyrics="{{ quiz_song.lylics|slice:':50' }}...">
+  <img id="carTrigger" src="{% static 'images/microbus.png' %}" alt="car" />
+
+  <div class="car-slide-content" id="carSlideContent">
+    <!-- 이 안쪽에 콘텐츠가 있어야 자동차 지나간 뒤 보임 -->
+    <div class="content-wrapper">
+      <div class="content-menu">
+        <button data-type="preference">🎧 음악 취향 검사</button>
+        <button data-type="quiz_song">🎤 가사 제목 맞추기</button>
+      </div>
+      <div class="content-display" id="section3Content">
+        <h2>왼쪽 메뉴에서 콘텐츠를 선택하세요</h2>
+      </div>
+    </div>  
+  </div>
+</section>
+
+<section class="section" id="section4">
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span id="closeModalBtn" class="close">&times;</span>
+      <h1>CONTACT</h1>
+      <h2><br></h2>
+      <h2><br></h2>
+      <form id="contactForm">
+        <div class="card-box">
+          <a href="#">
+            <div class="contact-card" id="dayoung"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="jinseop"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="sanghun"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="donggun"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="minsu"></div>
+          </a>
+          <a href="#">
+            <div class="contact-card" id="yonghwan"></div>
+          </a>
+        </div>
+
+        <button class="btn-glitch" type="submit">HOME</button>
+      </form>
+    </div>
+  </div>
+  <button class="btn-glitch" id="openModalBtn">CONTACT</button>
+
+  <footer class="footer-container">
+    <div class="footer-list">
+      <div class="footer-logo"><img id="logo-image" src="{% static 'images/logo-white.png' %}"></div>
+      <div class="footer_1">
+        <h2 class="footer-title">SOSIC</h2>
+        <ul>
+          <li>Music search</li>
+          <li>Top 100</li>
+          <li>Translate</li>
+          <li>Song community</li>
+        </ul>
+      </div>
+      <div class="footer_2">
+        <h2 class="footer-title">MY PAGE</h2>
+        <ul>
+          <li>My playlist</li>
+          <li>My lyrics</li>
+          <li>Minigame</li>
+        </ul>
+      </div>
+      <div class="footer_3">
+        <h2 class="footer-title">COMMUNITY</h2>
+        <ul>
+          <li>My playlist</li>
+          <li>My lyrics</li>
+          <li>Minigame</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-contact">
+      <div id="footerRequest">진섭이가 나를 죽이려고 하는 걸까 나는 막 슬프고 그래..</div>
+      <div id="footerLink">
+        <a href="https://youtube.com/"><i class="fa-brands fa-youtube"></i></a>
+        <a href="https://instagram.com/"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://github.com/"><i class="fa-brands fa-github"></i></a>
+      </div>
+    </div>
+  </footer>
+
+</section>
+
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/main.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,217 @@
+/* ✅ 전체 컨테이너 */
+.post-detail-container {
+  max-width: 850px;
+  margin: 60px auto;
+  padding: 30px;
+  background-color: #1c1c1c;
+  color: white;
+  border-radius: 12px;
+  position: relative;  /* ⭐ 필수 */
+}
+
+/* ✅ 상단 버튼: 뒤로가기 / 글쓰기 */
+.post-detail-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.btn-back,
+.btn-write {
+  padding: 8px 16px;
+  color: white;
+  background: #333;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.btn-back:hover,
+.btn-write:hover {
+  background-color: #555;
+}
+
+/* ✅ 제목 및 썸네일 배치 */
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+.title-area {
+  flex: 1;
+}
+.post-title {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+.post-meta {
+  color: #bbb;
+  font-size: 0.9rem;
+}
+
+/* ✅ 썸네일 이미지 */
+.post-thumbnail {
+  width: 120px;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* ✅ 본문 내용 */
+.post-body {
+  margin-top: 30px;
+}
+.post-description {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.8;
+  font-size: 1.1rem;
+}
+
+/* ✅ 좋아요 버튼 */
+.btn-like {
+  padding: 10px 20px;
+  margin-top: 20px;
+  background: #444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-like:hover {
+  background-color: #666;
+}
+
+/* ✅ 댓글 섹션 */
+.comment-section {
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 1px solid #444;
+}
+
+/* ✅ 댓글 및 대댓글 공통 스타일 */
+.comment,
+.reply {
+  margin: 10px 0;
+  background-color: #2a2a2a;
+  padding: 10px;
+  border-radius: 6px;
+}
+.reply {
+  margin-left: 20px;
+  background-color: #1f1f1f;
+}
+
+/* ✅ 답글 버튼 */
+.reply-btn {
+  font-size: 0.8rem;
+  margin-left: 8px;
+  background: transparent;
+  color: #ccc;
+  border: none;
+  cursor: pointer;
+}
+
+/* ✅ 대댓글 작성 폼 */
+.reply-form {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
+/* ✅ 댓글 입력 */
+.comment-form textarea {
+  width: 100%;
+  resize: none;
+}
+
+/* ✅ 댓글 제출 버튼 */
+.btn-submit {
+  margin-top: 10px;
+  background-color: #444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+/* ✅ 숨김 처리용 */
+.hidden {
+  display: none;
+}
+
+/* ✅ 수정/삭제 버튼 우측 하단 고정 */
+.post-actions {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  gap: 8px;
+}
+
+/* ✅ 글쓰기/스크랩 묶기 */
+.top-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ✅ 스크랩 버튼 사이즈 조정 */
+.btn-scrap.top-scrap {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.btn-scrap.top-scrap img {
+  width: 36px;
+  height: 36px;
+}
+
+/* ✅ 좋아요 라인 오른쪽 하단 정렬 */
+.post-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ✅ 버튼 스타일 (게시판과 동일) */
+.post-footer-actions a,
+.post-footer-actions form button {
+  font-size: 1rem;
+  color: #ccc;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  height: 24px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.post-footer-actions a:hover,
+.post-footer-actions form button:hover {
+  transform: scale(1.2);
+}
+
+/* ✅ 좋아요 + 수정/삭제 같은 줄 정렬용 컨테이너 */
+.post-footer-actions-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+  gap: 12px;
+}
+
+/* ✅ post-actions 위치 고정 제거 */
+.post-actions {
+  display: flex;
+  gap: 8px;
+  position: static; /* 기존 absolute 제거 */
+}
+
+/* ✅ 좋아요 버튼 여백 제거 */
+.btn-like {
+  margin-top: 0;
+}

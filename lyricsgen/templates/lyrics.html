@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}가사생성 페이지{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+{% endblock %}
+{% block content %}
+
+<div class="header-center">
+  <h1 class="fixed-title">AI 뮤즈</h1>
+  <form method="POST" action="{% url 'generate_lyrics' %}" class="header-form">
+    {% csrf_token %}
+    <div class="input-wrapper">
+      <input type="text" name="prompt" id="prompt-input" placeholder="노래 주제 입력" required>
+      <i class="fa-solid fa-microphone mic-icon" id="mic-btn" title="음성인식 시작"></i>
+      <i class="fa-solid fa-stop mic-icon" id="stop-recognition" style="display: none;" title="음성인식 종료"></i>
+      <!-- ⏹ 중단 버튼 -->
+    </div>
+
+    <select name="style" required>
+      <option value="ballad">발라드</option>
+      <option value="hip-hop">힙합</option>
+      <option value="rock">록</option>
+      <option value="pop">팝</option>
+      <option value="indie">인디</option>
+      <option value="jazz">재즈</option>
+    </select>
+    <select name="language" required>
+      <option value="none">상관없음</option>
+      <option value="korean">한국어</option>
+      <option value="english">English</option>
+      <option value="japanese">日本語</option>
+      <option value="chinese">中文</option>
+      <option value="thai">ไทย</option>
+    </select>
+    <button type="submit">가사 생성</button>
+  </form>
+</div>
+
+
+<div class="lyrics-container">
+  {% if lyrics %}
+  <div class="create-lyrics">
+    <div class="lyrics-title">
+      <h2>🎤 "{{ title }}"</h2>
+    </div>
+    <div class="lyrics-content">
+      <div class="lyricsbox-created">
+        <div class="albumcover">
+          <h3>🎨 앨범 이미지</h3>
+          <div class="album-image-wrapper" style="background-image: url('{{ new_lyrics.image_file.url }}');"
+            onclick="window.location.href='{{ new_lyrics.image_file.url }}'">
+            <div class="album-hover-content">
+              <span class="download-icon">📥</span>
+              <p>⏱ {{ elapsed_time }}초</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="created_lyrics">
+        <pre>{{ lyrics }}</pre>
+      </div>
+    </div>
+    <div class="lyrics-caption">
+      <p>{{ prompt }} 이라는 주제로
+        {{ style }} 스타일 가사와
+        이미지를 제작하였습니다.<br>
+        <strong>언어:</strong> {{ language }}<br>
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if all_lyrics %}
+  <hr>
+  <div class="recent-lyrics">
+    <h2 style="color: white;">최근에 만든 가사들</h2>
+    {% for item in all_lyrics %}
+    <div class="mylyrics-card" onclick="showLyricsModal(`{{ item.prompt }}`, `{{ item.lyrics|escapejs }}`)">
+      <img src="{{ item.image_file.url }}" alt="앨범 이미지">
+      <strong>{{ item.prompt }}</strong><br>
+      <small>{{ item.style }} /
+        {% if item.language == "korean" %}🇰🇷 한국어
+        {% elif item.language == "english" %}🇺🇸 영어
+        {% elif item.language == "japanese" %}🇯🇵 일본어
+        {% elif item.language == "chinese" %}🇨🇳 중국어
+        {% elif item.language == "thai" %}🇹🇭 태국어
+        {%else %}🌍 언어무관
+        {% endif %}
+      </small><br>
+      <small>{{ item.created_at|date:"Y-m-d H:i" }}</small>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<div id="lyricsModal" class="lyrics-modal">
+  <h2 id="modalTitle">🎼 제목</h2>
+  <pre id="modalLyrics"></pre>
+  <button class="btn-glitch lyrics-btn" onclick="closeModal()">닫기</button>
+</div>
+<div id="modalBackdropLyrics" style="display:none;" onclick="closeModal()"></div>
+
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/base.js' %}"></script>
+<script src="{% static 'js/lyrics.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const openId = new URLSearchParams(window.location.search).get("open_id");
+
+    // ✅ sessionStorage를 이용해서 한 세션 내에서 딱 1번만 모달 자동 열기
+    if (openId && !sessionStorage.getItem(`modal_once_shown`)) {
+      const prompt = `{{ selected_lyrics.prompt|escapejs }}`;
+      const lyrics = `{{ selected_lyrics.lyrics|escapejs }}`;
+      showLyricsModal(prompt, lyrics);
+      sessionStorage.setItem(`modal_once_shown`, 'true'); // ✅ 최초 진입 이후 다시 안 뜨게
+    }
+  });
+</script>
+{% endblock %}
+

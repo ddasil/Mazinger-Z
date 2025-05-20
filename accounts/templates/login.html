@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}로그인 페이지{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+  .errorlist {
+    color: red;
+    list-style: none;
+    margin: 2px 0 4px 0; 
+    padding: 0;
+    font-size: 0.9rem;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: white;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 8px;
+    font-size: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+  <div class="login-form">
+    <h1>SIGN IN</h1>
+    <form method="POST" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{next}}">
+
+      {% if form.non_field_errors %}
+        <ul class="errorlist">
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <div class="form-group">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+        {% if form.username.errors %}
+          <ul class="errorlist">
+            {% for error in form.username.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        {{ form.password.label_tag }}
+        {{ form.password }}
+        {% if form.password.errors %}
+          <ul class="errorlist">
+            {% for error in form.password.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <button class="btn-glitch" type="submit">SIGN IN</button>
+    </form>
+
+    <div class="account-links">
+      <a class="btn-glitch" href="{% url 'find_username' %}">아이디 찾기</a>
+      <a class="btn-glitch" href="{% url 'find_password' %}">비밀번호 찾기</a>
+    </div>
+
+    <span>회원가입이 아직 안 되어 있나요? <a class="btn-glitch" href="{% url 'signup' %}">SIGN UP</a></span>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/base.js' %}"></script>
+{% endblock %}

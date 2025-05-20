@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}고객지원 게시판{% endblock %}
+
+{% block extra_script %}
+<link rel="stylesheet" href="{% static 'css/board_list.css' %}">
+<script src="{% static 'js/base.js' %}"></script>
+{% endblock %}
+
+
+{% block content %}
+<div class="contact-container">
+    <h1>📋 고객지원 게시판</h1>
+    <div class="board-container">
+        <div class="board-header">
+            <div class="category-filter">
+                <a href="{% url 'support_board_list' %}" {% if not selected_category %}class="active" {% endif %}>전체</a>
+
+                <a href="?category=general" {% if is_general %}class="active" {% endif %}>일반</a>
+                <a href="?category=bug" {% if is_bug %}class="active" {% endif %}>버그</a>
+                <a href="?category=feature" {% if is_feature %}class="active" {% endif %}>기능</a>
+                <a href="?category=account" {% if is_account %}class="active" {% endif %}>계정</a>
+                <a href="?category=other" {% if is_other %}class="active" {% endif %}>기타</a>
+            </div>
+            <div class="write-button-wrapper">
+                <a href="{% url 'support_board_create' %}" class="sub-button">✍️ 글쓰기</a>
+            </div>
+        </div>
+
+        <ul class="post-list">
+            {% for post in posts %}
+            <a href="{% url 'support_board_detail' post.pk %}" class="post-link">
+                <li>
+                    <span class="post-title">
+                        <span class="category-badge">[{{ post.get_category_display }}]</span>
+                        {{ post.title }}
+                    </span>
+                    <p class="post-meta">작성자: {{ post.user.username }} | {{ post.created_at|date:"Y-m-d H:i" }}</p>
+                </li>
+                {% empty %}
+                <li class="post-none">📭 아직 등록된 문의글이 없습니다.</li>
+                {% endfor %}
+        </ul>
+    </div>
+    {% endblock %}
