@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.utils import timezone
 from django.contrib import messages
 from .models import Post, PostLike, Comment, PostScrap, PostRecentView
@@ -55,7 +55,6 @@ def post_create(request):
             post.user = request.user
             post.save()
 
-            # ✅ 선택한 곡 ID 연결
             selected_ids = request.POST.getlist('songs')
             post.lovelist_songs.set(Lovelist.objects.filter(id__in=selected_ids))
             return redirect('post_detail', pk=post.pk)
@@ -71,10 +70,10 @@ def post_create(request):
 
 
 # ✅ 게시글 상세
+
 def post_detail(request, pk):
     post = get_object_or_404(Post, id=pk)
 
-    # ✅ 최근 본 처리
     if request.user.is_authenticated:
         PostRecentView.objects.update_or_create(
             user=request.user,
@@ -87,22 +86,30 @@ def post_detail(request, pk):
             recent = [pk] + recent[:2]
             request.session['recent_posts'] = recent
 
-    # ✅ 좋아요 상태
     liked = post.post_likes.filter(user=request.user).exists() if request.user.is_authenticated else False
 
-    # ✅ 댓글 처리
     if request.method == "POST":
+        if not request.user.is_authenticated:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"error": "로그인이 필요합니다."}, status=403)
+            else:
+                return redirect('/accounts/login/?next=' + request.path)
+
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
             comment.user = request.user
             comment.post = post
             comment.save()
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'message': 'success'})
             return redirect('post_detail', pk=pk)
+        else:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'error': '유효하지 않은 입력입니다.'}, status=400)
     else:
         form = CommentForm()
 
-    # ✅ 선택된 곡
     selected_songs = post.lovelist_songs.all()
 
     return render(request, 'post_detail.html', {
@@ -111,6 +118,7 @@ def post_detail(request, pk):
         'comment_form': form,
         'selected_songs': selected_songs,
     })
+
 
 # ✅ 게시글 수정
 @login_required
@@ -128,7 +136,7 @@ def post_edit(request, pk):
         form = PostForm(instance=post)
 
     selected_songs = post.lovelist_songs.all()
-    selected_song_ids = [str(song.id) for song in selected_songs]  # ✅ 이 줄이 핵심!
+    selected_song_ids = [str(song.id) for song in selected_songs]
 
     user_lovelist = list(Lovelist.objects.filter(user=request.user))
     missing_songs = [s for s in selected_songs if s not in user_lovelist]
@@ -138,8 +146,9 @@ def post_edit(request, pk):
         'form': form,
         'lovelist': lovelist,
         'selected_songs': selected_songs,
-        'selected_song_ids': selected_song_ids,  # ✅ 이 줄도 중요!
+        'selected_song_ids': selected_song_ids,
     })
+
 
 # ✅ 게시글 삭제
 @login_required
@@ -210,16 +219,7 @@ def toggle_lovelist(request):
         defaults={'cover_url': cover_url, 'is_liked': True}
     )
 
-    print("🔁 toggle_lovelist 실행됨")
-    print("   → song:", song.title)
-    print("   → created:", created)
-
     if not created:
         song.is_liked = not song.is_liked
         song.save()
-        print("   → 상태 변경됨: is_liked =", song.is_liked)
-    else:
-        print("   → 신규 생성됨: 기본 좋아요 상태 유지")
-
     return redirect(request.META.get('HTTP_REFERER', '/'))
-

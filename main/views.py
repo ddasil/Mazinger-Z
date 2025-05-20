@@ -6,13 +6,17 @@ import random
 import json
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, CharField
+from django.db.models.functions import Cast
 from chartsongs.models import ChartSong
 # from analyze.models import Song
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from .models import Lovelist
+from .models import TagSearchLog
+from collections import Counter
+from django.utils.http import urlencode
 
 def main(request):
     songs = list(ChartSong.objects.filter(
@@ -233,26 +237,70 @@ def quiz_song_view(request):
     quiz_song = random.choice(songs)
     return render(request, 'quiz_song.html', {'quiz_song': quiz_song})
 
+def get_popular_tags(limit=5):
+    tags = TagSearchLog.objects.values_list("tag", flat=True)
+    counter = Counter(tags)
+    return [tag for tag, _ in counter.most_common(limit)]
+
 # 진섭이추가 
+# 동건이수정
 def search_results_view(request):
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip()
     page_number = request.GET.get('page')
     results = []
 
+    # ✅ 인기 태그: 항상 노출
+    popular_tags = get_popular_tags()
+
     if query:
-        results_queryset = ChartSong.objects.filter(
-            Q(title__icontains=query) |
-            Q(artist__icontains=query) |
-            Q(lylics__icontains=query)
-        ).distinct()
-        
-        paginator = Paginator(results_queryset, 10)  # 10개씩 나눔
+        print(f"[🔍 DEBUG] query = '{query}'")
+
+        # ✅ 태그 검색일 경우 로그 저장 (중복 새로고침 방지)
+        if query.startswith('#'):
+            last_tag = request.session.get('last_searched_tag')
+            if last_tag != query:
+                TagSearchLog.objects.create(tag=query)
+                request.session['last_searched_tag'] = query
+            else:
+                print(f"[🚫 SKIP] '{query}'는 직전 태그와 동일하므로 저장 생략")
+        else:
+            # 일반 검색 시에는 태그 세션 초기화
+            request.session['last_searched_tag'] = None
+
+        matching_ids = set()
+
+        # 👉 1. 해시태그 검색 (태그에 #포함된 값이 있어야 매치됨)
+        if query.startswith('#'):
+            for song in ChartSong.objects.only('id', 'emotion_tags', 'keywords'):
+                if isinstance(song.emotion_tags, list):
+                    if query in [tag.strip() for tag in song.emotion_tags]:
+                        print(f"[🎯 TAG MATCH - EMOTION] {song.title}")
+                        matching_ids.add(song.id)
+                if isinstance(song.keywords, list):
+                    if query in [tag.strip() for tag in song.keywords]:
+                        print(f"[🎯 TAG MATCH - KEYWORD] {song.title}")
+                        matching_ids.add(song.id)
+
+        # 👉 2. 일반 검색 (제목, 가수, 가사)
+        else:
+            base_ids = ChartSong.objects.filter(
+                Q(title__icontains=query) |
+                Q(artist__icontains=query) |
+                Q(lylics__icontains=query)
+            ).values_list('id', flat=True)
+            matching_ids.update(base_ids)
+
+        # 👉 최종 결과 조회
+        results_queryset = ChartSong.objects.filter(id__in=list(matching_ids)).distinct()
+        paginator = Paginator(results_queryset, 10)
         results = paginator.get_page(page_number)
 
     return render(request, 'search_results.html', {
         'query': query,
         'results': results,
+        'popular_tags': popular_tags,
     })
+
 
 
 
@@ -263,7 +311,7 @@ def results_music_info_view(request):
 
     is_liked = False
     liked_songs = []
-    like_count = Lovelist.objects.filter(title=title, artist=artist).count()  # ✅ 이 줄 추가
+    like_count = Lovelist.objects.filter(title=title, artist=artist,is_liked=True).count()  # ✅ 이 줄 추가
 
     if song_obj:
         # 기본 정보
@@ -302,7 +350,7 @@ def results_music_info_view(request):
 
 
         if request.user.is_authenticated:
-            is_liked = Lovelist.objects.filter(user=request.user, title=title, artist=artist).exists()
+            is_liked = Lovelist.objects.filter(user=request.user, title=title, artist=artist, is_liked=True ).exists()
             liked_songs = Lovelist.objects.filter(user=request.user, is_liked=True)
 
     else:
@@ -348,3 +396,24 @@ def add_or_remove_like(request):
     # ✅ 새로 생성된 경우
     count = Lovelist.objects.filter(title=title, artist=artist, is_liked=True).count()
     return JsonResponse({"status": "added", "count": count})
+
+# 0520 동건 수정
+
+# 좋아요 목록 비동기 최신화 (직접 새로고침 x)
+@login_required
+def liked_songs_html(request):
+    liked_songs = Lovelist.objects.filter(user=request.user, is_liked=True)
+    html = ""
+    for song in liked_songs:
+        query = urlencode({'title': song.title, 'artist': song.artist})
+        html += f"""
+        <li>
+          <a href='/music-info/?{query}'>
+            <strong>{song.title}</strong><br>
+            <span class='artist-name'>{song.artist}</span>
+          </a>
+        </li>
+        """
+    if not liked_songs:
+        html = "<li>좋아요한 곡이 없습니다.</li>"
+    return HttpResponse(html)

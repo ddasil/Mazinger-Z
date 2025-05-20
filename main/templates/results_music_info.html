@@ -29,7 +29,7 @@
       <div class="title-row">
         <h2 class="song-title">{{ song.title }}</h2>
         <div class="like-wrapper">
-          <button id="likeButton" class="like-btn" data-title="{{ song.title }}" data-artist="{{ song.artist }}" data-cover="{{ song.cover_url }}">
+          <button id="likeButton" class="like-btn" data-title="{{ song.title }}" data-artist="{{ song.artist }}">
             {% if is_liked %}❤️{% else %}🤍{% endif %}
           </button>
           <span id="likeCountDisplay">
@@ -56,12 +56,14 @@
         <span class="value">{{ song.genre }}</span>
       </div>
 
-      <div class="info-row">
+      <div class="info-row tag-row">
         <span class="label">곡 태그</span>
         <span class="colon">:</span>
         <span class="value">
           {% if song.keywords %}
-          {{ song.keywords|join:", " }}
+          {% for tag in song.keywords %}
+          <a href="/search/?q={{ tag|urlencode }}" class="tag-btn">{{ tag }}</a>
+          {% endfor %}
           {% else %}
           없음
           {% endif %}
@@ -73,25 +75,29 @@
         <span class="colon">:</span>
         <span class="value">
           {% if song.emotion_tags %}
-          {{ song.emotion_tags|join:", " }}
+          {% for tag in song.emotion_tags %}
+          <a href="/search/?q={{ tag|urlencode }}" class="tag-btn">{{ tag }}</a>
+          {% endfor %}
           {% else %}
           없음
           {% endif %}
         </span>
       </div>
     </div>
-      <!-- 동건 변경 끝 -->
+    <!-- 동건 변경 끝 -->
 
 
     <!-- (1~2,3): 좋아요 목록 -->
     <div class="like-box">
       <h3 class="like-box-title">❤️ 좋아요 목록</h3>
       <div class="like-box-scroll">
-        <ul class="like-list">
+        <ul class="like-list" id="likeList">
           {% for liked_song in liked_songs %}
           <li>
-            <strong>{{ liked_song.title }}</strong><br>
-            <span>{{ liked_song.artist }}</span>
+            <a href="/music-info/?title={{ liked_song.title|urlencode }}&artist={{ liked_song.artist|urlencode }}">
+              <strong>{{ liked_song.title }}</strong><br>
+              <span class="artist-name">{{ liked_song.artist }}</span>
+            </a>
           </li>
           {% empty %}
           <li>좋아요한 곡이 없습니다.</li>

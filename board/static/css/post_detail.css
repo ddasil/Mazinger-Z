@@ -278,3 +278,35 @@
   text-decoration: underline;
 }
 
+.arrow-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.selected-song-list {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 10px 0;
+  max-width: 700px; /* 적절히 조정 */
+}
+
+.arrow-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 10px;
+  z-index: 2;
+}
+
+.left-arrow {
+  margin-right: 10px;
+}
+
+.right-arrow {
+  margin-left: 10px;
+}

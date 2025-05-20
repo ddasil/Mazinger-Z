@@ -23,4 +23,5 @@ urlpatterns = [
     path("check-auth/", views.check_auth, name="check_auth"),
     path("toggle-like/", views.add_or_remove_like, name="toggle_like"),
     path('board/', include('board.urls')),  # 🔥 게시판 앱 연결
+    path("liked-songs-html/", views.liked_songs_html, name="liked_songs_html"),  # 0520 동건 추가 좋아요 목록 비동기 최신화
 ]

@@ -289,7 +289,6 @@ document.addEventListener("DOMContentLoaded", () => {
     likeButton.addEventListener("click", () => {
       const title = likeButton.dataset.title;
       const artist = likeButton.dataset.artist;
-      const cover_url = likeButton.dataset.cover;  // ✅ 앨범 이미지 URL도 가져오기
   
       fetch("/check-auth/")
         .then(res => res.json())
@@ -307,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
               "Content-Type": "application/json",
               "X-CSRFToken": getCSRFToken(),
             },
-            body: JSON.stringify({ title, artist, cover_url })
+            body: JSON.stringify({ title, artist })
           })
           .then(res => res.json())
           .then(result => {
@@ -317,6 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
             likeButton.innerText = newIcon;
             countSpan.innerText = count;
+            updateLikedListInline();
           });
         });
     });
@@ -335,3 +335,23 @@ setInterval(() => {
   currentIndex = (currentIndex + 1) % cards.length;
   updateCards(currentIndex);
 }, 6000); // n초마다 전환
+
+// 0520 동건 추가, 곡 상세페이지 좋아요 목록 비동기 최신화
+function updateLikedListInline() {
+  fetch("/liked-songs-html/")
+    .then(res => {
+      if (!res.ok) throw new Error("HTML fetch 실패");
+      return res.text();
+    })
+    .then(html => {
+      const listEl = document.getElementById("likeList");
+      if (listEl) {
+        listEl.innerHTML = html;
+      } else {
+        console.warn("likeList DOM 요소를 찾을 수 없음");
+      }
+    })
+    .catch(err => {
+      console.error("좋아요 목록 갱신 중 오류 발생:", err);
+    });
+}

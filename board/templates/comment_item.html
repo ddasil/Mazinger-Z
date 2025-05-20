@@ -1,0 +1,18 @@
+<div class="comment">
+  <strong>{{ comment.user.nickname }}</strong>: {{ comment.text }}
+  <button class="reply-btn" data-id="{{ comment.id }}">답글</button>
+
+  <!-- ✅ 대댓글 입력 폼 -->
+  <form method="post" action="{% url 'comment_reply' comment.id %}" class="reply-form hidden" id="reply-form-{{ comment.id }}">
+    {% csrf_token %}
+    <input type="text" name="text" placeholder="답글을 입력하세요" required>
+    <button type="submit">작성</button>
+  </form>
+
+  <!-- ✅ 자식 댓글 재귀 렌더링 -->
+  <div class="replies">
+    {% for reply in comment.replies.all %}
+      {% include "comment_item.html" with comment=reply %}
+    {% endfor %}
+  </div>
+</div>

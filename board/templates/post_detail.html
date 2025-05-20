@@ -15,10 +15,8 @@
   <!-- 상단: 뒤로가기 + 글쓰기 + 스크랩 -->
   <div class="post-detail-actions">
     <a href="{% url 'post_list' %}" class="btn-back">← 게시판으로</a>
-
     <div class="top-buttons">
-      <a href="{% url 'post_create' %}" class="btn-write">글쓰기</a>
-
+      <a href="{% url 'post_create' %}" class="btn-write {% if not user.is_authenticated %}not-logged-in-write{% endif %}">글쓰기</a>
       <form method="post" action="{% if user.is_authenticated %}{% url 'scrap_post' post.pk %}{% else %}#{% endif %}">
         {% csrf_token %}
         <button type="submit" class="btn-scrap top-scrap {% if not user.is_authenticated %}not-logged-in{% endif %}">
@@ -48,33 +46,33 @@
   {% if selected_songs %}
   <div class="selected-songs-container">
     <h3>🎵 선택된 곡</h3>
-    <div class="selected-song-list">
-      {% for song in selected_songs %}
-      <div class="song-card">
-        <a href="{% url 'music_info' %}?title={{ song.title|urlencode }}&artist={{ song.artist|urlencode }}" class="song-info-link">
-          {% if song.cover_url %}
-          <img src="{{ song.cover_url }}" alt="앨범 커버" class="album-cover">
-          {% endif %}
-          <div class="song-info">
-            <p><strong>{{ song.title }}</strong></p>
-            <p>{{ song.artist }}</p>
-          </div>
-        </a>
-        <form method="post" action="{% url 'toggle_lovelist' %}">
-          {% csrf_token %}
-          <input type="hidden" name="title" value="{{ song.title }}">
-          <input type="hidden" name="artist" value="{{ song.artist }}">
-          <input type="hidden" name="cover_url" value="{{ song.cover_url }}">
-          <button type="submit" class="like-btn">
-            {% if song.is_liked %}
-              ❤️ 좋아요 취소
-            {% else %}
-              🤍 좋아요 추가
+    <div class="arrow-wrapper">
+      <button class="arrow-btn left-arrow">◀</button>
+      <div class="selected-song-list">
+        {% for song in selected_songs %}
+        <div class="song-card">
+          <a href="{% url 'music_info' %}?title={{ song.title|urlencode }}&artist={{ song.artist|urlencode }}" class="song-info-link">
+            {% if song.cover_url %}
+            <img src="{{ song.cover_url }}" alt="앨범 커버" class="album-cover">
             {% endif %}
-          </button>
-        </form>
+            <div class="song-info">
+              <p><strong style="color: white">{{ song.title }}</strong></p>
+              <p>{{ song.artist }}</p>
+            </div>
+          </a>
+          <form method="post" action="{% url 'toggle_lovelist' %}">
+            {% csrf_token %}
+            <input type="hidden" name="title" value="{{ song.title }}">
+            <input type="hidden" name="artist" value="{{ song.artist }}">
+            <input type="hidden" name="cover_url" value="{{ song.cover_url }}">
+            <button type="submit" class="like-btn">
+              {% if song.is_liked %}❤️ 좋아요 취소{% else %}🤍 좋아요 추가{% endif %}
+            </button>
+          </form>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
+      <button class="arrow-btn right-arrow">▶</button>
     </div>
   </div>
   {% else %}
@@ -92,7 +90,6 @@
           </button>
         </form>
       {% endif %}
-
       {% if user == post.user %}
         <div class="post-actions">
           <form method="get" action="{% url 'post_edit' post.pk %}" style="display:inline;">
@@ -111,33 +108,22 @@
   <div class="comment-section">
     <h3>댓글</h3>
 
+    <!-- ✅ 최상위 댓글부터 재귀 렌더링 -->
     {% for comment in post.comments.all %}
       {% if not comment.parent %}
-        <div class="comment">
-          <strong>{{ comment.user.nickname }}</strong>: {{ comment.text }}
-          <button class="reply-btn" data-id="{{ comment.id }}">답글</button>
-
-          {% for reply in comment.replies.all %}
-            <div class="reply">↳ <strong>{{ reply.user.nickname }}</strong>: {{ reply.text }}</div>
-          {% endfor %}
-
-          <form method="post" action="{% url 'comment_reply' comment.id %}" class="reply-form hidden" id="reply-form-{{ comment.id }}">
-            {% csrf_token %}
-            <input type="text" name="text" placeholder="답글을 입력하세요" required>
-            <button type="submit">작성</button>
-          </form>
-        </div>
+        {% include "comment_item.html" with comment=comment %}
       {% endif %}
     {% endfor %}
 
-    <!-- 댓글 작성 -->
-    <form method="post" action="" id="commentForm">
+    <!-- ✅ 새 댓글 작성 -->
+    <form id="comment-form" method="post" novalidate>
       {% csrf_token %}
-      {{ comment_form.text }}
-      {{ comment_form.parent }}
+      {{ comment_form.parent }}  {# 숨겨진 필드 유지 #}
+      <textarea name="text" id="id_content" placeholder="댓글을 입력하세요..." required></textarea>
       <button type="submit">댓글 달기</button>
     </form>
   </div>
+
 </div>
 {% endblock %}
 
