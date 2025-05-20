@@ -351,7 +351,7 @@ def results_music_info_view(request):
 
         if request.user.is_authenticated:
             is_liked = Lovelist.objects.filter(user=request.user, title=title, artist=artist, is_liked=True ).exists()
-            liked_songs = Lovelist.objects.filter(user=request.user, is_liked=True)
+            liked_songs = Lovelist.objects.filter(user=request.user, is_liked=True).order_by('-updated_at')
 
     else:
         song_info = {}
@@ -402,7 +402,7 @@ def add_or_remove_like(request):
 # 좋아요 목록 비동기 최신화 (직접 새로고침 x)
 @login_required
 def liked_songs_html(request):
-    liked_songs = Lovelist.objects.filter(user=request.user, is_liked=True)
+    liked_songs = Lovelist.objects.filter(user=request.user, is_liked=True).order_by('-updated_at')
     html = ""
     for song in liked_songs:
         query = urlencode({'title': song.title, 'artist': song.artist})
