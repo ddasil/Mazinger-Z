@@ -16,7 +16,7 @@
 
   {% if popular_tags %}
   <div class="popular-tags">
-    <span>🔥 인기 태그:</span>
+    <span>🔥 인기 검색어</span>
     {% for tag in popular_tags %}
     <a href="/search/?q={{ tag|urlencode }}" class="tag-btn">{{ tag }}</a>
     {% endfor %}

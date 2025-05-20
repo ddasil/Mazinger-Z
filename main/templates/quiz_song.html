@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -12,23 +11,28 @@
 <body>
 
   <div class="quiz-container" data-answer="{{ quiz_song.title|escapejs|lower }}"
-       data-lyrics="{{ quiz_song.lylics|slice:':90' }}...">
+    data-lyrics="{{ quiz_song.lylics|slice:':90' }}...">
 
     {% if quiz_song %}
-      <h2 class="quiz-title">이 노래의 제목은 무엇일까요?</h2>
+    <h3 class="quiz-title">이 노래의 제목은 무엇일까요?</h3>
 
-      <p id="lyricSnippet" class="quiz-snippet">
-        {{ quiz_song.lylics|slice:":90" }}...
-      </p>
+    <p id="lyricSnippet" class="quiz-snippet">
+      <!-- 용환 수정 -->
+      <span class="game-cover" id="gameCover" onclick="startGame()">
+        <i class="xi-gamepad"></i>&nbsp;Game Start
+      </span>
+      <!--  -->
 
-      <div class="form-row">
-        <input type="text" id="answerInput" placeholder="노래 제목 입력">
-        <button id="submitAnswer">제출</button>
-      </div>
+    </p>
 
-      <button id="retryButton" style="display:none; margin-top:10px;">새로운 문제</button>
+    <div class="form-row">
+      <input type="text" id="answerInput" placeholder="노래 제목 입력" autocomplete="off">
+      <button id="submitAnswer">제출</button>
+    </div>
+
+    <button id="retryButton" style="display:none; margin-top:10px;">새로운 문제</button>
     {% else %}
-      <p class="quiz-empty">퀴즈 데이터가 없습니다.</p>
+    <p class="quiz-empty">퀴즈 데이터가 없습니다.</p>
     {% endif %}
 
   </div>

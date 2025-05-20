@@ -133,6 +133,34 @@ document.querySelectorAll('.content-menu button').forEach(button => {
             const correctAnswer = containerEl.getAttribute('data-answer');
             const originalLyrics = containerEl.getAttribute('data-lyrics');
             let attemptCount = 0;
+            // 용환수정
+            function typeLyrics(text, element, i = 0) {
+              if (i === 0 && submitButton) {
+                submitButton.disabled = true; // ✅ 시작 시 비활성화
+                submitButton.style.opacity = 0.5;
+              }
+              if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                setTimeout(() => typeLyrics(text, element, i + 1), 40);
+              } else {
+                if (submitButton) {
+                  submitButton.disabled = false; // ✅ 완료 시 다시 활성화
+                  submitButton.style.opacity = 1;
+                }
+                if (typeof callback === "function") callback();
+              }
+            }
+
+            window.startGame = function () {
+              const cover = container.querySelector('#gameCover');
+              cover.classList.add('fade-out');
+              setTimeout(() => {
+                cover.style.display = 'none';
+                lyricSnippet.innerHTML = '';
+                typeLyrics(originalLyrics, lyricSnippet);
+              }, 500);
+            };
+            // 
 
             function resetState() {
               attemptCount = 0;
@@ -149,15 +177,15 @@ document.querySelectorAll('.content-menu button').forEach(button => {
               attemptCount++;
 
               if (userAnswer === correctAnswer) {
-                lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: lightgreen;">✅ 정답입니다! (${correctAnswer})</span>`;
+                lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: lightgreen; font-size: 1rem; margin-top: 20px">✅ 정답입니다! (${correctAnswer})</span>`;
                 answerInput.style.display = 'none';
                 submitButton.style.display = 'none';
                 retryButton.style.display = 'inline-block';
               } else {
                 if (attemptCount < 3) {
-                  lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: salmon;">❌ 틀렸습니다! (${attemptCount}/3)</span>`;
+                  lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: salmon; font-size: 1rem; margin-top: 20px">❌ 틀렸습니다! (${attemptCount}/3)</span>`;
                 } else {
-                  lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: salmon;">❌ 기회를 전부 소진했습니다.<br>정답 : ${correctAnswer}</span>`;
+                  lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: salmon; font-size: 1rem; margin-top: 20px">❌ 기회를 전부 소진했습니다.<br>정답 : ${correctAnswer}</span>`;
                   answerInput.style.display = 'none';
                   submitButton.style.display = 'none';
                   retryButton.style.display = 'inline-block';

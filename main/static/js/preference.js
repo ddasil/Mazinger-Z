@@ -48,12 +48,14 @@ function loadQuestion() {
     return;
   }
 
-  const labels = ["반대", "약간 반대", "중립", "약간 동의", "동의"];
+  const labels = ["매우 아니다", "약간 아니다", "모르겠다", "약간 그렇다", "매우 그렇다"];
   qBox.innerHTML = `
     <div class="question">Q${current + 1}. ${questions[current]}</div>
     <div class="answer-buttons">
       ${labels.map((label, idx) => `
-        <button class="answer-btn ${getButtonClass(idx)}" onclick="selectAnswer(${idx + 1}, this)">${label}</button>
+        <button class="answer-btn svg-border-button ${getButtonClass(idx)}" onclick="selectAnswer(${idx + 1}, this)">${label}<svg viewBox="0 0 100 40" preserveAspectRatio="none">
+          <rect x="0" y="0" width="100" height="40" />
+        </svg></button>
       `).join("")}
     </div>
     <div class="nav-buttons">
@@ -206,7 +208,7 @@ function restartPreference() {
   document.getElementById("gugun-select").innerHTML = '<option value="">구/군을 선택하세요</option>';
   document.getElementById("gugun-select").disabled = true;
 
-  document.getElementById("question-box").style.display = "block";
+  document.getElementById("question-box").style.display = "flex";
   document.getElementById("region-question").style.display = "none";
   document.getElementById("result").innerText = "";
   document.getElementById("recommend-songs").innerHTML = "";
@@ -225,7 +227,7 @@ function initPreferenceTest() {
   selectedSido = null;
   selectedGugun = null;
 
-  document.getElementById("question-box").style.display = "block";
+  document.getElementById("question-box").style.display = "flex";
   document.getElementById("region-question").style.display = "none";
   document.getElementById("result").innerText = "";
   document.getElementById("recommend-songs").innerHTML = "";

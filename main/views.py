@@ -28,20 +28,22 @@ def main(request):
     ))
 
     if not songs:
-        return render(request, 'index.html', {'quiz_song': None})
+        return render(request, 'index.html', {
+            'quiz_song': None,
+            'cover_songs': [],
+            'popular_tags': get_popular_tags(),
+        })
 
     first_song = random.choice(songs)
 
-    # ✅ 동건 추가, section2용 최신 앨범 커버 이미지 5개
-    # top5 = ChartSong.objects.exclude(album_cover_url='').order_by('-id')[:5] # 상위 5개
-    all_cover_songs = list(ChartSong.objects.exclude(album_cover_url='')) # 랜덤 5개
-    random.shuffle(all_cover_songs) # 랜덤 5개
-    top5 = all_cover_songs[:5] # 랜덤 5개
-    cover_songs = top5
+    all_cover_songs = list(ChartSong.objects.exclude(album_cover_url=''))
+    random.shuffle(all_cover_songs)
+    top5 = all_cover_songs[:5]
 
     return render(request, 'index.html', {
         'quiz_song': first_song,
-        'cover_songs': top5,   # 👉 동건 추가, section2 용
+        'cover_songs': top5,
+        'popular_tags': get_popular_tags(),  # ✅ 이 줄 꼭 포함!
     })
 
 def preference_view(request):
@@ -255,7 +257,9 @@ def search_results_view(request):
     if query:
         print(f"[🔍 DEBUG] query = '{query}'")
 
-        # ✅ 태그 검색일 경우 로그 저장 (중복 새로고침 방지)
+        matching_ids = set()
+
+        # 👉 1. 해시태그 검색
         if query.startswith('#'):
             last_tag = request.session.get('last_searched_tag')
             if last_tag != query:
@@ -263,14 +267,7 @@ def search_results_view(request):
                 request.session['last_searched_tag'] = query
             else:
                 print(f"[🚫 SKIP] '{query}'는 직전 태그와 동일하므로 저장 생략")
-        else:
-            # 일반 검색 시에는 태그 세션 초기화
-            request.session['last_searched_tag'] = None
 
-        matching_ids = set()
-
-        # 👉 1. 해시태그 검색 (태그에 #포함된 값이 있어야 매치됨)
-        if query.startswith('#'):
             for song in ChartSong.objects.only('id', 'emotion_tags', 'keywords'):
                 if isinstance(song.emotion_tags, list):
                     if query in [tag.strip() for tag in song.emotion_tags]:
@@ -281,8 +278,21 @@ def search_results_view(request):
                         print(f"[🎯 TAG MATCH - KEYWORD] {song.title}")
                         matching_ids.add(song.id)
 
-        # 👉 2. 일반 검색 (제목, 가수, 가사)
+        # 👉 2. 일반 검색
         else:
+            request.session['last_searched_tag'] = None  # 태그 세션 초기화
+
+            # ✅ 실제 곡 존재 여부 확인 → 인기 검색어로 저장
+            exists = ChartSong.objects.filter(
+                Q(title__icontains=query) |
+                Q(artist__icontains=query)
+            ).exists()
+            if exists:
+                last_tag = request.session.get('last_searched_tag')
+                if last_tag != query:
+                    TagSearchLog.objects.create(tag=query)
+                    request.session['last_searched_tag'] = query
+
             base_ids = ChartSong.objects.filter(
                 Q(title__icontains=query) |
                 Q(artist__icontains=query) |
@@ -301,8 +311,11 @@ def search_results_view(request):
         'popular_tags': popular_tags,
     })
 
-
-
+from collections import Counter
+def get_popular_tags(limit=5):
+    tags = TagSearchLog.objects.values_list("tag", flat=True)
+    counter = Counter(tags)
+    return [tag for tag, _ in counter.most_common(limit)]
 
 def results_music_info_view(request):
     title = request.GET.get('title')

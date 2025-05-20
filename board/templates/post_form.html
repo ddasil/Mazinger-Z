@@ -31,6 +31,7 @@
   <!-- ✅ 폼 본문 -->
   <div class="post-form-wrapper">
     <div class="post-form-container">
+      <a href="{% url 'post_list' %}" class="back-to-board-btn">← 게시판으로</a>
       <h1 class="post-form-title">새 게시글 작성</h1>
 
       <form method="POST" enctype="multipart/form-data" id="postForm">
@@ -64,7 +65,7 @@
 
 {% block extra_script %}
   <script>
-    const previouslySelectedSongIds = {{ selected_song_ids|default:"[]"|safe }};
+   const previouslySelectedSongIds = {{ selected_song_ids|default:'[]'|safe }};
   </script>
   <script src="{% static 'js/base.js' %}"></script>
   <script src="{% static 'js/post_form.js' %}"></script>
