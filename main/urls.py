@@ -24,4 +24,5 @@ urlpatterns = [
     path("toggle-like/", views.add_or_remove_like, name="toggle_like"),
     path('board/', include('board.urls')),  # 🔥 게시판 앱 연결
     path("liked-songs-html/", views.liked_songs_html, name="liked_songs_html"),  # 0520 동건 추가 좋아요 목록 비동기 최신화
+    path("lyrics-info/", views.results_music_info_view, name="results_music_info_view"), #analyze 감성 추천 곡에서 넘어오는거 # 민수가 추가함
 ]

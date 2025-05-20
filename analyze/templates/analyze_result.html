@@ -1,66 +1,79 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ title }} 감성 분석 결과</title>
-  <link rel="stylesheet" href="{% static 'CSS/analyze_result.css' %}">
-  <script defer src="{% static 'JS/analyze_result.js' %}"></script>
-</head>
-<body>
 
-  <div class="container">
-    <h1>"{{ title }}" 감성 분석 결과</h1>
+{% block title %}{{ title }} 감성 분석 결과{% endblock %}
 
-    {% if not user.is_authenticated %}
-      <div class="login-notice" style="background-color: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; margin: 20px 0;">
-        <p>🔒 이 분석 결과는 저장되지 않았습니다. <a href="{% url 'login' %}?next={{ request.path }}">로그인</a>하면 분석 결과를 마이페이지에서 확인할 수 있어요.</p>
-      </div>
-    {% else %}
-      <p style="color: green;">✅ 분석 결과가 저장되었습니다.</p>
-    {% endif %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'CSS/analyze_result.css' %}">
+{% endblock %}
 
-    <div class="analysis-section">
-      <div class="emotion-list">
-        <h2>🎯 감성 점수</h2>
-        <ul>
-          {% for emotion, score in result.items %}
-            <li>{{ emotion }}: {{ score|floatformat:2 }}%</li>
-          {% endfor %}
-        </ul>
-      </div>
+{% block content %}
+<div class="lyrics-result-wrapper">
+  <h1>감성 분석 결과<br>"{{ title }}"</h1>
 
-      <div class="top3-box">
-        <h3>🔥 상위 감정 TOP 3</h3>
-        <ul>
-          {% for emotion, score in top3 %}
-            <li>🏅 {{ emotion }}: {{ score|floatformat:2 }}%</li>
-          {% endfor %}
-        </ul>
-      </div>
+  {% if not user.is_authenticated %}
+    <div class="login-notice">
+      <p>🔒 이 분석 결과는 저장되지 않았습니다.
+        <a href="{% url 'login' %}?next={{ request.path }}">로그인</a> 하면 마이페이지에서 확인할 수 있어요.
+      </p>
     </div>
+  {% else %}
 
-    {% if warning %}
-      <p style="color: red; margin-top: 10px;">⚠️ {{ warning }}</p>
-    {% endif %}
+  {% endif %}
 
-    <div class="button-group">
-      {% for emotion, _ in top3 %}
-        <a href="{% url 'recommend_by_emotion' emotion %}" class="button recommend">
-          🔍 {{ emotion }} 감정 추천 보기
-        </a>
+<div class="analysis-section">
+  <div class="emotion-list">
+    <h2>🎯 감성 점수 🎯</h2>
+    <ul>
+      {% for emotion, score in result.items %}
+        <li class="emotion-row">
+          <span class="label">{{ emotion }}</span>
+          <span class="colon">:</span>
+          <span class="score">{{ score|floatformat:2 }}%</span>
+        </li>
       {% endfor %}
-
-      <a href="{% url 'analyze' %}" class="button retry">
-        🔁 다른 노래 분석하기
-      </a>
-    </div>
-
-    <div class="lyrics-section">
-      <h2>📃 가사</h2>
-      <pre>{{ lyrics }}</pre>
-    </div>
+    </ul>
   </div>
-</body>
-</html>
 
+  <div class="top3-box">
+    <h3>🔥 상위 감정 TOP 3 🔥</h3>
+    <ul>
+      {% for emotion, score in top3 %}
+        <li class="emotion-row">
+          <span class="label">🏅 {{ emotion }}</span>
+          <span class="colon">:</span>
+          <span class="score">{{ score|floatformat:2 }}%</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+  {% if warning %}
+    <p class="warning">⚠️ {{ warning }}</p>
+  {% endif %}
+
+  <div class="button-group">
+    {% for emotion, _ in top3 %}
+      <a href="{% url 'recommend_by_emotion' emotion|cut:'#' %}?title={{ title }}&artist={{ artist }}" class="button recommend">
+        🔍 {{ emotion }} 감정 추천 보기
+      </a>
+    {% endfor %}
+
+    <a href="{% url 'analyze' %}" class="button retry">
+      🔁 다른 노래 분석하기
+    </a>
+  </div>
+
+
+  <div class="lyrics-section">
+    <h2>📃 가사</h2>
+    <pre>{{ lyrics }}</pre>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/base.js' %}"></script>
+<script src="{% static 'JS/analyze_result.js' %}"></script>
+{% endblock %}

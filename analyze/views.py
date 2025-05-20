@@ -17,6 +17,9 @@ import random
 from analyze.models import UserSong  # 사용자별 분석 결과 저장용 모델
 from difflib import SequenceMatcher  # 가사 유사도 비교용
 
+
+
+
 # ✅ Genius API 클라이언트 초기화
 genius = Genius(
     config("GENIUS_ACCESS_TOKEN"),
@@ -228,22 +231,31 @@ def analyze_input_view(request):
 def home_redirect(request):
     return redirect('analyze')
 
-# 감정 태그 기반 추천곡 뷰
+
+
+
+
+# 감정 태그 기반 추천곡 뷰  #수정함
 def recommend_by_emotion(request, tag):
-    try:
-        last_song = ChartSong.objects.latest('id')
-        all_songs = ChartSong.objects.exclude(title=last_song.title, artist=last_song.artist)
-    except ChartSong.DoesNotExist:
+    input_title = request.GET.get("title")
+    input_artist = request.GET.get("artist")
+
+    # 입력한 곡 제외
+    if input_title and input_artist:
+        all_songs = ChartSong.objects.exclude(
+            title=input_title.strip(), artist=input_artist.strip()
+        )
+    else:
         all_songs = ChartSong.objects.all()
 
-    # 감정 태그 포함 곡 필터링
+    # 감정 태그 필터링
     filtered_songs = [
         song for song in all_songs
-        if tag.strip() in [t.strip() for t in song.emotion_tags or []]
+        if f"#{tag.strip()}" in [t.strip() for t in song.emotion_tags or []]
     ]
 
-    # 랜덤 추천
-    filtered_songs = random.sample(filtered_songs, min(len(filtered_songs), 5)) 
+    # 최대 5곡 랜덤 선택
+    filtered_songs = random.sample(filtered_songs, min(len(filtered_songs), 5))
 
     return render(request, "recommendations.html", {
         "tag": tag,

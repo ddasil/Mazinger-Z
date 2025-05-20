@@ -1,49 +1,57 @@
+{% extends 'base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ tag }} 감정 기반 추천곡</title>
-  <link rel="stylesheet" href="{% static 'CSS/recommendations.css' %}">
-  <script defer src="{% static 'JS/recommendations.js' %}"></script>
-</head>
-<body>
+{% block title %}TOP 감성 추천{% endblock %}
 
-  <div class="container">
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'CSS/recommendations.css' %}">
+
+{% endblock %}
+
+{% block content %}
+  <div class="recommendation-wrapper">
     <h1>🎧 "{{ tag }}" 감정을 가진 추천 곡</h1>
 
     <ul class="song-list">
       {% for song in songs %}
         <li class="song-item">
-          <span class="title">{{ song.title }}</span>
-          <span class="artist">- {{ song.artist }}</span>
-          <span class="tags">
-            감정 태그:
-            {% if song.emotion_tags %}
-              {% for emotion in song.emotion_tags %}
-                <span class="tag">{{ emotion }}</span>{% if not forloop.last %},{% endif %}
-              {% endfor %}
-            {% else %}
-              <span class="tag none">없음</span>
-            {% endif %}
-          </span>
+          <!-- ✅ 전체 카드 구조 감싸는 링크 -->
+          <a href="{% url 'results_music_info_view' %}?title={{ song.title|urlencode }}&artist={{ song.artist|urlencode }}" class="song-link-wrapper">
+            <div class="cover">
+              <img src="{{ song.album_cover_url }}" alt="앨범 커버">
+            </div>
+            <div class="info">
+              <div class="title">{{ song.title }}</div>
+              <div class="artist"> - {{ song.artist }}</div>
+              <div class="tags">
+                감정 태그 :
+                {% if song.emotion_tags %}
+                  {% for emotion in song.emotion_tags %}
+                    <span class="tag">{{ emotion }}</span>
+                  {% endfor %}
+                {% else %}
+                  <span class="tag none">없음</span>
+                {% endif %}
+              </div>
+            </div>
+          </a>
         </li>
       {% empty %}
-        <li class="no-result">😢 현재 이 감정을 가진 추천곡이 없습니다.<br>다른 감정을 선택하거나, 새로운 노래를 분석해보세요!</li>
+        <li class="no-result">
+          😢 현재 이 감정을 가진 추천곡이 없습니다.<br>
+          다른 감정을 선택하거나, 새로운 노래를 분석해보세요!
+        </li>
       {% endfor %}
     </ul>
 
-    <div class="back-button">
-      <button onclick="window.history.back()" class="button go-back">
-        ⬅ 돌아가기
-      </button>
-
-      <a href="{% url 'analyze' %}" class="button retry">
-        🔁 다른 노래 분석하기
-      </a>
+    <div class="button-group">
+      <button onclick="window.history.back()" class="button go-back">⬅ 돌아가기</button>
+      <a href="{% url 'analyze' %}" class="button retry">🔁 다른 노래 분석하기</a>
     </div>
   </div>
+{% endblock %}
 
-</body>
-</html>
+{% block extra_script %}
+<script src="{% static 'js/base.js' %}"></script>
+<script defer src="{% static 'JS/recommendations.js' %}"></script>
+{% endblock %}

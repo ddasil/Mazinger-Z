@@ -1,40 +1,38 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>가사 수동 입력 | AI 뮤직 분석기</title>
-    <link rel="stylesheet" href="{% static 'CSS/manual_lyrics_input.css' %}">
-    <script defer src="{% static 'JS/manual_lyrics_input.js' %}"></script>
-</head>
-<body>
 
-  <div class="container">
-    <h2>가사를 직접 입력해주세요</h2>
-    <p>❗ 자동으로 가사를 가져오는 데 실패했어요.<br>
-      
- 아래에 가사를 직접 입력하면 감성 분석을 진행할 수 있습니다.</p>
-    <p><strong>제목:</strong> {{ title }}</p>
-    <p><strong>아티스트:</strong> {{ artist }}</p>
+{% block title %}가사 수동 입력 | AI 뮤직 분석기{% endblock %}
 
-    <form method="post" action="{% url 'analyze' %}">
-        {% csrf_token %}
-        <input type="hidden" name="title" value="{{ title }}">
-        <input type="hidden" name="artist" value="{{ artist }}">
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'CSS/manual_lyrics_input.css' %}">
+{% endblock %}
 
-        <div class="form-group">
-          <textarea name="manual_lyrics" rows="10" cols="60" placeholder="여기에 가사를 입력하세요" required></textarea>
-        </div>
+{% block content %}
+<div class="lyrics-form-wrapper">
+  <h2>가사를 직접 입력해주세요</h2>
+  <p>❗ 자동으로 가사를 가져오는 데 실패했어요.<br>
+  아래에 가사를 직접 입력하면 감성 분석을 진행할 수 있습니다.</p>
+  <p><strong>제목:</strong> {{ title }}</p>
+  <p><strong>아티스트:</strong> {{ artist }}</p>
 
-        <div class="form-group">
-          <button type="submit" class="button submit">🎵 감성 분석하기</button>
-        </div>
-    </form>
+  <form method="post" action="{% url 'analyze' %}">
+    {% csrf_token %}
+    <input type="hidden" name="title" value="{{ title }}">
+    <input type="hidden" name="artist" value="{{ artist }}">
 
     <div class="form-group">
+      <textarea name="manual_lyrics" rows="10" placeholder="여기에 가사를 입력하세요" required></textarea>
+    </div>
+
+    <div class="button-group">
+      <button type="submit" class="button submit">🎵 감성 분석하기</button>
       <a href="{% url 'analyze' %}" class="button cancel">🔁 다시 입력하기</a>
     </div>
-  </div>
+  </form>
+</div>
+{% endblock %}
 
-</body>
-</html>
+{% block extra_script %}
+<script src="{% static 'js/base.js' %}"></script>
+<script defer src="{% static 'JS/manual_lyrics_input.js' %}"></script>
+{% endblock %}
