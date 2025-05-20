@@ -50,12 +50,23 @@
   align-items: flex-start;    /* ✅ 하트 위치에도 영향 */
 }
 
+.info-row .value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center; /* 또는 baseline */
+  gap: 4px 6px; /* 행/열 간격 명시 */
+}
+
 .info-row {
   display: grid;
   grid-template-columns: 100px 10px 1fr;
-  align-items: start;
+  align-items: center;
   gap: 4px;
   word-break: break-word;       /* ✅ 단어 안에서라도 줄바꿈 허용 */
+}
+
+.tag-row {
+  align-items: baseline;
 }
 
 .label {
@@ -105,6 +116,7 @@
   font-size: 0.80rem;
   text-decoration: none;
   transition: background-color 0.2s ease;
+  vertical-align: top;
 }
 
 .tag-btn:hover {
