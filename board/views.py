@@ -223,3 +223,19 @@ def toggle_lovelist(request):
         song.is_liked = not song.is_liked
         song.save()
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+# 진섭 추가
+def user_posts(request):
+    if request.user.is_authenticated:
+        posts = Post.objects.filter(user=request.user).order_by('-created_at')
+        data = [
+            {
+                "id": post.id,
+                "title": post.title,
+                "created_at": post.created_at.strftime('%Y-%m-%d'),
+                "like_count": post.like_count,  # ✅ 추가됨
+                "thumbnail": post.thumbnail.url if post.thumbnail else "",
+            } for post in posts
+        ]
+        return JsonResponse({"posts": data})
+    return JsonResponse({"posts": []})

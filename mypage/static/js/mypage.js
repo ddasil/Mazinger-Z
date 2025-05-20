@@ -146,6 +146,8 @@ window.closePasswordModal = closePasswordModal;
 
 // ✅ 문서 로딩 완료 시 DOM 초기화
 document.addEventListener("DOMContentLoaded", function () {
+  const firstBtn = document.querySelector('.mypage-link-btn.lyrics-btn');
+  if (firstBtn) firstBtn.click();
   // 🔗 DOM 요소 캐싱
   passwordModal = document.getElementById("passwordModal");
   editModal = document.getElementById("editModal");
@@ -241,14 +243,29 @@ function renderLyricsPage(page) {
 
   if (pageData.length === 0) {
     const row = document.createElement('tr');
-    const cell = document.createElement('td');
-    cell.colSpan = 3;
-    cell.textContent = '등록된 가사가 없습니다.';
-    row.appendChild(cell);
+  
+    // 체크박스 열 (비활성화)
+    const checkboxTd = document.createElement('td');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.disabled = true;
+    checkboxTd.appendChild(checkbox);
+    row.appendChild(checkboxTd);
+  
+    // 제목 + 장르/언어 열
+    const emptyTd = document.createElement('td');
+    emptyTd.textContent = '등록된 가사가 없습니다.';
+    row.appendChild(emptyTd);
+  
+    // 작성일 열
+    const dateTd = document.createElement('td');
+    dateTd.textContent = '';
+    row.appendChild(dateTd);
+  
     tbody.appendChild(row);
     return;
   }
-
+// ---------------------------------------------------------------------변경 진섭섭
   pageData.forEach(item => {
     const row = document.createElement('tr');
     row.dataset.lyricId = item.id;  // ✅ 여기 추가!
@@ -282,6 +299,7 @@ function renderLyricsPage(page) {
   renderPagination(Math.ceil(allLyricsData.length / itemsPerPage), page);
   bindSelectAll();
 }
+// ---------------------------------------------------------------------변경끝끝 진섭섭
 
 // ✅ 페이지네이션 버튼 생성
 function renderPagination(totalPages, currentPage) {
@@ -318,18 +336,27 @@ document.querySelectorAll('.mypage-link-btn').forEach(btn => {
     const type = this.dataset.type;
     if (type === "lyrics") {
       loadLyricsTable();
-    } else {
-      console.log("다른 버튼 클릭");
+    } else if (type === "button2") {
+      loadUserPosts();
+    } else if (type === "button3") {
+      loadUserLovelist();  // ✅ 추가
+    } else if (type === "button4") {
+      loadSupportList();  // ✅ 추가
     }
   });
 });
 
-// ✅ 첫 페이지 진입 시 자동으로 "내가 만든 가사" 클릭
-document.addEventListener("DOMContentLoaded", function () {
-  const firstBtn = document.querySelector('.mypage-link-btn.lyrics-btn');
-  if (firstBtn) firstBtn.click();
-});
 
+
+
+
+// 추가 진섭섭
+
+
+
+
+
+// ✅ 첫 페이지 진입 시 자동으로 "내가 만든 가사" 클릭
 document.getElementById('delete-selected').addEventListener('click', function () {
   const checkedRows = document.querySelectorAll('#user-lyrics-body tr input[type="checkbox"]:checked');
   if (checkedRows.length === 0) {
@@ -337,33 +364,342 @@ document.getElementById('delete-selected').addEventListener('click', function ()
     return;
   }
 
-  const idsToDelete = Array.from(checkedRows).map(cb => {
-    return cb.closest('tr').dataset.lyricId;
-  });
-
-  if (!confirm("정말 삭제하시겠습니까?")) return;
-
-  // ✅ CSRF 토큰 추출
+  const currentTab = document.querySelector('.mypage-link-btn.active').dataset.type;
   const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-  fetch('/accounts/delete-lyrics/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrfToken
-    },
-    body: JSON.stringify({ ids: idsToDelete })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert("삭제되었습니다.");
-      loadLyricsTable();  // 목록 갱신
-    } else {
-      alert("삭제 실패. 다시 시도해주세요.");
+  // 1. 내가 만든 가사
+  if (currentTab === "lyrics") {
+    const idsToDelete = Array.from(checkedRows).map(cb => cb.closest('tr').dataset.lyricId);
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+
+    fetch('/accounts/delete-lyrics/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify({ ids: idsToDelete })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert("삭제되었습니다.");
+          loadLyricsTable();
+        } else {
+          alert("삭제 실패. 다시 시도해주세요.");
+        }
+      })
+      .catch(err => {
+        console.error("❌ 가사 삭제 요청 실패:", err);
+      });
+
+  // 2. 게시글 (지원 시)
+  } else if (currentTab === "button2") {
+    const postIds = Array.from(checkedRows).map(cb => cb.closest('tr').dataset.postId);
+    if (!confirm("선택한 게시글을 삭제하시겠습니까?")) return;
+
+    Promise.all(postIds.map(id =>
+      fetch(`/board/post/${id}/delete/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken }
+      })
+    ))
+      .then(() => {
+        alert("삭제되었습니다.");
+        loadUserPosts();
+      })
+      .catch(err => {
+        console.error("❌ 게시글 삭제 실패:", err);
+      });
+
+  // 3. 좋아요 목록 (지원 시)
+  } else if (currentTab === "button3") {
+    const data = Array.from(checkedRows).map(cb => {
+      const row = cb.closest('tr');
+      return {
+        title: row.dataset.title,
+        artist: row.dataset.artist
+      };
+    });
+
+    if (!confirm("선택한 곡을 좋아요 목록에서 삭제하시겠습니까?")) return;
+
+    Promise.all(data.map(item =>
+      fetch('/toggle-like/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(item)
+      })
+    ))
+      .then(() => {
+        alert("삭제되었습니다.");
+        loadUserLovelist();
+      })
+      .catch(err => {
+        console.error("❌ 좋아요 삭제 실패:", err);
+      });
+
+  // 4. 고객센터 문의글
+  } else if (currentTab === "button4") {
+    const postIds = Array.from(checkedRows).map(cb => cb.closest('tr').dataset.postId);
+    if (!confirm("선택한 문의글을 삭제하시겠습니까?")) return;
+
+    Promise.all(postIds.map(id =>
+      fetch(`/support/${id}/delete/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken }
+      })
+    ))
+      .then(() => {
+        alert("삭제되었습니다.");
+        loadSupportList();
+      })
+      .catch(err => {
+        console.error("❌ 문의글 삭제 실패:", err);
+      });
+  }
+});
+
+
+
+// 진섭 추가 5월19일
+// ✅ 헤더 템플릿 정의
+const headerTemplates = {
+  lyrics: `
+    <tr class="table-header">
+      <th class="col-select"><input type="checkbox" id="select-all" title="전체 선택"></th>
+      <th class="col-title"><span class="th-title-main">제목</span><span class="th-title-sub"> (장르 / 언어)</span></th>
+      <th class="col-date">작성일</th>
+    </tr>`,
+    button2: `
+    <tr class="table-header">
+      <th><input type="checkbox" id="select-all" title="전체 선택"></th>
+      <th>제목</th>
+      <th>좋아요수</th>
+      <th>작성일</th>
+    </tr>`,
+  button3: `
+    <tr class="table-header">
+      <th class="col-select"><input type="checkbox" id="select-all" title="전체 선택"></th>
+      <th>좋아요한 곡</th>
+      <th>아티스트</th>
+      <th>작성일</th>
+    </tr>`,
+  button4: `
+    <tr class="table-header">
+      <th class="col-select"><input type="checkbox" id="select-all" title="전체 선택"></th>
+      <th>문의 제목</th>
+      <th>처리 상태</th>
+      <th>작성일</th>
+    </tr>`
+};
+
+// ✅ 버튼 클릭 시 헤더 + 테이블 구조 변경
+document.querySelectorAll('.mypage-link-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    // 버튼 스타일 리셋 및 활성화
+    document.querySelectorAll('.mypage-link-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+
+    const type = this.dataset.type;
+
+    // 테이블 헤더 변경
+    const thead = document.getElementById('table-head');
+    thead.innerHTML = headerTemplates[type] || '';
+
+    // 테이블 표시
+    const table = document.getElementById('user-lyrics-table');
+    table.style.display = 'table';
+
+    // lyrics 탭일 경우 실제 데이터 렌더링
+    if (type === "lyrics") {
+      loadLyricsTable();
+      return;
     }
-  })
-  .catch(err => {
-    console.error("❌ 삭제 요청 실패:", err);
+
+    // 그 외 탭은 빈 행 생성 (체크박스 포함)
+    const tbody = document.getElementById('user-lyrics-body');
+    tbody.innerHTML = ''; // 초기화
+
+    // 헤더의 컬럼 수 파악
+    const colCount = document.querySelectorAll('#table-head tr th').length;
+
+    const row = document.createElement('tr');
+
+    // ✅ 체크박스 열
+    const checkboxTd = document.createElement('td');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.disabled = true;  // 데이터 없음 → 비활성화
+    checkboxTd.appendChild(checkbox);
+    row.appendChild(checkboxTd);
+
+    // ✅ 나머지 열
+    for (let i = 1; i < colCount; i++) {
+      const td = document.createElement('td');
+      td.textContent = i === 1 ? '아직 구현되지 않았습니다.' : '';
+      row.appendChild(td);
+    }
+
+    tbody.appendChild(row);
   });
 });
+
+// 게시판버튼 
+function loadUserPosts() {
+  const table = document.getElementById('user-lyrics-table');
+  table.style.display = 'table';
+
+  fetch('/board/user-posts/')
+    .then(res => res.json())
+    .then(data => {
+      const posts = data.posts;
+      const tbody = document.getElementById('user-lyrics-body');
+      tbody.innerHTML = '';
+
+      if (posts.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" disabled></td>
+          <td colspan="3">등록된 게시글이 없습니다.</td>
+        `;
+        tbody.appendChild(row);
+        return;
+      }
+
+      posts.forEach(post => {
+        const row = document.createElement('tr');
+        row.dataset.postId = post.id;
+
+        row.innerHTML = `
+        <td><input type="checkbox"></td>
+        <td>${post.title}</td>
+        <td>${post.like_count ?? 0}명 좋아요</td>  <!-- ✅ 좋아요 수 표시 -->
+        <td>${post.created_at}</td>
+      `;
+
+        row.addEventListener('click', (e) => {
+          if (e.target.tagName.toLowerCase() !== 'input') {
+            window.location.href = `/board/post/${post.id}/`;
+          }
+        });
+
+        tbody.appendChild(row);
+      });
+      bindSelectAll();  // ✅ 이 줄을 추가하면 전체 선택 정상 작동
+    })
+    .catch(err => {
+      console.error("❌ 게시글 불러오기 실패:", err);
+    });
+}
+
+// 러브리스트 불러오기
+function loadUserLovelist() {
+  const table = document.getElementById('user-lyrics-table');
+  table.style.display = 'table';
+
+  fetch('/mypage/user-lovelist/')
+    .then(res => res.json())
+    .then(data => {
+      const songs = data.songs;
+      const tbody = document.getElementById('user-lyrics-body');
+      tbody.innerHTML = '';
+
+      if (songs.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" disabled></td>
+          <td colspan="3">좋아요한 곡이 없습니다.</td>
+        `;
+        tbody.appendChild(row);
+        return;
+      }
+
+      songs.forEach(song => {
+        const row = document.createElement('tr');
+        row.dataset.title = song.title;
+        row.dataset.artist = song.artist;
+
+        row.innerHTML = `
+          <td><input type="checkbox"></td>
+          <td>${song.title}</td>
+          <td>${song.artist}</td>
+          <td>${song.created_at}</td>
+        `;
+
+        // ✅ 바로 여기! 아래 코드로 교체 또는 삽입
+        row.addEventListener('click', (e) => {
+          if (e.target.tagName.toLowerCase() !== 'input') {
+            const query = new URLSearchParams({
+              title: song.title,
+              artist: song.artist
+            }).toString();
+            window.location.href = `/music-info/?${query}`;
+          }
+        });
+
+        tbody.appendChild(row);
+      });
+
+      bindSelectAll();
+    })
+    .catch(err => {
+      console.error("❌ 좋아요 목록 불러오기 실패:", err);
+    });
+}
+
+// 고객센터 불러오기
+
+function loadSupportList() {
+  const table = document.getElementById('user-lyrics-table');
+  table.style.display = 'table';
+
+  fetch('/mypage/json/')  // ✅ JSON API 호출
+    .then(res => res.json())
+    .then(data => {
+      const posts = data.posts;
+      const tbody = document.getElementById('user-lyrics-body');
+      tbody.innerHTML = '';
+
+      if (posts.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" disabled></td>
+          <td colspan="3">문의글이 없습니다.</td>
+        `;
+        tbody.appendChild(row);
+        return;
+      }
+
+      posts.forEach(post => {
+        const row = document.createElement('tr');
+        row.dataset.postId = post.id;
+
+        row.innerHTML = `
+          <td><input type="checkbox"></td>
+          <td>[${post.category}] ${post.title}</td>  <!-- ✅ 카테고리 앞에 표시 -->
+          <td>${post.status}</td>
+          <td>${post.created_at}</td>
+        `;
+
+        row.addEventListener('click', (e) => {
+          if (e.target.tagName.toLowerCase() !== 'input') {
+            window.location.href = `/support/${post.id}/`;
+          }
+        });
+
+        tbody.appendChild(row);
+      });
+
+      bindSelectAll();
+    })
+    .catch(err => {
+      console.error("❌ 고객센터 목록 불러오기 실패:", err);
+    });
+}
+// 위에 이것도추가한거 기억 ㄱㄱㄱ
+// const firstBtn = document.querySelector('.mypage-link-btn.lyrics-btn');
+// if (firstBtn) firstBtn.click();

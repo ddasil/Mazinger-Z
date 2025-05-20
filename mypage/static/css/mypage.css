@@ -1,17 +1,24 @@
 .mypage-container {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+  flex-wrap: wrap;
   justify-content: flex-start;
-  height: auto;
-  padding: 80px 60px 60px 400px;   /* ✅ 상단 여백 확보 (기존 padding 변경) */
-  flex-wrap: nowrap;  /* ✅ 한 줄에만 정렬되게 */
-  gap: 40px;                        /* 프로필과 버튼 사이 간격 */
+  align-items: flex-start;
+  padding: 80px 5vw;
+  gap: 40px;
 }
 
+.mypage-container,
+.content-box,
+.lyrics-table,
+.lyrics-controls-wrapper {
+  position: relative;
+  z-index: 5; /* LP보다 확실히 위로 */
+}
+
+/* 📌 프로필 박스 왼쪽 고정 크기 */
 .profile-box {
+  flex: 0 0 220px;
   text-align: center;
-  margin-bottom: 30px;
   background-color: rgba(16, 2, 2, 0.985);
   padding: 30px;
   border: 1px solid white;
@@ -38,19 +45,31 @@
   cursor: pointer;
 }
 
+.edit-profile-btn:hover {
+  background: linear-gradient(145deg, #666, #888);
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+/* 📌 오른쪽 내용 박스 */
+.content-box {
+  flex: 1;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
 .link-buttons {
   display: flex;
-  flex-wrap: nowrap;
-  margin-top: 90px;
-  gap: 1px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  gap: 8px;
   align-items: center;
-  flex-direction: row;
-  margin-left: 100px;  
 }
 
 .mypage-link-btn {
   padding: 10px 20px;
-  background: #444;
   background-color: rgba(16, 2, 2, 0.985);
   border-bottom: 1px solid white;
   border-right: 1px solid white;
@@ -58,6 +77,7 @@
   text-decoration: none;
   border-radius: 6px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .mypage-link-btn.active {
@@ -67,147 +87,21 @@
   border: 2px solid white;
 }
 
-/* ✅ 모달 팝업 강제 중앙 고정 */
-#editModal.modal {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 9999 !important;
-  width: 100% !important;
-  height: 100% !important;
-  background: rgba(0, 0, 0, 0.7) !important;
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-#editModal.modal.show {
-  display: flex !important;
-}
-
-#editModal .modal-content {
-  background: #111;
-  padding: 30px;
-  border-radius: 10px;
-  color: white;
-  width: 90%;
-  max-width: 400px;
-  position: relative;
-}
-
-#editModal .modal-close {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-#editModal .profile-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-#editModal .save-btn {
-  padding: 8px 16px;
-  background: #555;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.modal {
-  display: none;
-  /* 기존 스타일 */
-}
-.modal.show {
-  display: flex;
-}
-
-select,
-select option {
-  color: white;            /* 글자색 흰색 */
-  background-color: #333;  /* 드롭다운 배경 진한 회색 */
-}
-
-.profile-preview {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin-top: 10px;
-}
-
-.profile-preview {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 2px solid white;
-  margin-top: 10px;
-}
-
-/* 추가 진섭이 위에도 조금 추가함함 */
-
-#user-lyrics-list-wrapper {
-  margin-top: 80px;
-  padding: 20px 60px;
-  color: white;
-
-  
-}
-
-#user-lyrics-list {
-  margin-top: 30px;         /* 버튼들과 충분한 거리 */
-  text-align: center;        /* 텍스트 중앙 정렬 */
-  color: white;
-  z-index: 10;               /* LP보다 위로 나오게 */
-  position: relative;
-  margin-left: 100px; 
-}
-
-#user-lyrics-list div {
-  margin-bottom: 12px;
-  font-size: 16px;
-  background-color: rgba(23, 21, 21, 0.05);
-  padding: 10px 16px;
-  border-radius: 8px;
-  width: fit-content;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-#user-lyrics-list div:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.link-divider {
-  height: 1px;
-  background-color: rgba(255, 255, 255);
-  margin-top: 30px;
-  margin-bottom: 40px;
-
-  /* ✅ 버튼들과 위치 및 너비 일치 */
-  width: fit-content;
-  min-width: 765px;        /* 버튼들 너비에 맞게 (원하면 더 정확히 조정 가능) */
-  margin-left: 100px;      /* ✅ "내가 만든 가사" 기준 왼쪽 여백 (직접 확인해서 조정) */
-}
-
+/* ✅ 테이블 */
 .lyrics-table {
   width: 100%;
   color: white;
-  margin-left: 100px;
   border-collapse: collapse;
   margin-top: 30px;
 }
 
-.lyrics-table th, .lyrics-table td {
+.lyrics-table th,
+.lyrics-table td {
   padding: 10px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   text-align: left;
   background-color: rgba(255, 255, 255, 0.2);
+  word-break: break-word;
 }
 
 .lyrics-table th {
@@ -215,17 +109,29 @@ select option {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* ✅ 본문 행만 hover 적용 */
 .lyrics-table tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-.lyrics-controls {
+/* ✅ 삭제 + 페이지네이션 */
+.lyrics-controls-wrapper {
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 30px; /* 삭제 버튼과 페이지네이션 사이 간격 */
-  margin: 40px 0 0 100px; /* 목록 왼쪽 정렬선과 맞추기 + 위 여백 */
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: 30px;
+  width: 100%;
+}
+
+.left-controls {
+  align-self: flex-start;
+  margin-bottom: 10px;
+}
+
+.center-pagination {
+  display: flex;
+  justify-content: center;
+  z-index: 5;   
+  width: 100%;
 }
 
 .delete-btn {
@@ -240,25 +146,6 @@ select option {
 
 .delete-btn:hover {
   background-color: #c33;
-}
-/* 페이지네비바 */
-.lyrics-controls-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 30px;
-}
-
-.left-controls {
-  align-self: flex-start;
-  margin-left: 100px;
-  margin-bottom: 10px;
-}
-
-.center-pagination {
-  display: flex;
-  justify-content: center;
-  width: 100%;
 }
 
 .pagination {
@@ -285,4 +172,167 @@ select option {
 .pagination button.active {
   font-weight: bold;
   text-decoration: underline;
+}
+
+/* ✅ 반응형 조정 */
+@media (max-width: 992px) {
+  .mypage-container {
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  .profile-box {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .content-box {
+    width: 100%;
+  }
+
+  .link-buttons {
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  .lyrics-table {
+    margin-left: 0;
+  }
+
+  .left-controls {
+    margin-left: 0;
+  }
+
+  .center-pagination {
+    justify-content: center;
+  }
+}
+
+
+/* 모달관련 css */
+/* ✅ 공통 모달 스타일 */
+.modal {
+  display: none;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal.show {
+  display: flex;
+}
+
+/* ✅ 모달 내부 공통 박스 */
+.modal .modal-content {
+  background: #111;
+  padding: 30px;
+  border-radius: 10px;
+  color: white;
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+  min-height: 400px;  /* ✅ 고정 높이 추가 (원하는 값으로 조정 가능) */
+}
+
+/* ✅ 닫기 버튼 */
+.modal .modal-close {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* ✅ 공통 입력 폼 */
+.modal .profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ✅ 저장/확인 버튼 */
+.modal .save-btn,
+.modal .btn.btn-primary {
+  padding: 8px 16px;
+  background: #555;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal .save-btn:hover,
+.modal .btn.btn-primary:hover {
+  background: linear-gradient(145deg, #666, #888);
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+/* ✅ 입력창들 */
+.modal input[type="password"],
+.modal input[type="text"],
+.modal input[type="date"],
+.modal select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background-color: #1c1c1c;
+  color: white;
+  font-size: 15px;
+  margin-bottom: 10px;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modal .profile-form input[type="text"],
+.modal .profile-form input[type="password"],
+.modal .profile-form input[type="date"],
+.modal .profile-form select {
+  display: block;              /* ✅ 한 줄 차지 */
+  box-sizing: border-box;      /* ✅ 패딩 포함 너비 유지 */
+  width: 100%;                 /* ✅ 너비 고정 */
+  max-width: 100%;             /* ✅ 줄어들지 않게 */
+  min-width: 0;                /* ✅ overflow 방지 */
+  margin-bottom: 0; /* 줄어듦 방지 */
+}
+
+.modal input::placeholder {
+  color: #aaa;
+  font-size: 14px;
+}
+
+.modal input:focus,
+.modal select:focus {
+  border: 1px solid #888;
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+/* ✅ 프로필 미리보기 */
+.profile-preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-top: 10px;
+}
+
+/* ✅ 모든 입력창 바로 아래 삽입되는 .error 요소 대응 */
+.modal .error {
+  display: block;
+  height: 20px;                /* ✅ 고정 높이로 줄어들거나 밀리지 않게 */
+  font-size: 0.85rem;
+  color: red;
+  margin-bottom: 10px;
+  line-height: 1.2;
+  word-break: keep-all;
 }

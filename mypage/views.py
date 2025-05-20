@@ -8,7 +8,8 @@ from accounts.forms import CustomUserChangeForm
 from django.db import IntegrityError
 
 from lyricsgen.models import GeneratedLyrics
-
+from main.models import Lovelist
+from support.models import SupportPost
 
 
 
@@ -54,7 +55,7 @@ def user_generated_lyrics(request):
             'prompt': lyric.prompt,
             'style': lyric.style,
             'language': lyric.language,
-            "created_at": lyric.created_at.strftime('%Y-%m-%d'),
+            'created_at': lyric.created_at.strftime('%Y-%m-%d'),  # ✅ 추가
         }
         for lyric in lyrics_qs
     ]
@@ -69,3 +70,40 @@ def verify_password(request):
         user = authenticate(username=request.user.username, password=password)
         return JsonResponse({'success': bool(user)})
     return JsonResponse({'success': False}, status=400)
+
+
+# 진섭추가
+@login_required
+def user_lovelist(request):
+    user = request.user
+    songs = Lovelist.objects.filter(user=user, is_liked=True)
+    data = [
+        {
+            "id": song.id,
+            "title": song.title,
+            "artist": song.artist,
+            "cover_url": song.cover_url or "",
+            "created_at": song.created_at.strftime('%Y-%m-%d'), 
+        }
+        for song in songs
+    ]
+    return JsonResponse({"songs": data})
+
+
+@login_required
+def support_post_list_json(request):
+    user = request.user
+    posts = SupportPost.objects.filter(user=user).order_by('-created_at')  # ✅ 로그인 사용자 글만 필터링
+
+    result = []
+
+    for post in posts:
+        result.append({
+            "id": post.id,
+            "title": post.title,
+            "category": post.get_category_display(),  # ✅ 카테고리 문자열 표시
+            "created_at": post.created_at.strftime("%Y-%m-%d %H:%M"),
+            "status": "처리완료" if hasattr(post, 'supportreply') else "처리전"
+        })
+
+    return JsonResponse({"posts": result})
