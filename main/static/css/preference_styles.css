@@ -86,28 +86,28 @@
 
 /* ✅ 감정별 색상 클래스 */
 .strong-disagree:hover {
-  color: #780000;
-  stroke: #780000;
+  color: #cd4624;
+  stroke: #cd4624;
 }
 
 .disagree:hover {
-  color: #c1121f;
-  stroke: #c1121f;
+  color: #f4a261;
+  stroke: #f4a261;
 }
 
 .neutral:hover {
-  color: #fdf0d5;
-  stroke: #fdf0d5;
+  color: #e9c46a;
+  stroke: #e9c46a;
 }
 
 .agree:hover {
-  color: #003049;
-  stroke: #003049;
+  color: #2a9d8f;
+  stroke: #2a9d8f;
 }
 
 .strong-agree:hover {
-  color: #669bbc;
-  stroke: #669bbc;
+  color: #002d40;
+  stroke: #002d40;
 }
 
 
@@ -128,12 +128,12 @@
 }
 
 .agree.selected {
-  background-color: #1e90ff;
+  background-color: #2a9d8f;
   color: #ffffff;
 }
 
 .strong-agree.selected {
-  background-color: #006400;
+  background-color: #264653;
   color: #ffffff;
 }
 
