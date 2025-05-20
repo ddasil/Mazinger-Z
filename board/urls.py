@@ -11,7 +11,9 @@ urlpatterns = [
     path("scrap/<int:pk>/", views.scrap_post, name="scrap_post"),
     path('edit/<int:pk>/', views.post_edit, name='post_edit'),
     path('delete/<int:pk>/', views.post_delete, name='post_delete'),
+    path('post/<int:pk>/delete/ajax/', views.post_delete_ajax, name='post_delete_ajax'),  # ✅ JS용 삭제
     path('toggle_lovelist/', toggle_lovelist, name='toggle_lovelist'),
     path('user-posts/', views.user_posts, name='user_posts'), # 진섭추가 
     path('post/<int:pk>/', views.post_detail, name='post_detail'), # 진섭추가 
+    path('user-posts/', views.user_posts, name='user_posts'),  # ✅ MyPage 게시글 목록
 ]

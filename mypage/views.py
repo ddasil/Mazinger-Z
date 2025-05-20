@@ -56,6 +56,7 @@ def user_generated_lyrics(request):
             'style': lyric.style,
             'language': lyric.language,
             'created_at': lyric.created_at.strftime('%Y-%m-%d'),  # ✅ 추가
+            "image_file": lyric.image_file.url if lyric.image_file else None  # ✅ 여기가 중요
         }
         for lyric in lyrics_qs
     ]

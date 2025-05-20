@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // ✅ 대댓글 버튼 클릭 시 해당 댓글의 답글 폼을 토글
+  // ✅ 대댓글 입력 폼 토글
   const replyButtons = document.querySelectorAll('.reply-btn');
   replyButtons.forEach(button => {
     button.addEventListener('click', function () {
@@ -8,6 +8,19 @@ document.addEventListener('DOMContentLoaded', function () {
       if (form) {
         form.classList.toggle('hidden');
       }
+    });
+  });
+
+  // ✅ 대댓글 보기/숨기기 토글
+  const toggleReplyButtons = document.querySelectorAll('.toggle-replies-btn');
+  toggleReplyButtons.forEach(button => {
+    button.addEventListener('click', function () {
+      const parentId = this.dataset.parentId;
+      const replies = document.querySelectorAll(`#reply-container-${parentId} .reply`);
+      replies.forEach(reply => reply.classList.toggle('hidden'));
+
+      // 버튼 텍스트 토글
+      this.innerText = this.innerText.includes('보기') ? '대댓글 숨기기' : '대댓글 보기';
     });
   });
 
@@ -35,10 +48,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // ✅ 댓글 작성 (Ajax → 비로그인 시 confirm 팝업 / 입력 없을 때 JS 유효성 검사)
+  // ✅ 댓글 작성 (Ajax + 유효성 검사)
   const commentForm = document.getElementById('comment-form');
   if (commentForm) {
-    commentForm.setAttribute('novalidate', 'true'); // 브라우저 기본 유효성 제거
+    commentForm.setAttribute('novalidate', 'true');
     commentForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
@@ -78,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ✅ 선택된 곡 스크롤
+  // ✅ 선택된 곡 좌우 스크롤
   const container = document.querySelector('.selected-song-list');
   const leftBtn = document.querySelector('.left-arrow');
   const rightBtn = document.querySelector('.right-arrow');

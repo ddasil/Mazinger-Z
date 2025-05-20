@@ -217,6 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
 const itemsPerPage = 10;
 let allLyricsData = [];
 
+
 // ✅ 전체 가사 목록 불러오기 + 초기 렌더링
 function loadLyricsTable(page = 1) {
   const table = document.getElementById('user-lyrics-table');
@@ -243,78 +244,68 @@ function renderLyricsPage(page) {
 
   if (pageData.length === 0) {
     const row = document.createElement('tr');
-  
-    // 체크박스 열 (비활성화)
-    const checkboxTd = document.createElement('td');
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.disabled = true;
-    checkboxTd.appendChild(checkbox);
-    row.appendChild(checkboxTd);
-  
-    // 제목 + 장르/언어 열
-    const emptyTd = document.createElement('td');
-    emptyTd.textContent = '등록된 가사가 없습니다.';
-    row.appendChild(emptyTd);
-  
-    // 작성일 열
-    const dateTd = document.createElement('td');
-    dateTd.textContent = '';
-    row.appendChild(dateTd);
-  
+    row.innerHTML = `
+      <td><input type="checkbox" disabled></td>
+      <td colspan="3">등록된 가사가 없습니다.</td>
+    `;
     tbody.appendChild(row);
     return;
   }
-// ---------------------------------------------------------------------변경 진섭섭
+
   pageData.forEach(item => {
     const row = document.createElement('tr');
-    row.dataset.lyricId = item.id;  // ✅ 여기 추가!
+    row.dataset.lyricId = item.id;
 
-    const selectTd = document.createElement('td');
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    selectTd.appendChild(checkbox);
+    console.log("이미지 경로 확인:", item.image_file);
 
-    const titleTd = document.createElement('td');
-    titleTd.textContent = `${item.prompt} (${item.style}/${item.language})`;
+    const imageTag = item.image_file
+    ? `<img src="${item.image_file}" alt="cover" class="preview-thumbnail" data-src="${item.image_file}" style="width:60px;height:60px;object-fit:cover;border-radius:4px;">`
+    : `<div style="width:60px;height:60px;background:#444;border-radius:4px;"></div>`;
 
-    const dateTd = document.createElement('td');
-    dateTd.textContent = item.created_at || '날짜 없음';
+    row.innerHTML = `
+      <td><input type="checkbox"></td>
+      <td style="text-align:left">${imageTag}</td>
+      <td class="clickable-title">${item.prompt} (${item.style}/${item.language})</td>
+      <td>${item.created_at || '날짜 없음'}</td>
+    `;
 
-    row.appendChild(selectTd);
-    row.appendChild(titleTd);
-    row.appendChild(dateTd);
-
-    row.style.cursor = 'pointer';
-    row.addEventListener('click', (e) => {
-      if (e.target.tagName.toLowerCase() !== 'input') {
-        sessionStorage.removeItem('modal_once_shown');
-        window.location.href = `/lyricsgen/?open_id=${item.id}`;
-      }
+    // ✅ 제목(td)만 클릭 시 페이지 이동
+    row.querySelector('.clickable-title').addEventListener('click', () => {
+      sessionStorage.removeItem('modal_once_shown');
+      window.location.href = `/lyricsgen/?open_id=${item.id}`;
     });
 
     tbody.appendChild(row);
   });
 
-  renderPagination(Math.ceil(allLyricsData.length / itemsPerPage), page);
+  renderPagination(Math.ceil(allLyricsData.length / itemsPerPage), page, renderLyricsPage);
   bindSelectAll();
 }
-// ---------------------------------------------------------------------변경끝끝 진섭섭
 
-// ✅ 페이지네이션 버튼 생성
-function renderPagination(totalPages, currentPage) {
+
+// ✅ 범용 페이지네이션 함수 (콜백 함수 전달 방식)
+function renderPagination(totalPages, currentPage, renderFunction) {
   const pagination = document.getElementById("pagination");
   pagination.innerHTML = '';
 
-  const safeTotalPages = Math.max(totalPages, 1);
+  const safeTotalPages = Math.max(totalPages, 1);  // 최소 1 페이지는 표시
+
   for (let i = 1; i <= safeTotalPages; i++) {
     const button = document.createElement('button');
     button.textContent = i;
-    if (i === currentPage) button.classList.add('active');
-    button.addEventListener('click', () => renderLyricsPage(i));
+
+    if (i === currentPage) {
+      button.classList.add('active');
+    }
+
+    // 클릭 시 전달받은 renderFunction 사용
+    button.addEventListener('click', () => renderFunction(i));
+
     pagination.appendChild(button);
   }
 }
+
+// ---------------------------------------------------------------------변경끝끝 진섭섭
 
 // ✅ 체크박스 전체 선택 기능
 function bindSelectAll() {
@@ -399,7 +390,7 @@ document.getElementById('delete-selected').addEventListener('click', function ()
     if (!confirm("선택한 게시글을 삭제하시겠습니까?")) return;
 
     Promise.all(postIds.map(id =>
-      fetch(`/board/post/${id}/delete/`, {
+      fetch(`/board/post/${id}/delete/ajax/`, {
         method: 'POST',
         headers: { 'X-CSRFToken': csrfToken }
       })
@@ -471,7 +462,11 @@ const headerTemplates = {
   lyrics: `
     <tr class="table-header">
       <th class="col-select"><input type="checkbox" id="select-all" title="전체 선택"></th>
-      <th class="col-title"><span class="th-title-main">제목</span><span class="th-title-sub"> (장르 / 언어)</span></th>
+      <th class="col-image">미리보기</th>
+      <th class="col-title">
+        <span class="th-title-main">제목</span>
+        <span class="th-title-sub"> (장르 / 언어)</span>
+      </th>
       <th class="col-date">작성일</th>
     </tr>`,
     button2: `
@@ -549,157 +544,222 @@ document.querySelectorAll('.mypage-link-btn').forEach(btn => {
 });
 
 // 게시판버튼 
-function loadUserPosts() {
+let allPostData = [];  // 🔸 게시글 전체 데이터를 전역 변수에 저장
+
+// ✅ 게시글 로딩 함수 (page는 1로 고정)
+function loadUserPosts(page = 1) {
   const table = document.getElementById('user-lyrics-table');
   table.style.display = 'table';
 
   fetch('/board/user-posts/')
     .then(res => res.json())
     .then(data => {
-      const posts = data.posts;
-      const tbody = document.getElementById('user-lyrics-body');
-      tbody.innerHTML = '';
-
-      if (posts.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><input type="checkbox" disabled></td>
-          <td colspan="3">등록된 게시글이 없습니다.</td>
-        `;
-        tbody.appendChild(row);
-        return;
-      }
-
-      posts.forEach(post => {
-        const row = document.createElement('tr');
-        row.dataset.postId = post.id;
-
-        row.innerHTML = `
-        <td><input type="checkbox"></td>
-        <td>${post.title}</td>
-        <td>${post.like_count ?? 0}명 좋아요</td>  <!-- ✅ 좋아요 수 표시 -->
-        <td>${post.created_at}</td>
-      `;
-
-        row.addEventListener('click', (e) => {
-          if (e.target.tagName.toLowerCase() !== 'input') {
-            window.location.href = `/board/post/${post.id}/`;
-          }
-        });
-
-        tbody.appendChild(row);
-      });
-      bindSelectAll();  // ✅ 이 줄을 추가하면 전체 선택 정상 작동
+      allPostData = data.posts || [];
+      renderPostPage(page);  // 🔸 별도 렌더링 함수 호출
     })
     .catch(err => {
       console.error("❌ 게시글 불러오기 실패:", err);
     });
 }
 
+// ✅ 게시글 렌더링 함수 (페이지 기반)
+function renderPostPage(page) {
+  const tbody = document.getElementById('user-lyrics-body');
+  tbody.innerHTML = '';
+
+  const start = (page - 1) * itemsPerPage;
+  const pageData = allPostData.slice(start, start + itemsPerPage);
+
+  if (pageData.length === 0) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="checkbox" disabled></td>
+      <td colspan="3">등록된 게시글이 없습니다.</td>
+    `;
+    tbody.appendChild(row);
+  } else {
+    pageData.forEach(post => {
+      const row = document.createElement('tr');
+      row.dataset.postId = post.id;
+      row.innerHTML = `
+        <td><input type="checkbox"></td>
+        <td>${post.title}</td>
+        <td>${post.like_count ?? 0}명 좋아요</td>
+        <td>${post.created_at}</td>
+      `;
+      row.addEventListener('click', (e) => {
+        if (e.target.tagName.toLowerCase() !== 'input') {
+          window.location.href = `/board/post/${post.id}/`;
+        }
+      });
+      tbody.appendChild(row);
+    });
+  }
+
+  // ✅ 페이지네이션 표시 (콜백 함수도 함께 넘김)
+  const totalPages = Math.ceil(allPostData.length / itemsPerPage);
+  renderPagination(totalPages, page, renderPostPage);
+
+  bindSelectAll();  // 전체선택 기능도 유지
+}
+
+
 // 러브리스트 불러오기
-function loadUserLovelist() {
+function loadUserLovelist(page = 1) {
   const table = document.getElementById('user-lyrics-table');
   table.style.display = 'table';
 
   fetch('/mypage/user-lovelist/')
     .then(res => res.json())
     .then(data => {
-      const songs = data.songs;
-      const tbody = document.getElementById('user-lyrics-body');
-      tbody.innerHTML = '';
-
-      if (songs.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><input type="checkbox" disabled></td>
-          <td colspan="3">좋아요한 곡이 없습니다.</td>
-        `;
-        tbody.appendChild(row);
-        return;
-      }
-
-      songs.forEach(song => {
-        const row = document.createElement('tr');
-        row.dataset.title = song.title;
-        row.dataset.artist = song.artist;
-
-        row.innerHTML = `
-          <td><input type="checkbox"></td>
-          <td>${song.title}</td>
-          <td>${song.artist}</td>
-          <td>${song.created_at}</td>
-        `;
-
-        // ✅ 바로 여기! 아래 코드로 교체 또는 삽입
-        row.addEventListener('click', (e) => {
-          if (e.target.tagName.toLowerCase() !== 'input') {
-            const query = new URLSearchParams({
-              title: song.title,
-              artist: song.artist
-            }).toString();
-            window.location.href = `/music-info/?${query}`;
-          }
-        });
-
-        tbody.appendChild(row);
-      });
-
-      bindSelectAll();
+      allLoveData = data.songs || [];  // 전역 배열에 저장
+      renderLovePage(page);            // 해당 페이지 렌더링
     })
     .catch(err => {
       console.error("❌ 좋아요 목록 불러오기 실패:", err);
     });
 }
 
-// 고객센터 불러오기
 
-function loadSupportList() {
+
+// 고객센터 불러오기
+let allSupportData = [];
+
+function loadSupportList(page = 1) {
   const table = document.getElementById('user-lyrics-table');
   table.style.display = 'table';
 
   fetch('/mypage/json/')  // ✅ JSON API 호출
     .then(res => res.json())
     .then(data => {
-      const posts = data.posts;
-      const tbody = document.getElementById('user-lyrics-body');
-      tbody.innerHTML = '';
-
-      if (posts.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><input type="checkbox" disabled></td>
-          <td colspan="3">문의글이 없습니다.</td>
-        `;
-        tbody.appendChild(row);
-        return;
-      }
-
-      posts.forEach(post => {
-        const row = document.createElement('tr');
-        row.dataset.postId = post.id;
-
-        row.innerHTML = `
-          <td><input type="checkbox"></td>
-          <td>[${post.category}] ${post.title}</td>  <!-- ✅ 카테고리 앞에 표시 -->
-          <td>${post.status}</td>
-          <td>${post.created_at}</td>
-        `;
-
-        row.addEventListener('click', (e) => {
-          if (e.target.tagName.toLowerCase() !== 'input') {
-            window.location.href = `/support/${post.id}/`;
-          }
-        });
-
-        tbody.appendChild(row);
-      });
-
-      bindSelectAll();
+      allSupportData = data.posts || [];
+      renderSupportPage(page);
     })
     .catch(err => {
       console.error("❌ 고객센터 목록 불러오기 실패:", err);
     });
 }
+
+function renderSupportPage(page) {
+  const tbody = document.getElementById('user-lyrics-body');
+  tbody.innerHTML = '';
+
+  const start = (page - 1) * itemsPerPage;
+  const pageData = allSupportData.slice(start, start + itemsPerPage);
+
+  if (pageData.length === 0) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="checkbox" disabled></td>
+      <td colspan="3">문의글이 없습니다.</td>
+    `;
+    tbody.appendChild(row);
+    return;
+  }
+
+  pageData.forEach(post => {
+    const row = document.createElement('tr');
+    row.dataset.postId = post.id;
+
+    row.innerHTML = `
+      <td><input type="checkbox"></td>
+      <td>[${post.category}] ${post.title}</td>
+      <td>${post.status}</td>
+      <td>${post.created_at}</td>
+    `;
+
+    row.addEventListener('click', (e) => {
+      if (e.target.tagName.toLowerCase() !== 'input') {
+        window.location.href = `/support/${post.id}/`;
+      }
+    });
+
+    tbody.appendChild(row);
+  });
+
+  renderPagination(Math.ceil(allSupportData.length / itemsPerPage), page, renderSupportPage);
+  bindSelectAll();
+}
+
+
 // 위에 이것도추가한거 기억 ㄱㄱㄱ
 // const firstBtn = document.querySelector('.mypage-link-btn.lyrics-btn');
 // if (firstBtn) firstBtn.click();
+
+function renderLovePage(page) {
+  const tbody = document.getElementById('user-lyrics-body');
+  tbody.innerHTML = '';
+
+  const start = (page - 1) * itemsPerPage;
+  const pageData = allLoveData.slice(start, start + itemsPerPage);
+
+  if (pageData.length === 0) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="checkbox" disabled></td>
+      <td colspan="3">좋아요한 곡이 없습니다.</td>
+    `;
+    tbody.appendChild(row);
+    return;
+  }
+
+  pageData.forEach(song => {
+    const row = document.createElement('tr');
+    row.dataset.title = song.title;
+    row.dataset.artist = song.artist;
+
+    row.innerHTML = `
+      <td><input type="checkbox"></td>
+      <td>${song.title}</td>
+      <td>${song.artist}</td>
+      <td>${song.created_at}</td>
+    `;
+
+    row.addEventListener('click', (e) => {
+      if (e.target.tagName.toLowerCase() !== 'input') {
+        const query = new URLSearchParams({
+          title: song.title,
+          artist: song.artist
+        }).toString();
+        window.location.href = `/music-info/?${query}`;
+      }
+    });
+
+    tbody.appendChild(row);
+  });
+
+  renderPagination(Math.ceil(allLoveData.length / itemsPerPage), page, renderLovePage);
+  bindSelectAll();
+}
+
+
+// ✅ 이미지 클릭 시 확대 보기
+document.addEventListener('click', function (e) {
+  const modal = document.getElementById('imagePreviewModal');
+  const modalImg = document.getElementById('previewImage');
+
+  if (e.target.classList.contains('preview-thumbnail')) {
+    e.stopPropagation();  // 부모 클릭 방지
+    modalImg.src = e.target.dataset.src;
+    modal.style.display = 'flex';
+  } else if (e.target.id === 'imagePreviewModal') {
+    modal.style.display = 'none';
+  }
+});
+
+document.addEventListener('click', function (e) {
+  const modal = document.getElementById('imagePreviewModal');
+  const modalImg = document.getElementById('previewImage');
+  const closeBtn = document.getElementById('closePreviewBtn');
+
+  if (e.target.classList.contains('preview-thumbnail')) {
+    e.stopPropagation();  // 부모 클릭 방지
+    modalImg.src = e.target.dataset.src;
+    modal.style.display = 'flex';
+  }
+
+  // 모달 배경이나 X 버튼 클릭 시 닫기
+  if (e.target.id === 'imagePreviewModal' || e.target.id === 'closePreviewBtn') {
+    modal.style.display = 'none';
+  }
+});

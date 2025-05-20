@@ -135,8 +135,13 @@
     </form>
   </div>
 </div>
-{% endblock %}
 
+<!-- 이미지 확대 미리보기 모달 -->
+<div id="imagePreviewModal" class="image-modal">
+  <button id="closePreviewBtn" class="close-btn">×</button>
+  <img id="previewImage" src="" alt="확대 이미지">
+</div>
+{% endblock %}
 
 {% block extra_script %}
 <script src="{% static 'js/base.js' %}"></script>

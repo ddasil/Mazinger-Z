@@ -1,7 +1,7 @@
 /* ✅ 전체 컨테이너 */
 .post-detail-container {
   max-width: 850px;
-  margin: 60px auto;
+  margin: 120px auto;
   padding: 30px;
   background-color: #1c1c1c;
   color: white;
@@ -98,6 +98,15 @@
   padding: 10px;
   border-radius: 6px;
 }
+
+.comment .comment-text {
+  max-height: 7.5em;     /* 줄당 약 1.5em x 5줄 */
+  overflow-y: auto;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .reply {
   margin-left: 20px;
   background-color: #1f1f1f;
@@ -309,4 +318,21 @@
 
 .right-arrow {
   margin-left: 10px;
+}
+
+/* 댓글 */
+.comment-list-scrollable {
+  max-height: 25em; /* 약 5개의 댓글 높이 기준 (개당 약 7em 예상) */
+  overflow-y: auto;
+  margin-top: 20px;
+  padding-right: 6px;
+  scrollbar-width: thin;
+}
+
+.comment-list-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+.comment-list-scrollable::-webkit-scrollbar-thumb {
+  background-color: #666;
+  border-radius: 3px;
 }

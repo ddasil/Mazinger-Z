@@ -73,6 +73,8 @@ textarea::placeholder {
   padding: 12px;
   background-color: #2a2a2a;
   border-radius: 8px;
+  max-height: 20em; /* 줄당 약 2.1em x 5줄 */
+  overflow-y: auto;
 }
 
 .modal-backdrop {
@@ -91,18 +93,20 @@ textarea::placeholder {
 
 .modal {
   position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  top: 40%; left: 50%;
+  transform: translate(-50%, -55%);
   background-color: #1e1e1e;
   padding: 24px;
   border-radius: 12px;
   z-index: 1001;
   width: 90%;
   max-width: 400px;
+  overflow-y: visible;  
   color: white;
   box-shadow: 0 4px 10px rgba(0,0,0,0.4);
   display: none;
 }
+
 
 .modal.show {
   display: block;

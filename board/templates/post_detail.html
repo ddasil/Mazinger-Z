@@ -5,14 +5,14 @@
 {% block title %}{{ post.title }}{% endblock %}
 
 {% block extra_head %}
-  <link rel="stylesheet" href="{% static 'css/main.css' %}">
-  <link rel="stylesheet" href="{% static 'css/post_detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/post_detail.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="post-detail-container">
 
-  <!-- 상단: 뒤로가기 + 글쓰기 + 스크랩 -->
+  <!-- 킨추: 뒤로가기 / 글쓰기 / 스크래프 -->
   <div class="post-detail-actions">
     <a href="{% url 'post_list' %}" class="btn-back">← 게시판으로</a>
     <div class="top-buttons">
@@ -20,20 +20,20 @@
       <form method="post" action="{% if user.is_authenticated %}{% url 'scrap_post' post.pk %}{% else %}#{% endif %}">
         {% csrf_token %}
         <button type="submit" class="btn-scrap top-scrap {% if not user.is_authenticated %}not-logged-in{% endif %}">
-          <img src="{% static 'images/' %}{% if user.is_authenticated and post|scrapped:user %}scrap_on.png{% else %}scrap_off.png{% endif %}" alt="스크랩" class="scrap-icon">
+          <img src="{% static 'images/' %}{% if user.is_authenticated and post|scrapped:user %}scrap_on.png{% else %}scrap_off.png{% endif %}" alt="스크래프" class="scrap-icon">
         </button>
       </form>
     </div>
   </div>
 
-  <!-- 제목 + 작성자 + 썸네일 -->
+  <!-- 제목 + 작성자 + 써밀남 -->
   <div class="post-header">
     <div class="title-area">
       <h1 class="post-title">{{ post.title }}</h1>
       <p class="post-meta">{{ post.user.nickname }} · {{ post.created_at|date:"Y년 n월 j일 g:i A" }}</p>
     </div>
     {% if post.thumbnail %}
-      <img src="{{ post.thumbnail.url }}" alt="썸네일" class="post-thumbnail">
+    <img src="{{ post.thumbnail.url }}" alt="써밀" class="post-thumbnail">
     {% endif %}
   </div>
 
@@ -42,7 +42,7 @@
     <pre class="post-description">{{ post.description }}</pre>
   </div>
 
-  <!-- ✅ 선택된 곡 정보 -->
+  <!-- 선택된 곡 정보 -->
   {% if selected_songs %}
   <div class="selected-songs-container">
     <h3>🎵 선택된 곡</h3>
@@ -81,49 +81,50 @@
 
   <!-- 좋아요 + 수정/삭제 -->
   {% if user.is_authenticated or user == post.user %}
-    <div class="post-footer-actions-container">
-      {% if user.is_authenticated %}
-        <form method="post" action="{% url 'like_post' post.id %}">
-          {% csrf_token %}
-          <button type="submit" class="btn-like">
-            {% if liked %}❤️ 추천 취소{% else %}🤍 추천{% endif %} ({{ post.post_likes.count }})
-          </button>
-        </form>
-      {% endif %}
-      {% if user == post.user %}
-        <div class="post-actions">
-          <form method="get" action="{% url 'post_edit' post.pk %}" style="display:inline;">
-            <button type="submit" class="delete-btn">수정</button>
-          </form>
-          <form method="post" action="{% url 'post_delete' post.pk %}" onsubmit="return confirm('정말로 삭제하시겠습니까?')" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="delete-btn">삭제</button>
-          </form>
-        </div>
-      {% endif %}
+  <div class="post-footer-actions-container">
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'like_post' post.id %}">
+      {% csrf_token %}
+      <button type="submit" class="btn-like">
+        {% if liked %}❤️ 추천 취소{% else %}🤍 추천{% endif %} ({{ post.post_likes.count }})
+      </button>
+    </form>
+    {% endif %}
+    {% if user == post.user %}
+    <div class="post-actions">
+      <form method="get" action="{% url 'post_edit' post.pk %}" style="display:inline;">
+        <button type="submit" class="delete-btn">수정</button>
+      </form>
+      <form method="post" action="{% url 'post_delete' post.pk %}" onsubmit="return confirm('정말로 삭제하시겠습니까?')" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="delete-btn">삭제</button>
+      </form>
     </div>
+    {% endif %}
+  </div>
   {% endif %}
 
   <!-- 댓글 -->
   <div class="comment-section">
     <h3>댓글</h3>
 
-    <!-- ✅ 최상위 댓글부터 재귀 렌더링 -->
-    {% for comment in post.comments.all %}
-      {% if not comment.parent %}
-        {% include "comment_item.html" with comment=comment %}
-      {% endif %}
-    {% endfor %}
-
-    <!-- ✅ 새 댓글 작성 -->
+    <!-- 댓글 작성 -->
     <form id="comment-form" method="post" novalidate>
       {% csrf_token %}
-      {{ comment_form.parent }}  {# 숨겨진 필드 유지 #}
+      {{ comment_form.parent }}
       <textarea name="text" id="id_content" placeholder="댓글을 입력하세요..." required></textarea>
       <button type="submit">댓글 달기</button>
     </form>
-  </div>
 
+    <!-- 댓글 5개 정렬 + 스크롤 -->
+    <div class="comment-list-scrollable">
+      {% for comment in post.comments.all %}
+        {% if not comment.parent %}
+          {% include "comment_item.html" with comment=comment %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
 </div>
 {% endblock %}
 

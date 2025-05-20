@@ -138,7 +138,7 @@ def post_edit(request, pk):
     selected_songs = post.lovelist_songs.all()
     selected_song_ids = [str(song.id) for song in selected_songs]
 
-    user_lovelist = list(Lovelist.objects.filter(user=request.user))
+    user_lovelist = list(Lovelist.objects.filter(user=request.user,is_liked=True))
     missing_songs = [s for s in selected_songs if s not in user_lovelist]
     lovelist = user_lovelist + missing_songs
 
@@ -239,3 +239,13 @@ def user_posts(request):
         ]
         return JsonResponse({"posts": data})
     return JsonResponse({"posts": []})
+
+# ✅ AJAX 게시글 삭제 (MyPage용)
+@require_POST
+@login_required
+def post_delete_ajax(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if post.user != request.user:
+        return JsonResponse({'success': False, 'error': '권한이 없습니다.'}, status=403)
+    post.delete()
+    return JsonResponse({'success': True})

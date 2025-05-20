@@ -19,10 +19,10 @@
 .profile-box {
   flex: 0 0 220px;
   text-align: center;
-  background-color: rgba(16, 2, 2, 0.985);
+  background-color: rgba(0, 0, 0, 0.985);
   padding: 30px;
   border: 1px solid white;
-  border-radius: 50px;
+  border-radius: 70px;
   box-shadow: 0 4px 20px rgba(22, 19, 19, 0.948);
   color: white;
 }
@@ -335,4 +335,46 @@
   margin-bottom: 10px;
   line-height: 1.2;
   word-break: keep-all;
+}
+
+.image-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-modal img {
+  max-width: 50%;
+  max-height: 50%;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.7);
+}
+
+/* ✅ X 버튼 스타일 */
+.close-btn {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: white;
+  cursor: pointer;
+  z-index: 10000;
+  font-weight: bold;
+}
+
+.clickable-title {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.clickable-title:hover {
+  color: #ffd452;  /* 노란색 계열 강조 */
+  text-decoration: underline;
 }

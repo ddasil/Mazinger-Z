@@ -5,7 +5,9 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/lyrics.css' %}">
 {% endblock %}
+
 {% block content %}
 
 <div class="header-center">
@@ -16,7 +18,6 @@
       <input type="text" name="prompt" id="prompt-input" placeholder="노래 주제 입력" required>
       <i class="fa-solid fa-microphone mic-icon" id="mic-btn" title="음성인식 시작"></i>
       <i class="fa-solid fa-stop mic-icon" id="stop-recognition" style="display: none;" title="음성인식 종료"></i>
-      <!-- ⏹ 중단 버튼 -->
     </div>
 
     <select name="style" required>
@@ -39,47 +40,62 @@
   </form>
 </div>
 
-
-<div class="lyrics-container">
-  {% if lyrics %}
-  <div class="create-lyrics">
-    <div class="lyrics-title">
-      <h2>🎤 "{{ title }}"</h2>
-    </div>
-    <div class="lyrics-content">
-      <div class="lyricsbox-created">
-        <div class="albumcover">
-          <h3>🎨 앨범 이미지</h3>
-          <div class="album-image-wrapper" style="background-image: url('{{ new_lyrics.image_file.url }}');"
-            onclick="window.location.href='{{ new_lyrics.image_file.url }}'">
-            <div class="album-hover-content">
-              <span class="download-icon">📥</span>
-              <p>⏱ {{ elapsed_time }}초</p>
-            </div>
-          </div>
+{% if new_lyrics %}
+<div class="lyrics-content">
+  <div class="lyrics-title">
+    <h2>🎤 "{{ title }}"</h2>
+  </div>
+  <div class="lyrics-main">
+    <div class="lyricsbox-created">
+      <h3>🎨 앨범 이미지</h3>
+      <div class="album-image-wrapper" style="background-image: url('{{ new_lyrics.image_file.url }}');"
+           onclick="window.location.href='{{ new_lyrics.image_file.url }}'">
+        <div class="album-hover-content">
+          <span class="download-icon">📥</span>
+          <p>⏱ {{ elapsed_time }}초</p>
         </div>
       </div>
-      <div class="created_lyrics">
-        <pre>{{ lyrics }}</pre>
-      </div>
     </div>
-    <div class="lyrics-caption">
-      <p>{{ prompt }} 이라는 주제로
-        {{ style }} 스타일 가사와
-        이미지를 제작하였습니다.<br>
-        <strong>언어:</strong> {{ language }}<br>
-      </p>
+    <div class="created_lyrics">
+      {% if request.GET.edit == 'true' %}
+      <form method="POST" action="{% url 'edit_lyrics' new_lyrics.id %}" style="height: 100%;">
+        {% csrf_token %}
+        <textarea name="lyrics" class="lyrics-box lyrics-edit-box">{{ new_lyrics.lyrics }}</textarea>
+        <div class="lyrics-buttons">
+          <button type="submit" class="lyrics-btn btn-delete">저장하기</button>
+        </div>
+      </form>
+      {% else %}
+      <pre class="lyrics-box">{{ new_lyrics.lyrics }}</pre>
+      <div class="lyrics-buttons">
+        <form method="GET" action="{% url 'lyrics_root' %}">
+          <input type="hidden" name="open_id" value="{{ new_lyrics.id }}">
+          <input type="hidden" name="edit" value="true">
+          <button type="submit" class="lyrics-btn btn-delete">수정하기</button>
+        </form>
+        <form method="POST" action="{% url 'delete_lyrics' new_lyrics.id %}" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+          {% csrf_token %}
+          <button type="submit" class="lyrics-btn btn-delete">삭제하기</button>
+        </form>
+      </div>
+      {% endif %}
     </div>
   </div>
-  {% endif %}
+  <div class="lyrics-caption">
+    <p>{{ prompt }} 이라는 주제로 {{ style }} 스타일 가사와 이미지를 제작하였습니다.<br>
+       <strong>언어:</strong> {{ language }}<br>
+    </p>
+  </div>
+</div>
+{% endif %}
 
-  {% if all_lyrics %}
-  <hr>
-  <div class="recent-lyrics">
-    <h2 style="color: white;">최근에 만든 가사들</h2>
-    {% for item in all_lyrics %}
-    <div class="mylyrics-card" onclick="showLyricsModal(`{{ item.prompt }}`, `{{ item.lyrics|escapejs }}`)">
-      <img src="{{ item.image_file.url }}" alt="앨범 이미지">
+{% if all_lyrics %}
+<div class="recent-lyrics">
+  <h2 style="color: white;">My Lyrics</h2>
+  {% for item in all_lyrics %}
+  <a href="{% url 'lyrics_root' %}?open_id={{ item.id }}" class="mylyrics-card-link">
+    <div class="mylyrics-card">
+      <img src="{{ item.image_file.url }}" alt="앨범 이미지" class="mylyrics-img">
       <strong>{{ item.prompt }}</strong><br>
       <small>{{ item.style }} /
         {% if item.language == "korean" %}🇰🇷 한국어
@@ -87,40 +103,19 @@
         {% elif item.language == "japanese" %}🇯🇵 일본어
         {% elif item.language == "chinese" %}🇨🇳 중국어
         {% elif item.language == "thai" %}🇹🇭 태국어
-        {%else %}🌍 언어무관
+        {% else %}🌍 언어무관
         {% endif %}
       </small><br>
       <small>{{ item.created_at|date:"Y-m-d H:i" }}</small>
     </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+  </a>
+  {% endfor %}
 </div>
-
-<div id="lyricsModal" class="lyrics-modal">
-  <h2 id="modalTitle">🎼 제목</h2>
-  <pre id="modalLyrics"></pre>
-  <button class="btn-glitch lyrics-btn" onclick="closeModal()">닫기</button>
-</div>
-<div id="modalBackdropLyrics" style="display:none;" onclick="closeModal()"></div>
+{% endif %}
 
 {% endblock %}
 
 {% block extra_script %}
 <script src="{% static 'js/base.js' %}"></script>
-<script src="{% static 'js/lyrics.js' %}"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const openId = new URLSearchParams(window.location.search).get("open_id");
-
-    // ✅ sessionStorage를 이용해서 한 세션 내에서 딱 1번만 모달 자동 열기
-    if (openId && !sessionStorage.getItem(`modal_once_shown`)) {
-      const prompt = `{{ selected_lyrics.prompt|escapejs }}`;
-      const lyrics = `{{ selected_lyrics.lyrics|escapejs }}`;
-      showLyricsModal(prompt, lyrics);
-      sessionStorage.setItem(`modal_once_shown`, 'true'); // ✅ 최초 진입 이후 다시 안 뜨게
-    }
-  });
-</script>
+<script src="{% static 'js/Lyrics.js' %}"></script>
 {% endblock %}
-

@@ -1,18 +1,28 @@
 <div class="comment">
-  <strong>{{ comment.user.nickname }}</strong>: {{ comment.text }}
+  <strong>{{ comment.user.nickname }}</strong>:
+  <div class="comment-text">{{ comment.text }}</div>
+
+  <!-- ✅ 답글 버튼 추가 (❗ 이게 누락되어 있었음) -->
   <button class="reply-btn" data-id="{{ comment.id }}">답글</button>
 
-  <!-- ✅ 대댓글 입력 폼 -->
+  <!-- ✅ 대댓글 보기/숨기기 -->
+  {% if comment.replies.count > 0 %}
+    <button class="toggle-replies-btn" data-parent-id="{{ comment.id }}">대댓글 보기</button>
+  {% endif %}
+
+  <!-- ✅ 대댓글 작성 폼 -->
   <form method="post" action="{% url 'comment_reply' comment.id %}" class="reply-form hidden" id="reply-form-{{ comment.id }}">
     {% csrf_token %}
     <input type="text" name="text" placeholder="답글을 입력하세요" required>
     <button type="submit">작성</button>
   </form>
 
-  <!-- ✅ 자식 댓글 재귀 렌더링 -->
-  <div class="replies">
+  <!-- ✅ 대댓글 목록 -->
+  <div class="replies" id="reply-container-{{ comment.id }}">
     {% for reply in comment.replies.all %}
-      {% include "comment_item.html" with comment=reply %}
+      <div class="reply hidden" id="reply-{{ reply.id }}">
+        <strong>{{ reply.user.nickname }}</strong>: {{ reply.text }}
+      </div>
     {% endfor %}
   </div>
 </div>
