@@ -8,4 +8,5 @@ urlpatterns = [
     path('lyrics/', views.lyrics_home, name='lyrics'),
     path('edit/<int:pk>/', views.edit_lyrics, name='edit_lyrics'),
     path('delete/<int:pk>/', views.delete_lyrics, name='delete_lyrics'),
+    path('logout/', views.logout_view, name='logout'),
 ]

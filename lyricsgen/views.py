@@ -9,6 +9,9 @@ from django.core.files.base import ContentFile
 from .models import GeneratedLyrics
 from django.urls import reverse
 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
 # ✅ 환경 변수 로딩 및 OpenAI 클라이언트 생성
 load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
@@ -174,3 +177,7 @@ def delete_lyrics(request, pk):
 
     lyrics_obj.delete()
     return redirect('lyrics_root')
+
+def logout_view(request):
+    logout(request)
+    return redirect('lyrics_root')  # 👉 초기 페이지로 이동
