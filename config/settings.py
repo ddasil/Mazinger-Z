@@ -139,7 +139,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR/ 'static']
 
 # Django 기본 로그인 뷰 쓸 때 필요, 나중에 @login_required 쓸 때 자동 이동
-LOGIN_URL = '/login/'              # 로그인 URL 설정
+LOGIN_URL = '/accounts/login/'     # 로그인 URL 설정
 LOGIN_REDIRECT_URL = '/'           # 추가
 LOGOUT_REDIRECT_URL = '/'          # 추가
 

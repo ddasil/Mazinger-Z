@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}검색 결과{% endblock %}
+{% block title %}Results{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/search_results.css' %}">
@@ -27,6 +27,7 @@
   </div>
   {% endif %}
 
+  <div class="divider"></div>
   <h2 class="search-title">"{{ query }}" 검색 결과</h2>
 
   {% if results %}
@@ -72,7 +73,7 @@
 
   {% else %}
   <p class="no-result">검색 결과가 없습니다.</p>
-  <a href="/music/" class="goto-youtube-btn">🔍 YouTube에서 이 노래 검색하기</a>
+  <a href="/music/" class="goto-youtube-btn">🔍 Search 에서 이 노래 검색하기</a>
   {% endif %}
 </div>
 

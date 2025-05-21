@@ -80,8 +80,9 @@
 .popular-tags {
   margin-top: 2px;  /* ✅ 여백 최소화 */
   margin: 20px auto;
+  margin-bottom: 40px;
   text-align: center;
-  color: #fff;
+  color: rgb(255, 187, 0);
   font-size: 1rem;
 }
 
@@ -123,4 +124,13 @@
 
 .goto-youtube-btn:hover {
   background-color: rgba(255, 255, 255, 0.25);
+}
+
+.divider {
+  width: 60%;
+  height: 2px;
+  background-color: white;
+  opacity: 0.4;
+  margin: 10px auto 30px; /* 위: 인기 검색어 여백, 아래: 검색결과 제목 여백 */
+  border-radius: 1px;
 }

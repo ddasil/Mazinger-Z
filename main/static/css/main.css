@@ -419,12 +419,13 @@ body {
   font-size: 1.2rem;
   display: flex;
   align-items: center;
-  z-index: 90;
+  z-index: 10;
   width: 50%;
   height: 7%;
   display: flex;
   justify-content: space-evenly;
   align-items: center;
+  position: relative;
 }
 
 .search-box input {
@@ -1654,7 +1655,7 @@ button[type="submit"]:hover {
   align-items: center;
   justify-content: center;
   margin-top: -40px;
-  gap: 14px;
+  gap: 4px;
   background: rgba(0, 0, 0, 0.65);
   border-radius: 12px;
   backdrop-filter: blur(4px);
@@ -1663,6 +1664,8 @@ button[type="submit"]:hover {
   margin-left: auto;
   margin-right: auto;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  position: relative;
 }
 
 .keyword-label {
@@ -1681,7 +1684,7 @@ button[type="submit"]:hover {
 .tag-list {
   display: flex;
   flex-direction: column;
-  animation: slideTags 12s linear infinite;
+  animation: slideTags 18s linear infinite;
 }
 
 .tag-item {
@@ -1699,6 +1702,41 @@ button[type="submit"]:hover {
   font-size: 1.2rem;
   text-decoration: none;
   transition: background 0.3s;
+  gap: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.tag-item .rank {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #ccc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 1.8em;    /* 간격 고정 */
+}
+
+.tag-item .keyword-text {
+  font-size: 1.2rem;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rank {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #cccccc;
+  min-width: 2.2em; /* ← 너비 일정하게 */
+  text-align: right;
+  line-height: 1.2;
+}
+
+.tag-text {
+  font-size: 1.2rem;
+  color: white;
+  line-height: 1.2;
 }
 
 @keyframes slideTags {
@@ -1718,4 +1756,77 @@ button[type="submit"]:hover {
   95% { transform: translateY(-8.8rem); }
 
   100% { transform: translateY(0); }
+}
+
+
+.hot-keywords-container {
+  position: relative;
+  display: inline-block;
+}
+
+.hot-keywords-container:hover .tag-popup {
+  display: block;
+}
+
+.tag-popup {
+  display: none;
+  position: absolute;
+  top: -240%;
+  left: 0;
+  background: rgba(0, 0, 0, 0.95);
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 10px 12px;
+  z-index: 99999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.tag-item-popup {
+  height: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.tag-item-popup a {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;   /* ✅ 왼쪽 정렬 */
+  gap: 8px;                      /* ✅ 숫자와 텍스트 사이 */
+  padding: 4px 12px;
+  text-decoration: none;
+  font-size: 1.1rem;
+  color: white;
+  transition: font-weight 0.2s, transform 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 160px;              /* ✅ 너비 고정 */
+}
+
+.tag-item-popup .rank {
+  min-width: 2em;                /* ✅ 숫자 정렬 너비 */
+  text-align: right;
+  font-weight: 600;
+  color: #bbb;
+}
+
+.tag-item-popup .keyword-text {
+  flex: 1;
+  font-size: 1.1rem;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tag-item-popup a:hover {
+  font-weight: 700;
+  transform: scale(1.05);
+}
+
+.tag-item-popup a:hover .rank,
+.tag-item-popup a:hover .keyword-text {
+  color: #ffcc00;
 }

@@ -106,14 +106,33 @@
 
         <div class="popular-keywords-row">
           <span class="keyword-label">🔥 인기 검색어</span>
-          <div class="tag-slider">
-            <div class="tag-list">
-              {% for tag in popular_tags %}
-              <div class="tag-item">
-                <a href="/search/?q={{ tag|urlencode }}">{{ tag }}</a>
+        
+          <!-- 🔄 hot-keywords-container는 슬라이더+팝업만 감싸도록 -->
+          <div class="hot-keywords-container">
+            <div class="tag-slider">
+              <div class="tag-list">
+                {% for tag in popular_tags %}
+                <div class="tag-item">
+                  <a href="/search/?q={{ tag|urlencode }}">
+                    <span class="rank">{{ forloop.counter }}.</span>
+                    <span class="keyword-text">{{ tag }}</span>
+                  </a>
+                </div>
+                {% empty %}
+                <div class="tag-item">최근 검색어 없음</div>
+                {% endfor %}
               </div>
-              {% empty %}
-              <div class="tag-item">최근 검색어 없음</div>
+            </div>
+        
+            <!-- 팝업: 슬라이더 오른쪽에 뜨게 -->
+            <div class="tag-popup">
+              {% for tag in popular_tags %}
+              <div class="tag-item-popup">
+                <a href="/search/?q={{ tag|urlencode }}">
+                  <span class="rank">{{ forloop.counter }}.</span>
+                  <span class="keyword-text">{{ tag }}</span>
+                </a>
+              </div>
               {% endfor %}
             </div>
           </div>
@@ -121,7 +140,7 @@
       </section>
 
       <section class="section" id="section2">
-        <h2 class="section2-title">주간 인기 검색어</h2> <!--동건 고침-->
+        <h2 class="section2-title">랜덤 추천곡</h2> <!--동건 고침-->
         <div class="card-container"> <!--동건 고침-->
           {% for song in cover_songs %}
           <div class="card" data-index="{{ forloop.counter0 }}"
