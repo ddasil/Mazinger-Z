@@ -48,7 +48,7 @@ def login_view(request):
 def logout_view(request):
     next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or 'main'
     logout(request)
-    return redirect(next_url)
+    return redirect('lyrics_root')
 
 def check_nickname(request):
     nickname = request.GET.get('nickname')
