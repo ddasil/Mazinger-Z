@@ -51,11 +51,11 @@ INSTALLED_APPS = [
     'accounts', #로그인 및 회원가입 관련
     'mypage',  # 새로 만든 마이페이지 앱 추가
     "analyze", # analyze 화면 추가
-    "music_search", 
+    "music_search", #유튜브 검색
     "recommendations", #추천
     "chartsongs", # 인기차트 크롤링
     'board', # 게시판
-    'support',
+    'support', #고객지원
 ]
 
 MIDDLEWARE = [
@@ -139,7 +139,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR/ 'static']
 
 # Django 기본 로그인 뷰 쓸 때 필요, 나중에 @login_required 쓸 때 자동 이동
-LOGIN_URL = '/login/'              # 로그인 URL 설정
+LOGIN_URL = '/accounts/login/'     # 로그인 URL 설정
 LOGIN_REDIRECT_URL = '/'           # 추가
 LOGOUT_REDIRECT_URL = '/'          # 추가
 

@@ -100,7 +100,7 @@
           </div>
         </div>
         <div class="search-box" id="searchBox">
-          <input type="search" placeholder="와 씨 그냥 집에 가고 싶다" />
+          <input type="search" placeholder="검색어를 입력해주세요." />
           <button><i class="fa-solid fa-magnifying-glass"></i></button>
         </div>
 
@@ -121,7 +121,7 @@
       </section>
 
       <section class="section" id="section2">
-        <h2 class="section2-title">주간 인기 검색어</h2> <!--동건 고침-->
+        <h2 class="section2-title">랜덤 추천곡</h2> <!--동건 고침-->
         <div class="card-container"> <!--동건 고침-->
           {% for song in cover_songs %}
           <div class="card" data-index="{{ forloop.counter0 }}"
@@ -234,10 +234,10 @@
     <nav class="side-menu">
       <ul>
         <li data-target="section1">Home</li>
-        <li><a href="{% url 'lyrics_root' %}">Lyrics</a></li>
+        <li><a href="{% url 'lyrics_root' %}">Lyrics AI</a></li>
         <li><a href="{% url 'music_search' %}">Search</a></li>
         <li><a href="{% url 'search_song' %}">Recommend</a></li>
-        <li><a href="{% url 'analyze' %}">Analyze</a></li>
+        <li><a href="{% url 'analyze' %}">Analyze AI</a></li>
         <li><a href="{% url 'post_list' %}">Board</a></li>
         <li data-target="section4">Contact</li>
       </ul>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}가사생성 페이지{% endblock %}
+{% block title %}Search{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/search.css' %}">
@@ -10,7 +10,7 @@
 {% block content %}
 
 <div class="search-container">
-  <h1 class="search-title">음악 검색</h1>
+  <h1 class="search-title">Search</h1>
   <div class="search-bar">
     <div class="input-wrapper">
       <input type="text" id="searchInput" placeholder="youtube로 검색하기" onfocus="handleInputChange()"
