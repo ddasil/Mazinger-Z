@@ -249,3 +249,12 @@ def post_delete_ajax(request, pk):
         return JsonResponse({'success': False, 'error': '권한이 없습니다.'}, status=403)
     post.delete()
     return JsonResponse({'success': True})
+
+
+
+
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user == comment.user:
+        comment.delete()
+    return redirect('post_detail', pk=comment.post.id)

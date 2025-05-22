@@ -4,7 +4,7 @@
   justify-content: space-between;
   gap: 40px;
   align-items: flex-start;
-  padding: 60px 20px 60px 80px;
+  padding: 0px 20px 60px 80px;
   max-width: 1100px;
   margin: 0 auto;
 }
@@ -43,33 +43,42 @@
   margin-bottom: 10px;
   border-bottom: 1px solid #444;
   padding-bottom: 5px;
-  flex-shrink: 0; /* 제목 고정 */
+  flex-shrink: 0;
+  /* 제목 고정 */
 }
 
 /* ✅ 리스트 스크롤 영역 */
 .scroll-box {
-  max-height: 110px; /* 약 3줄 */
+  max-height: 110px;
+  /* 약 3줄 */
   overflow-y: auto;
-  scrollbar-width: thin;    /* Firefox */
+  scrollbar-width: thin;
+  /* Firefox */
   scrollbar-color: #ffd452 transparent;
 }
 
 /* ✅ 리스트 항목 스타일 */
 .sidebar-list li a {
-  color: white;                 /* 글씨 색 흰색 */
-  text-decoration: none;       /* 밑줄 제거 */
-  display: inline-block;       /* transform 적용 가능하게 */
+  color: white;
+  /* 글씨 색 흰색 */
+  text-decoration: none;
+  /* 밑줄 제거 */
+  display: inline-block;
+  /* transform 적용 가능하게 */
   transition: transform 0.2s ease;
 }
+
+
 .sidebar-list li {
-  padding: 6px 0;
+  padding: 6px 10px;
   border-bottom: 1px solid #333;
   font-size: 0.9rem;
   cursor: pointer;
 }
 
 .sidebar-list li a:hover {
-  transform: scale(1.05);      /* 호버 시 살짝 확대 */
+  transform: scale(1.15);
+  /* 호버 시 살짝 확대 */
 }
 
 /* ✅ 게시판 헤더 */
@@ -79,6 +88,7 @@
   align-items: center;
   width: 100%;
 }
+
 .board-title {
   font-size: 2rem;
   font-weight: bold;
@@ -109,6 +119,7 @@
   font-size: 0.9rem;
   margin-left: 20px;
 }
+
 .btn-write:hover {
   background-color: #555;
 }
@@ -120,12 +131,14 @@
   display: block;
 
 }
+
 .post-card {
   display: flex;
   flex-direction: row;
   gap: 16px;
   align-items: flex-start;
-  padding: 48px 16px 16px 16px;;
+  padding: 48px 16px 16px 16px;
+  ;
   border-radius: 12px;
   margin: 30px 0;
   background-color: #1a1a1a;
@@ -157,14 +170,17 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  max-width: 450px;  /* ✅ 최대 너비 제한 추가 */
+  max-width: 450px;
+  /* ✅ 최대 너비 제한 추가 */
   word-break: break-word;
 }
+
 .post-title {
   font-size: 1.2rem;
   color: white;
   margin: 0 0 8px 0;
 }
+
 .post-description {
   color: #ccc;
   margin-bottom: 8px;
@@ -176,10 +192,12 @@
   white-space: normal;
   word-break: break-word;
 }
+
 .post-meta {
   color: #999;
   font-size: 0.85rem;
 }
+
 .no-posts {
   color: gray;
   text-align: center;
@@ -213,10 +231,19 @@ textarea {
 /* ✅ 스크랩 버튼 위치 및 아이콘 */
 .scrap-form {
   position: absolute;
+  background-color: transparent;
+  /* ✅ 올바른 투명값 */
   top: 5px;
   right: -10px;
-  z-index: 3; /* 필요시 유지 */
+  z-index: 3;
+  /* 필요시 유지 */
 }
+
+.btn-scrap {
+  background: none;
+  outline: none;
+}
+
 .btn-scrap,
 .guest-scrap {
   position: absolute;
@@ -227,12 +254,14 @@ textarea {
   cursor: pointer;
   z-index: 2;
 }
+
 .scrap-icon {
   width: 40px;
   height: 40px;
   object-fit: contain;
   opacity: 1;
 }
+
 .btn-scrap:hover {
   transform: scale(1.1);
 }
@@ -259,10 +288,13 @@ textarea {
   align-items: center;
   justify-content: center;
   padding: 0;
-  height: 24px;         /* ✅ 높이 통일 */
-  line-height: 1;       /* ✅ 수직 정렬 */
+  height: 24px;
+  /* ✅ 높이 통일 */
+  line-height: 1;
+  /* ✅ 수직 정렬 */
   vertical-align: middle;
-  text-decoration: none;  /* 밑줄 제거 */
+  text-decoration: none;
+  /* 밑줄 제거 */
 }
 
 .post-actions a:hover,
@@ -275,12 +307,31 @@ textarea {
 .pagination {
   text-align: center;
   margin-top: 20px;
+  cursor: default;
 }
+
+
 .pagination a,
 .pagination strong {
   margin: 0 5px;
   color: white;
+  text-decoration: none;
+  cursor: pointer;
 }
+
+.pagination strong {
+  font-weight: bold;
+  font-size: 1.2rem;
+  /* ✅ 약간 확대 */
+  border-bottom: 2px solid #ffd452;
+  /* 시각적 강조 */
+}
+
+.pagination a:hover {
+  transform: scale(1.2) !important;
+  font-weight: bold;
+}
+
 /* 검색 */
 .board-actions {
   display: flex;
@@ -288,8 +339,14 @@ textarea {
   align-items: center;
 }
 
+.search-form {
+  padding-top: 11px;
+}
+
+
 .search-form input[type="text"] {
-  padding: 6px 10px;
+  align-items: center;
+  /* padding: 6px 10px; */
   border-radius: 6px;
   border: 1px solid #444;
   background-color: #222;

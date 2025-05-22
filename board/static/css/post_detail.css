@@ -107,25 +107,100 @@
   word-break: break-word;
 }
 
-.reply {
-  margin-left: 20px;
-  background-color: #1f1f1f;
+
+/* ✅ 댓글 작성 폼 */
+#comment-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-/* ✅ 답글 버튼 */
-.reply-btn {
-  font-size: 0.8rem;
-  margin-left: 8px;
-  background: transparent;
-  color: #ccc;
+/* ✅ 입력창 디자인 */
+#comment-form textarea {
+  width: 100%;
+  max-width: 650px;
+  height: 40px;
+  padding: 10px;
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 6px;
+  resize: none; /* ✅ 크기 조절 비활성화 */
+  color: white;
+  font-size: 0.95rem;
+}
+
+/* ✅ 댓글 달기 버튼 */
+#comment-form button {
+  background-color: #444;
+  color: white;
   border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
   cursor: pointer;
+  right: 10px;
+  transition: background-color 0.2s ease;
 }
 
-/* ✅ 대댓글 작성 폼 */
+#comment-form button:hover {
+  background-color: #666;
+}
+
+
+/* ✅ 대댓글 입력창 스타일 */
 .reply-form {
-  margin-left: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   margin-top: 10px;
+}
+
+.reply-form input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.reply-form input[type="text"]::placeholder {
+  color: #888;
+}
+
+/* ✅ 작성 버튼 */
+.reply-form button {
+  background-color: #444;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.reply-form button:hover {
+  background-color: #666;
+}
+
+
+/* ✅ 댓글 내부의 버튼들 스타일 정리 */
+.comment-actions button {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.comment-actions button:hover {
+  /* background-color: #444; */
+  color: white;
 }
 
 /* ✅ 댓글 입력 */
@@ -138,7 +213,7 @@
 .btn-submit {
   margin-top: 10px;
   background-color: #444;
-  color: white;
+  color: rgb(247, 121, 121);
   border: none;
   padding: 8px 16px;
   cursor: pointer;
@@ -175,6 +250,10 @@
 .btn-scrap.top-scrap img {
   width: 36px;
   height: 36px;
+}
+
+.btn-scrap.top-scrap:hover .scrap-icon {
+  transform: scale(1.2) !important;
 }
 
 /* ✅ 좋아요 라인 오른쪽 하단 정렬 */

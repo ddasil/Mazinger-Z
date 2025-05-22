@@ -16,4 +16,5 @@ urlpatterns = [
     path('user-posts/', views.user_posts, name='user_posts'), # 진섭추가 
     path('post/<int:pk>/', views.post_detail, name='post_detail'), # 진섭추가 
     path('user-posts/', views.user_posts, name='user_posts'),  # ✅ MyPage 게시글 목록
+    path('comment/delete/<int:comment_id>/', views.delete_comment, name='delete_comment'),
 ]

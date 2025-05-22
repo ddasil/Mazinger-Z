@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
       replies.forEach(reply => reply.classList.toggle('hidden'));
 
       // 버튼 텍스트 토글
-      this.innerText = this.innerText.includes('보기') ? '대댓글 숨기기' : '대댓글 보기';
+      this.innerText = this.innerText.includes('보기') ? '▲' : '▼';
     });
   });
 
