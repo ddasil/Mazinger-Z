@@ -6,7 +6,7 @@ const promptInput = document.getElementById('prompt-input');
 let recognition = null;
 let isManuallyStopped = false;
 
-micBtn.addEventListener('click', () => {
+micBtn?.addEventListener('click', () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
     alert("이 브라우저는 음성 인식을 지원하지 않습니다.");
@@ -41,7 +41,7 @@ micBtn.addEventListener('click', () => {
   };
 });
 
-stopBtn.addEventListener('click', () => {
+stopBtn?.addEventListener('click', () => {
   if (recognition) {
     isManuallyStopped = true;
     recognition.stop();
@@ -88,3 +88,67 @@ function showLyricsModal(title, lyrics, imageUrl, id) {
   modal.style.display = "flex";
   backdrop.style.display = "block";
 }
+
+// ⭐ 즐겨찾기
+function toggleFavorite(lyricsId) {
+  fetch(`/lyrics/favorite/${lyricsId}/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        alert(data.is_favorite ? "즐겨찾기에 추가됨" : "즐겨찾기 해제됨");
+        location.reload();  // 또는 버튼 텍스트만 바꾸기
+      }
+    })
+    .catch(err => alert("즐겨찾기 실패: " + err));
+}
+
+// ✅ CSRF 토큰 읽기 함수
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// ✅ 로딩 오버레이 트리거
+document.querySelector('form.header-form')?.addEventListener('submit', () => {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+});
+document.querySelectorAll('form.ai-image-form').forEach(form => {
+  form.addEventListener('submit', () => {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+  });
+});
+
+// ✅ 로딩 애니메이션 연결
+window.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('loadingOverlay');
+
+  // 가사 생성 시 로딩
+  const mainForm = document.querySelector('form.header-form');
+  mainForm?.addEventListener('submit', () => {
+    loadingText.textContent = "가사 생성 중";
+    overlay.style.display = 'flex';
+  });
+
+  // AI 이미지 생성 시 로딩
+  document.querySelectorAll('form.ai-image-form').forEach(form => {
+    form.addEventListener('submit', () => {
+      loadingText.textContent = "이미지 생성 중";
+      overlay.style.display = 'flex';
+    });
+  });
+});

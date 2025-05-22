@@ -8,6 +8,14 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- 로딩 오버레이 -->
+<!-- 🔄 로딩 오버레이 -->
+<div id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <p id="loadingText"></p>
+</div>
+
 <div class="header-center">
   <h1 class="fixed-title">Lyrics AI</h1>
   <form method="POST" action="{% url 'generate_lyrics' %}" class="header-form">
@@ -33,7 +41,12 @@
       <option value="chinese">中文</option>
       <option value="thai">ไทย</option>
     </select>
-    <button type="submit">가사 생성</button>
+    <select name="image_mode" required>
+      <option value="generate" selected>앨범 이미지 자동 생성</option>
+      <option value="skip">이미지 없이 빠르게 생성</option>
+    </select>
+
+    <button type="submit" class="generate-btn">가사 생성</button>
   </form>
 </div>
 
@@ -42,14 +55,24 @@
   <div class="lyricsbox-created">
     <h3>🎨 앨범 이미지</h3>
     <div class="album-image-wrapper" style="background-image: url('{{ new_lyrics.image_file.url }}');"
-         onclick="window.location.href='{{ new_lyrics.image_file.url }}'">
+      onclick="window.location.href='{{ new_lyrics.image_file.url }}'">
       <div class="album-hover-content">
         <span class="download-icon">📥</span>
         <p>⏱ {{ elapsed_time }}초</p>
       </div>
     </div>
-      <div class="lyrics-caption">
-        <p><strong>🎤 "{{ selected_lyrics.title }}"</strong><br>
+
+    <!-- ✅ AI 이미지 생성 버튼 -->
+    {% if user.is_authenticated and is_default_image %}
+    <form method="POST" action="{% url 'regenerate_image' new_lyrics.id %}" class="ai-image-form"
+      style="margin-top: 10px;">
+      {% csrf_token %}
+      <button type="submit" class="lyrics-btn">🎨 AI 이미지 생성</button>
+    </form>
+    {% endif %}
+
+    <div class="lyrics-caption">
+      <p><strong>🎤 "{{ selected_lyrics.title }}"</strong><br>
         {{ prompt }}라는 주제로
         {% if style == "ballad" %}발라드
         {% elif style == "hip-hop" %}힙합
@@ -68,16 +91,17 @@
         {% elif language == "thai" %}태국어
         {% else %}언어무관
         {% endif %}
-        </p>
-      </div>
+      </p>
+    </div>
   </div>
+
   <div class="created_lyrics">
     {% if request.GET.edit == 'true' %}
     <form method="POST" action="{% url 'edit_lyrics' new_lyrics.id %}">
       {% csrf_token %}
       <textarea name="lyrics" class="lyrics-box lyrics-edit-box">{{ new_lyrics.lyrics }}</textarea>
       <div class="lyrics-buttons">
-        <button type="submit" class="lyrics-btn">저장하기</button>
+        <button type="submit" class="lyrics-btn">저장</button>
       </div>
     </form>
     {% else %}
@@ -86,12 +110,22 @@
       <form method="GET" action="{% url 'lyrics_root' %}">
         <input type="hidden" name="open_id" value="{{ new_lyrics.id }}">
         <input type="hidden" name="edit" value="true">
-        <button type="submit" class="lyrics-btn">수정하기</button>
+        <button type="submit" class="lyrics-btn">수정</button>
       </form>
+
       <form method="POST" action="{% url 'delete_lyrics' new_lyrics.id %}" onsubmit="return confirm('정말 삭제하시겠습니까?');">
         {% csrf_token %}
-        <button type="submit" class="lyrics-btn">삭제하기</button>
+        <button type="submit" class="lyrics-btn">삭제</button>
       </form>
+
+      {% if user.is_authenticated %}
+      <form method="POST" action="{% url 'toggle_favorite' new_lyrics.id %}">
+        {% csrf_token %}
+        <button type="submit" class="lyrics-btn">
+          {% if new_lyrics.is_favorite %}⭐{% else %}☆{% endif %}
+        </button>
+      </form>
+      {% endif %}
     </div>
     {% endif %}
   </div>
@@ -100,12 +134,9 @@
 
 {% if user.is_authenticated and all_lyrics %}
 <div class="recent-lyrics">
-  <!-- ✅ 제목: 고정 -->
   <div class="recent-title">
     <h2 style="color: white;">My Lyrics</h2>
   </div>
-
-  <!-- ✅ 가사 카드 목록: 스크롤 영역 -->
   <div class="recent-scroll-box">
     {% for item in all_lyrics %}
     <a href="{% url 'lyrics_root' %}?open_id={{ item.id }}" class="mylyrics-card-link">
@@ -121,7 +152,7 @@
           {% elif item.style|lower == "jazz" %}재즈
           {% else %}{{ item.style }}
           {% endif %} /
-          
+
           {% if item.language == "korean" %}🇰🇷 한국어
           {% elif item.language == "english" %}🇺🇸 영어
           {% elif item.language == "japanese" %}🇯🇵 일본어
@@ -137,6 +168,7 @@
   </div>
 </div>
 {% endif %}
+
 {% endblock %}
 
 {% block extra_script %}

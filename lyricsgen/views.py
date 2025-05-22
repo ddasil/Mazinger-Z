@@ -8,9 +8,12 @@ from dotenv import load_dotenv
 from django.core.files.base import ContentFile
 from .models import GeneratedLyrics
 from django.urls import reverse
-
 from django.contrib.auth import logout
-from django.shortcuts import redirect
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.conf import settings
 
 # ✅ 환경 변수 로딩 및 OpenAI 클라이언트 생성
 load_dotenv()
@@ -29,18 +32,26 @@ def lyrics_home(request):
     if request.user.is_authenticated:
         user_filter = {'user': request.user}
     else:
+        open_id = None  # 비로그인 상태에서는 open_id 무시
         temp_user_id = request.session.session_key
         user_filter = {'temp_user_id': temp_user_id} if temp_user_id else {}
 
-    all_lyrics = GeneratedLyrics.objects.filter(**user_filter).order_by('-created_at')
+    all_lyrics = GeneratedLyrics.objects.filter(**user_filter).order_by('-is_favorite', '-created_at')
 
     if open_id:
         try:
             selected_lyrics = GeneratedLyrics.objects.get(id=open_id)
         except GeneratedLyrics.DoesNotExist:
-            selected_lyrics = None  # ← 없으면 None
+            selected_lyrics = None
     else:
-        selected_lyrics = None  # ✅ 초기화 상태: 아무것도 선택되지 않음
+        selected_lyrics = None
+
+    # ✅ 기본 이미지 포함 여부 (파일명 기준, 경로 무시)
+    is_default_image = (
+        selected_lyrics and
+        selected_lyrics.image_file and
+        "default_album" in os.path.basename(selected_lyrics.image_file.name)
+    )
 
     return render(request, 'lyrics.html', {
         'all_lyrics': all_lyrics,
@@ -52,6 +63,7 @@ def lyrics_home(request):
         'elapsed_time': selected_lyrics.duration if selected_lyrics else '',
         'new_lyrics': selected_lyrics,
         'title': extract_title(selected_lyrics.lyrics) if selected_lyrics else '',
+        'is_default_image': is_default_image,
     })
 
 
@@ -61,12 +73,13 @@ def generate_lyrics(request):
         prompt = request.POST.get('prompt')
         style = request.POST.get('style')
         language = request.POST.get('language')
+        image_mode = request.POST.get('image_mode')
+        fast_mode = (image_mode == 'skip')
 
-        # ✅ 임시 세션 생성
+        # ✅ 세션 및 시간 측정
         if not request.session.session_key:
             request.session.create()
         temp_user_id = request.session.session_key
-
         start_time = time.time()
 
         lang_phrase = {
@@ -84,13 +97,13 @@ def generate_lyrics(request):
                 messages=[{
                     "role": "user",
                     "content": f"""Please write complete lyrics for a {style} style song {lang_phrase} about "{prompt}".
-                    Structure the lyrics clearly with parts like [Verse], [Chorus], and optionally [Bridge].
+Structure the lyrics clearly with parts like [Verse], [Chorus], and optionally [Bridge].
 
-                    Respond only in the format:
+Respond only in the format:
 
-                    제목: [song title]
-                    가사:
-                    [lyrics with labeled parts]
+제목: [song title]
+가사:
+[lyrics with labeled parts]
 """
                 }]
             )
@@ -110,32 +123,41 @@ def generate_lyrics(request):
             title = f"{prompt}의 노래"
             lyrics = "가사 생성에 실패했습니다. 다시 시도해주세요."
 
-        # ✅ 앨범 이미지 생성 (DALL-E)
-        clean_prompt = prompt.replace("'", "").replace('"', '').strip()
-        dalle_prompt = f"A {style} style album cover for a song about {clean_prompt}"
+        # ✅ 이미지 생성
+        dalle_prompt = f"A {style} style album cover for a song about {prompt.replace('\"', '').replace('\'', '')}"
         image_filename = f"{uuid.uuid4()}.png"
-        image_content = b''
 
-        try:
-            image_response = client.images.generate(
-                model="dall-e-3",
-                prompt=dalle_prompt[:1000],
-                size="1024x1024",
-                quality="standard",
-                n=1
-            )
-            image_url = image_response.data[0].url
-            image_content = requests.get(image_url).content
-        except Exception as e:
-            print("❌ 이미지 생성 실패:", e)
+        if fast_mode:
+            print("🚀 Fast Mode: 이미지 생략 → 기본 이미지 사용")
+            default_image_path = os.path.join(settings.BASE_DIR, 'lyricsgen', 'static', 'images', 'default_album.png')
+            with open(default_image_path, 'rb') as f:
+                image_content = f.read()
+
+            image_filename = "default_album.png"  # ✅ 고정된 이름으로 저장
+
+        else:
+            try:
+                image_response = client.images.generate(
+                    model="dall-e-3",
+                    prompt=dalle_prompt[:1000],
+                    size="1024x1024",
+                    quality="standard",
+                    n=1
+                )
+                image_url = image_response.data[0].url
+                image_content = requests.get(image_url, timeout=5).content
+            except Exception as e:
+                print("❌ 이미지 생성 실패:", e)
+                with open('static/images/default_album.png', 'rb') as f:
+                    image_content = f.read()
 
         elapsed_time = round(time.time() - start_time, 2)
 
-        # ✅ 결과 DB 저장
+        # ✅ DB 저장
         new_lyrics = GeneratedLyrics(
             prompt=prompt,
             style=style,
-            title=title,  # ✅ 새로 추가된 title 필드에 저장
+            title=title,
             lyrics=lyrics,
             duration=elapsed_time,
             language=language,
@@ -145,14 +167,9 @@ def generate_lyrics(request):
         new_lyrics.image_file.save(image_filename, ContentFile(image_content))
         new_lyrics.save()
 
-        # ✅ 리다이렉트: 새로고침 시 재생성 방지
         return redirect(f"{reverse('lyrics_root')}?open_id={new_lyrics.id}")
 
-    # GET 방식으로 접근 시 홈으로 이동
     return redirect('lyrics_home')
-
-from django.views.decorators.http import require_POST
-from django.shortcuts import get_object_or_404
 
 @require_POST
 def edit_lyrics(request, pk):
@@ -181,3 +198,38 @@ def delete_lyrics(request, pk):
 def logout_view(request):
     logout(request)
     return redirect('lyrics_root')  # 👉 초기 페이지로 이동
+
+# 즐겨찾기
+@require_POST
+def toggle_favorite(request, pk):
+    lyric = get_object_or_404(GeneratedLyrics, pk=pk, user=request.user)
+    lyric.is_favorite = not lyric.is_favorite
+    lyric.save()
+    return redirect(f"{reverse('lyrics_root')}?open_id={pk}")  # 🔁 JSON 응답 대신 리디렉션
+
+# 빠른 가사 생성 이미지
+@require_POST
+def regenerate_image(request, pk):
+    lyrics = get_object_or_404(GeneratedLyrics, pk=pk)
+
+    dalle_prompt = f"A {lyrics.style} style album cover for a song about {lyrics.prompt}"
+    try:
+        image_response = client.images.generate(
+            model="dall-e-3",
+            prompt=dalle_prompt[:1000],
+            size="1024x1024",
+            quality="standard",
+            n=1
+        )
+        image_url = image_response.data[0].url
+        image_content = requests.get(image_url, timeout=5).content
+
+        image_filename = f"{uuid.uuid4()}.png"
+        lyrics.image_file.save(image_filename, ContentFile(image_content))
+        lyrics.save()
+        print("✅ 이미지 생성 완료")
+    except Exception as e:
+        print("❌ 이미지 생성 실패:", e)
+        messages.error(request, "이미지 생성에 실패했습니다.")
+
+    return redirect(f"{reverse('lyrics_root')}?open_id={pk}")
