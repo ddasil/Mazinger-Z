@@ -6,7 +6,7 @@ from django.contrib import messages
 from .models import Post, PostLike, Comment, PostScrap, PostRecentView
 from .forms import PostForm, CommentForm
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Case, When
 from main.models import Lovelist
 from django.views.decorators.http import require_POST
 
@@ -30,11 +30,20 @@ def post_list(request):
     if user.is_authenticated:
         scrapped_posts = Post.objects.filter(scrap_set__user=user).order_by('-scrap_set__created_at')[:10]
         my_posts = Post.objects.filter(user=user).order_by('-created_at')[:10]
-        recent_ids = PostRecentView.objects.filter(user=user).values_list('post_id', flat=True)[:10]
-        recent_posts = Post.objects.filter(id__in=recent_ids)
+        recent_views = PostRecentView.objects.filter(user=user).order_by('-viewed_at')[:10]
+        recent_ids = list(recent_views.values_list('post_id', flat=True))
+
+        # 순서 보장
+        preserved = Case(*[When(id=pk, then=pos) for pos, pk in enumerate(recent_ids)])
+        recent_posts = Post.objects.filter(id__in=recent_ids).order_by(preserved)
+
     else:
         recent_ids = request.session.get('recent_posts', [])
-        recent_posts = Post.objects.filter(id__in=recent_ids) if recent_ids else []
+        if recent_ids:
+            preserved = Case(*[When(id=pk, then=pos) for pos, pk in enumerate(recent_ids)])
+            recent_posts = Post.objects.filter(id__in=recent_ids).order_by(preserved)
+        else:
+            recent_posts = []
 
     return render(request, 'post_list.html', {
         'posts': posts,
@@ -82,9 +91,10 @@ def post_detail(request, pk):
         )
     else:
         recent = request.session.get('recent_posts', [])
-        if pk not in recent:
-            recent = [pk] + recent[:2]
-            request.session['recent_posts'] = recent
+        if pk in recent:
+            recent.remove(pk)
+        recent.insert(0, pk)
+        request.session['recent_posts'] = recent[:10]  # 최대 10개 유지
 
     liked = post.post_likes.filter(user=request.user).exists() if request.user.is_authenticated else False
 
@@ -233,7 +243,7 @@ def user_posts(request):
                 "id": post.id,
                 "title": post.title,
                 "created_at": post.created_at.strftime('%Y-%m-%d'),
-                "like_count": post.like_count,  # ✅ 추가됨
+                "like_count": post.like_count,
                 "thumbnail": post.thumbnail.url if post.thumbnail else "",
             } for post in posts
         ]
@@ -249,8 +259,6 @@ def post_delete_ajax(request, pk):
         return JsonResponse({'success': False, 'error': '권한이 없습니다.'}, status=403)
     post.delete()
     return JsonResponse({'success': True})
-
-
 
 
 def delete_comment(request, comment_id):

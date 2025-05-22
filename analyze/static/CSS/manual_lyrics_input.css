@@ -1,11 +1,7 @@
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #111;
-  color: #fff;
-  font-family: 'Raleway', sans-serif;
-  min-height: 100vh;
+.analyze-container {
+  height: 100vh;
 }
+
 
 .lyrics-form-wrapper {
   background-color: #000000;
@@ -28,6 +24,18 @@ body {
   border-top: 2px solid white;
 }
 
+.lyrics-form-wrapper h2 {
+  margin: 20px 0;
+}
+
+#errorMessage {
+  color: rgb(255, 255, 127, 0.8);
+}
+
+.lyrics-form-wrapper p {
+  margin: 5px 0;
+  color: #999;
+}
 
 /* 텍스트 필드 */
 textarea {
@@ -59,7 +67,7 @@ textarea {
   padding: 12px 20px;
   border-radius: 8px;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 16px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -69,20 +77,18 @@ textarea {
 
 /* 감성 분석 버튼 */
 .button.submit {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0);
   color: white;
 }
 .button.submit:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  transform: scale(1.08);
 }
 
 /* 다시 입력 버튼 */
 .button.cancel {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0);
   color: rgb(255, 255, 255);
 }
 .button.cancel:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  transform: scale(1.08);
 }

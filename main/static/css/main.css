@@ -262,7 +262,8 @@ body {
   text-decoration: none;
 }
 
-.side-menu li:hover, .side-menu li a:hover {
+.side-menu li:hover,
+.side-menu li a:hover {
   color: #ffffff52;
 }
 
@@ -413,41 +414,56 @@ body {
 }
 
 .search-box {
-  background-color: #39393958;
-  border-radius: 40px;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.093);
-  font-size: 1.2rem;
+  border-radius: 1px;
+  background-color: #000;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  font-size: 0.5rem;
   display: flex;
   align-items: center;
   z-index: 10;
-  width: 50%;
-  height: 7%;
-  display: flex;
+  width: 50vw;
+  height: 6vh;
   justify-content: space-evenly;
-  align-items: center;
   position: relative;
 }
 
+
 .search-box input {
-  background: #000;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 20px;
+  border: none;
   width: 85%;
   height: 70%;
   margin: 0px;
-  font-size: 1.5rem;
+  font-family: "Raleway";
+  font-size: 1rem;
+  background-color: #000;
   color: rgba(255, 255, 255, 0.795);
   padding-left: 10px;
+  outline: none;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  display: none;
+  -webkit-appearance: none;
 }
 
 .search-box button {
   margin-right: 0px;
   background: rgba(0, 0, 0, 0.11);
-  width: 5%;
-  height: 50%;
-  border-radius: 12px;
+  border: none;
+  width: 8%;
+  height: 80%;
+  border-radius: 5px;
+}
+
+.search-box button:hover {
+  background-color: #007bff;
+}
+
+.search-box button:active {
+  background-color: rgba(0, 0, 0, 0.11);
 }
 
 .search-box i {
@@ -1551,7 +1567,8 @@ button[type="submit"]:hover {
   object-fit: contain;
 }
 
-.footer-container ul, .main-footer-container ul {
+.footer-container ul,
+.main-footer-container ul {
   list-style: none;
   letter-spacing: 0.1vw;
   font-size: clamp(0.5rem, 0.5vw, 0.8rem);
@@ -1561,7 +1578,8 @@ button[type="submit"]:hover {
   margin: 0;
 }
 
-.footer-container ul li, .main-footer-container ul li {
+.footer-container ul li,
+.main-footer-container ul li {
   margin: 0.8vh 0.3vw;
   line-height: 1.2;
   color: rgba(255, 255, 255, 0.5);
@@ -1716,7 +1734,8 @@ button[type="submit"]:hover {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  width: 1.8em;    /* 간격 고정 */
+  width: 1.8em;
+  /* 간격 고정 */
 }
 
 .tag-item .keyword-text {
@@ -1730,7 +1749,8 @@ button[type="submit"]:hover {
   font-weight: bold;
   font-size: 1.2rem;
   color: #cccccc;
-  min-width: 2.2em; /* ← 너비 일정하게 */
+  min-width: 2.2em;
+  /* ← 너비 일정하게 */
   text-align: right;
   line-height: 1.2;
 }
@@ -1742,22 +1762,49 @@ button[type="submit"]:hover {
 }
 
 @keyframes slideTags {
-  0% { transform: translateY(0); }
-  15% { transform: translateY(0); }
+  0% {
+    transform: translateY(0);
+  }
 
-  20% { transform: translateY(-2.2rem); }
-  35% { transform: translateY(-2.2rem); }
+  15% {
+    transform: translateY(0);
+  }
 
-  40% { transform: translateY(-4.4rem); }
-  55% { transform: translateY(-4.4rem); }
+  20% {
+    transform: translateY(-2.2rem);
+  }
 
-  60% { transform: translateY(-6.6rem); }
-  75% { transform: translateY(-6.6rem); }
+  35% {
+    transform: translateY(-2.2rem);
+  }
 
-  80% { transform: translateY(-8.8rem); }
-  95% { transform: translateY(-8.8rem); }
+  40% {
+    transform: translateY(-4.4rem);
+  }
 
-  100% { transform: translateY(0); }
+  55% {
+    transform: translateY(-4.4rem);
+  }
+
+  60% {
+    transform: translateY(-6.6rem);
+  }
+
+  75% {
+    transform: translateY(-6.6rem);
+  }
+
+  80% {
+    transform: translateY(-8.8rem);
+  }
+
+  95% {
+    transform: translateY(-8.8rem);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
 }
 
 
@@ -1795,8 +1842,10 @@ button[type="submit"]:hover {
 .tag-item-popup a {
   display: flex;
   align-items: center;
-  justify-content: flex-start;   /* ✅ 왼쪽 정렬 */
-  gap: 8px;                      /* ✅ 숫자와 텍스트 사이 */
+  justify-content: flex-start;
+  /* ✅ 왼쪽 정렬 */
+  gap: 8px;
+  /* ✅ 숫자와 텍스트 사이 */
   padding: 4px 12px;
   text-decoration: none;
   font-size: 1.1rem;
@@ -1805,11 +1854,13 @@ button[type="submit"]:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 160px;              /* ✅ 너비 고정 */
+  min-width: 160px;
+  /* ✅ 너비 고정 */
 }
 
 .tag-item-popup .rank {
-  min-width: 2em;                /* ✅ 숫자 정렬 너비 */
+  min-width: 2em;
+  /* ✅ 숫자 정렬 너비 */
   text-align: right;
   font-weight: 600;
   color: #bbb;

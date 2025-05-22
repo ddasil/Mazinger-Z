@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ title }} Analyze results{% endblock %}
+{% block title %}{{ title }} 감성 분석 결과{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'CSS/analyze_result.css' %}">
@@ -9,65 +9,66 @@
 
 {% block content %}
 <div class="lyrics-result-wrapper">
-  <h1>감성 분석 결과<br>"{{ title }}"</h1>
+  <h2 class="analyze-title">Here the mood</h2>
+  <h1>&nbsp;{{ title }}&nbsp;</h1>
 
   {% if not user.is_authenticated %}
-    <div class="login-notice">
-      <p>🔒 이 분석 결과는 저장되지 않았습니다.
-        <a href="{% url 'login' %}?next={{ request.path }}">로그인</a> 하면 마이페이지에서 확인할 수 있어요.
-      </p>
-    </div>
+  <div class="login-notice">
+    <p> 아래 분석 결과는 저장되지 않습니다.
+      <a class="btn-glitch" href="{% url 'login' %}?next={{ request.path }}">로그인</a> 하시면 마이페이지에서 확인할 수 있어요.
+    </p>
+  </div>
   {% else %}
 
   {% endif %}
-
-<div class="analysis-section">
-  <div class="emotion-list">
-    <h2>🎯 감성 점수 🎯</h2>
-    <ul>
-      {% for emotion, score in result.items %}
+  <div class="analysis-section">
+    <div class="emotion-list">
+      <h3><i class="fa-solid fa-chart-pie"></i>&nbsp; RESULT</h3>
+      <ul>
+        {% for emotion, score in result.items %}
         <li class="emotion-row">
           <span class="label">{{ emotion }}</span>
           <span class="colon">:</span>
           <span class="score">{{ score|floatformat:2 }}%</span>
         </li>
-      {% endfor %}
-    </ul>
-  </div>
+        {% endfor %}
+      </ul>
+    </div>
 
-  <div class="top3-box">
-    <h3>🔥 상위 감정 TOP 3 🔥</h3>
-    <ul>
-      {% for emotion, score in top3 %}
+    <div class="top3-box">
+      <h3><i class="fa-solid fa-ranking-star"></i>&nbsp; TOP 3 </h3>
+      <ul>
+        {% for emotion, score in top3 %}
         <li class="emotion-row">
-          <span class="label">🏅 {{ emotion }}</span>
+          <span class="label"><i class="fa-solid fa-medal"></i> {{ emotion }}</span>
           <span class="colon">:</span>
           <span class="score">{{ score|floatformat:2 }}%</span>
         </li>
-      {% endfor %}
-    </ul>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
-</div>
 
   {% if warning %}
-    <p class="warning">⚠️ {{ warning }}</p>
+  <p class="warning"><i class="fa-solid fa-triangle-exclamation"></i> {{ warning }}</p>
   {% endif %}
 
   <div class="button-group">
     {% for emotion, _ in top3 %}
-      <a href="{% url 'recommend_by_emotion' emotion|cut:'#' %}?title={{ title }}&artist={{ artist }}" class="button recommend">
-        🔍 {{ emotion }} 감정 추천 보기
-      </a>
+    <a href="{% url 'recommend_by_emotion' emotion|cut:'#' %}?title={{ title }}&artist={{ artist }}"
+      class="button recommend">
+      <i class="fa-solid fa-magnifying-glass"></i>&nbsp; {{ emotion }}의 다른 추천 곡
+    </a>
     {% endfor %}
 
     <a href="{% url 'analyze' %}" class="button retry">
-      🔁 다른 노래 분석하기
+      <i class="fa-solid fa-magnifying-glass"></i>&nbsp; 다른 노래 분석
     </a>
   </div>
 
 
   <div class="lyrics-section">
-    <h2>📃 가사</h2>
+    <h2><i class="xi-paper"></i> 가사</h2>
     <pre>{{ lyrics }}</pre>
   </div>
 </div>

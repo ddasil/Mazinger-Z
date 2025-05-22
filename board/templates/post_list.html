@@ -12,7 +12,6 @@
 {% block content %}
 <div class="board-wrapper with-sidebar">
   <div class="board-container">
-    <!-- 🔼 상단 제목 + 검색 + 글쓰기 -->
     <div class="board-header">
       <h1 class="board-title">
         <a href="{% url 'post_list' %}" class="page-title-link" style="color: white; text-decoration: none;">Shared Playlists</a>
@@ -28,25 +27,23 @@
       </div>
     </div>
 
-    <!-- 🔽 게시글 카드 -->
     {% for post in posts %}
       <div class="post-card" data-post-id="{{ post.pk }}">
         <form method="post" action="{% if user.is_authenticated %}{% url 'scrap_post' post.pk %}{% else %}#{% endif %}" class="scrap-form">
           {% csrf_token %}
           <button type="sub" class="btn-scrap{% if not user.is_authenticated %} not-logged-in{% endif %}">
-            <img src="{% static 'images/' %}{% if user.is_authenticated and post|scrapped:user %}scrap_on.png{% else %}scrap_off.png{% endif %}" alt="스크랩 상태" class="scrap-icon">
+            <img src="{% static 'images/' %}{% if user.is_authenticated and post|scrapped:user %}scrap_on.png{% else %}scrap_off.png{% endif %}" alt="스크래프 상태" class="scrap-icon">
           </button>
         </form>
 
-        <!-- ✅ 썸네일 + 정보 묶어서 정렬 -->
         <div class="post-contents">
           <div class="post-thumbnail">
             {% if post.thumbnail and post.thumbnail.name == "thumbnails/default.png" %}
-              <img src="/media/thumbnails/default.png" alt="기본 썸네일" class="thumbnail">
+              <img src="/media/thumbnails/default.png" alt="기본 써모날" class="thumbnail">
             {% elif post.thumbnail %}
-              <img src="{{ post.thumbnail.url }}" alt="썸네일" class="thumbnail">
+              <img src="{{ post.thumbnail.url }}" alt="써모날" class="thumbnail">
             {% else %}
-              <img src="/media/thumbnails/default.png" alt="기본 썸네일" class="thumbnail">
+              <img src="/media/thumbnails/default.png" alt="기본 써모날" class="thumbnail">
             {% endif %}
           </div>
 
@@ -59,7 +56,6 @@
           </a>
         </div>
 
-        <!-- ✅ 수정/삭제 -->
         <div class="post-actions">
           {% if user == post.user %}
             <a href="{% url 'post_edit' post.pk %}" class="edit-btn">수정</a>
@@ -72,7 +68,6 @@
           {% endif %}
         </div>
       </div>
-
     {% endfor %}
 
     <form method="post" action="{% url 'toggle_lovelist' %}">
@@ -80,13 +75,9 @@
       <input type="hidden" name="title" value="{{ song.title }}">
       <input type="hidden" name="artist" value="{{ song.artist }}">
       <input type="hidden" name="cover_url" value="{{ song.cover_url }}">
-      <button type="submit" class="btn-like">
-      <!-- {% if song in user_lovelist %}❤️{% else %}🤍{% endif %} -->
-      </button>
+      <button type="submit" class="btn-like"></button>
     </form>
 
-
-    <!-- ✅ 페이지네이션 -->
     {% if posts.paginator.num_pages > 1 %}
       <div class="pagination">
         {% if posts.has_previous %}
@@ -106,7 +97,6 @@
     {% endif %}
   </div>
 
-  <!-- ✅ 사이드바 -->
   <div class="board-sidebar">
     <div class="sidebar-section">
       <h3>스크랩</h3>
@@ -114,6 +104,8 @@
         <ul class="sidebar-list">
           {% for post in scrapped_posts %}
             <li><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></li>
+          {% empty %}
+            <li style="opacity: 0.3;">스크랩한 글 없음</li>
           {% endfor %}
         </ul>
       </div>
@@ -125,6 +117,8 @@
         <ul class="sidebar-list">
           {% for post in recent_posts %}
             <li><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></li>
+          {% empty %}
+            <li style="opacity: 0.3;">최근 본 글 없음</li>
           {% endfor %}
         </ul>
       </div>
@@ -136,6 +130,8 @@
         <ul class="sidebar-list">
           {% for post in my_posts %}
             <li><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></li>
+          {% empty %}
+            <li style="opacity: 0.3;">작성한 글 없음</li>
           {% endfor %}
         </ul>
       </div>

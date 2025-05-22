@@ -10,7 +10,8 @@
   max-width: 800px;
   margin: 120px auto 60px;
   z-index: 1;
-  position: relative;  /* LP보다 위로 */
+  position: relative;
+  /* LP보다 위로 */
   text-align: center;
 }
 
@@ -68,7 +69,8 @@
   margin-top: 4px;
   display: flex;
   flex-wrap: wrap;
-  gap: 5px; /* ✅ 태그 간 간격을 명확히 */
+  gap: 5px;
+  /* ✅ 태그 간 간격을 명확히 */
   margin-right: 1px;
 }
 
@@ -125,15 +127,42 @@
   background-color: rgb(0, 0, 0);
 }
 
-  /* ✅ 레이아웃 정렬을 위한 스타일 */
-  .song-link-wrapper {
-    display: flex;
-    gap: 20px;
-    text-decoration: none;
-    color: inherit;
-    align-items: center;
-  }
+/* ✅ 레이아웃 정렬을 위한 스타일 */
+.song-link-wrapper {
+  display: flex;
+  gap: 20px;
+  text-decoration: none;
+  color: inherit;
+  align-items: center;
+}
 
-  .song-link-wrapper:hover .title {
-    text-decoration: underline;
-  }
+.song-link-wrapper:hover .title {
+  text-decoration: underline;
+}
+
+.egg-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+}
+
+.egg {
+  position: relative;
+  font-size: 5px;
+  z-index: -1;
+  text-align: center;
+}
+
+.fa-skull {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  transition: left 0.5s;
+  font-size: 1.8rem;
+}
+
+.egg-wrapper:hover .fa-skull {
+  left: -25px;
+}

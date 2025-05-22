@@ -1,22 +1,24 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Analyze AI{% endblock %}
+{% block title %}분석 입력 | AI 뮤직 분석기{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'CSS/analyze_input.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="lyrics-form-wrapper">
-  <h1>노래 제목과 가수 이름을 입력하세요</h1>
+<div class="analyze-container">
+  <div class="lyrics-form-wrapper">
+    <h1>Heard the mood?</h1>
 
-  <form method="POST" action="{% url 'analyze' %}">
-    {% csrf_token %}
+    <form method="POST" action="{% url 'analyze' %}" id="analyzeForm">
+      {% csrf_token %}
       <input type="text" class="input-title" name="title" placeholder="노래 제목을 입력" required>
       <input type="text" class="input-artist" name="artist" placeholder="가수 이름을 입력" required>
-    <button type="submit">분석하기</button>
-  </form>
+      <button type="submit">분석하기</button>
+    </form>
+  </div>
 </div>
 {% endblock %}
 

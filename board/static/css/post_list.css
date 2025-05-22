@@ -20,40 +20,36 @@
 .board-sidebar {
   width: 280px;
   color: white;
-  background-color: #1c1c1c;
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 80px;
-
+  background-color: transparent;
+  padding: 0;
+  margin-top: 170px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-
-  max-height: 80vh;
+  gap: 40px;
 }
+
 
 /* ✅ 섹션 상단 제목은 고정하고 리스트만 스크롤되도록 구조 분리 */
 .sidebar-section {
-  display: flex;
-  flex-direction: column;
+  padding: 20px 0;
+  min-height: 120px; /* ✅ 고정 높이로 "줄 수" 맞추기 */
 }
 
 .sidebar-section h3 {
   font-size: 1rem;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #444;
   padding-bottom: 5px;
-  flex-shrink: 0;
-  /* 제목 고정 */
+  border-bottom: 1px solid white;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 10px 0;
 }
 
 /* ✅ 리스트 스크롤 영역 */
 .scroll-box {
   max-height: 110px;
-  /* 약 3줄 */
+  min-height: 90px; /* ✅ 내용이 없어도 최소 높이 확보 */
   overflow-y: auto;
   scrollbar-width: thin;
-  /* Firefox */
   scrollbar-color: #ffd452 transparent;
 }
 
@@ -71,7 +67,7 @@
 
 .sidebar-list li {
   padding: 6px 10px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #f4e0bf9a;
   font-size: 0.9rem;
   cursor: pointer;
 }
