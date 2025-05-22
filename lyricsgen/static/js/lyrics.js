@@ -1,33 +1,5 @@
-function showLyricsModal(title, lyrics) {
-  const modal = document.getElementById("lyricsModal");
-  const backdrop = document.getElementById("modalBackdropLyrics");
-  document.getElementById("modalTitle").innerText = `🎵 ${title}`;
-  document.getElementById("modalLyrics").innerText = lyrics;
-  backdrop.style.display = "block";
-  modal.style.display = "flex";
-  setTimeout(() => {
-    modal.classList.add("show");
-  }, 10);
-}
-
-function closeModal() {
-  const modal = document.getElementById("lyricsModal");
-  const backdrop = document.getElementById("modalBackdropLyrics");
-  modal.classList.remove("show");
-  setTimeout(() => {
-    modal.style.display = "none";
-    backdrop.style.display = "none";
-  }, 300);
-}
-
-document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape") {
-    closeModal();
-  }
-});
-
-
-const micBtn = document.getElementById('mic-btn'); 
+// 🎤 음성 인식
+const micBtn = document.getElementById('mic-btn');
 const stopBtn = document.getElementById('stop-recognition');
 const promptInput = document.getElementById('prompt-input');
 
@@ -65,7 +37,7 @@ micBtn.addEventListener('click', () => {
 
   recognition.onend = () => {
     stopMicRecognitionUI();
-    isManuallyStopped = false;  // 사용자가 중단한 경우 초기화
+    isManuallyStopped = false;
   };
 });
 
@@ -82,5 +54,37 @@ function stopMicRecognitionUI() {
   stopBtn.style.display = "none";
 }
 
+// 🔎 Ajax로 가사 상세 정보 가져오기
+function openLyricsModalById(id) {
+  fetch(`/lyrics/api/${id}/`)
+    .then(res => res.json())
+    .then(data => {
+      openLyricsModal(data.prompt, data.lyrics, data.image_url, data.id);
+    })
+    .catch(err => {
+      alert("가사를 불러오는 데 실패했습니다: " + err);
+    });
+}
 
-// 진섭이 추가 
+// 🪟 모달 표시
+function showLyricsModal(title, lyrics, imageUrl, id) {
+  console.log("모달 열기:", { title, lyrics, imageUrl, id });
+
+  const modalImage = document.getElementById("modalImage");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalLyrics = document.getElementById("modalLyrics");
+  const modal = document.getElementById("lyricsModal");
+  const backdrop = document.getElementById("modalBackdropLyrics");
+
+  if (!modalImage || !modalTitle || !modalLyrics || !modal || !backdrop) {
+    alert("모달 요소를 찾을 수 없습니다.");
+    return;
+  }
+
+  modalTitle.textContent = title;
+  modalLyrics.innerHTML = lyrics.replace(/\n/g, "<br>");
+  modalImage.src = imageUrl;
+
+  modal.style.display = "flex";
+  backdrop.style.display = "block";
+}

@@ -9,6 +9,9 @@ from django.core.files.base import ContentFile
 from .models import GeneratedLyrics
 from django.urls import reverse
 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
 # ✅ 환경 변수 로딩 및 OpenAI 클라이언트 생성
 load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
@@ -35,9 +38,9 @@ def lyrics_home(request):
         try:
             selected_lyrics = GeneratedLyrics.objects.get(id=open_id)
         except GeneratedLyrics.DoesNotExist:
-            selected_lyrics = all_lyrics.first()
+            selected_lyrics = None  # ← 없으면 None
     else:
-        selected_lyrics = all_lyrics.first()
+        selected_lyrics = None  # ✅ 초기화 상태: 아무것도 선택되지 않음
 
     return render(request, 'lyrics.html', {
         'all_lyrics': all_lyrics,
@@ -50,6 +53,7 @@ def lyrics_home(request):
         'new_lyrics': selected_lyrics,
         'title': extract_title(selected_lyrics.lyrics) if selected_lyrics else '',
     })
+
 
 # ✅ 가사 생성 요청 (POST)
 def generate_lyrics(request):
@@ -79,12 +83,14 @@ def generate_lyrics(request):
                 model="gpt-3.5-turbo",
                 messages=[{
                     "role": "user",
-                    "content": f"""Write a {style} style song {lang_phrase} about '{prompt}'.
-Please provide the result in the format:
+                    "content": f"""Please write complete lyrics for a {style} style song {lang_phrase} about "{prompt}".
+                    Structure the lyrics clearly with parts like [Verse], [Chorus], and optionally [Bridge].
 
-제목: [song title]
-가사:
-[lyrics here]
+                    Respond only in the format:
+
+                    제목: [song title]
+                    가사:
+                    [lyrics with labeled parts]
 """
                 }]
             )
@@ -129,6 +135,7 @@ Please provide the result in the format:
         new_lyrics = GeneratedLyrics(
             prompt=prompt,
             style=style,
+            title=title,  # ✅ 새로 추가된 title 필드에 저장
             lyrics=lyrics,
             duration=elapsed_time,
             language=language,
@@ -170,3 +177,7 @@ def delete_lyrics(request, pk):
 
     lyrics_obj.delete()
     return redirect('lyrics_root')
+
+def logout_view(request):
+    logout(request)
+    return redirect('lyrics_root')  # 👉 초기 페이지로 이동

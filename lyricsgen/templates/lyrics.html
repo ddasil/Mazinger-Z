@@ -1,17 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}가사생성 페이지{% endblock %}
+{% block title %}Lyrics AI{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/main.css' %}">
 <link rel="stylesheet" href="{% static 'css/lyrics.css' %}">
 {% endblock %}
 
 {% block content %}
-
 <div class="header-center">
-  <h1 class="fixed-title">AI 뮤즈</h1>
+  <h1 class="fixed-title">Lyrics AI</h1>
   <form method="POST" action="{% url 'generate_lyrics' %}" class="header-form">
     {% csrf_token %}
     <div class="input-wrapper">
@@ -19,7 +17,6 @@
       <i class="fa-solid fa-microphone mic-icon" id="mic-btn" title="음성인식 시작"></i>
       <i class="fa-solid fa-stop mic-icon" id="stop-recognition" style="display: none;" title="음성인식 종료"></i>
     </div>
-
     <select name="style" required>
       <option value="ballad">발라드</option>
       <option value="hip-hop">힙합</option>
@@ -42,80 +39,107 @@
 
 {% if new_lyrics %}
 <div class="lyrics-content">
-  <div class="lyrics-title">
-    <h2>🎤 "{{ title }}"</h2>
-  </div>
-  <div class="lyrics-main">
-    <div class="lyricsbox-created">
-      <h3>🎨 앨범 이미지</h3>
-      <div class="album-image-wrapper" style="background-image: url('{{ new_lyrics.image_file.url }}');"
-           onclick="window.location.href='{{ new_lyrics.image_file.url }}'">
-        <div class="album-hover-content">
-          <span class="download-icon">📥</span>
-          <p>⏱ {{ elapsed_time }}초</p>
-        </div>
+  <div class="lyricsbox-created">
+    <h3>🎨 앨범 이미지</h3>
+    <div class="album-image-wrapper" style="background-image: url('{{ new_lyrics.image_file.url }}');"
+         onclick="window.location.href='{{ new_lyrics.image_file.url }}'">
+      <div class="album-hover-content">
+        <span class="download-icon">📥</span>
+        <p>⏱ {{ elapsed_time }}초</p>
       </div>
     </div>
-    <div class="created_lyrics">
-      {% if request.GET.edit == 'true' %}
-      <form method="POST" action="{% url 'edit_lyrics' new_lyrics.id %}" style="height: 100%;">
-        {% csrf_token %}
-        <textarea name="lyrics" class="lyrics-box lyrics-edit-box">{{ new_lyrics.lyrics }}</textarea>
-        <div class="lyrics-buttons">
-          <button type="submit" class="lyrics-btn btn-delete">저장하기</button>
-        </div>
-      </form>
-      {% else %}
-      <pre class="lyrics-box">{{ new_lyrics.lyrics }}</pre>
-      <div class="lyrics-buttons">
-        <form method="GET" action="{% url 'lyrics_root' %}">
-          <input type="hidden" name="open_id" value="{{ new_lyrics.id }}">
-          <input type="hidden" name="edit" value="true">
-          <button type="submit" class="lyrics-btn btn-delete">수정하기</button>
-        </form>
-        <form method="POST" action="{% url 'delete_lyrics' new_lyrics.id %}" onsubmit="return confirm('정말 삭제하시겠습니까?');">
-          {% csrf_token %}
-          <button type="submit" class="lyrics-btn btn-delete">삭제하기</button>
-        </form>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-  <div class="lyrics-caption">
-    <p>{{ prompt }} 이라는 주제로 {{ style }} 스타일 가사와 이미지를 제작하였습니다.<br>
-       <strong>언어:</strong> {{ language }}<br>
-    </p>
-  </div>
-</div>
-{% endif %}
-
-{% if all_lyrics %}
-<div class="recent-lyrics">
-  <h2 style="color: white;">My Lyrics</h2>
-  {% for item in all_lyrics %}
-  <a href="{% url 'lyrics_root' %}?open_id={{ item.id }}" class="mylyrics-card-link">
-    <div class="mylyrics-card">
-      <img src="{{ item.image_file.url }}" alt="앨범 이미지" class="mylyrics-img">
-      <strong>{{ item.prompt }}</strong><br>
-      <small>{{ item.style }} /
-        {% if item.language == "korean" %}🇰🇷 한국어
-        {% elif item.language == "english" %}🇺🇸 영어
-        {% elif item.language == "japanese" %}🇯🇵 일본어
-        {% elif item.language == "chinese" %}🇨🇳 중국어
-        {% elif item.language == "thai" %}🇹🇭 태국어
-        {% else %}🌍 언어무관
+      <div class="lyrics-caption">
+        <p><strong>🎤 "{{ selected_lyrics.title }}"</strong><br>
+        {{ prompt }}라는 주제로
+        {% if style == "ballad" %}발라드
+        {% elif style == "hip-hop" %}힙합
+        {% elif style == "rock" %}록
+        {% elif style == "pop" %}팝
+        {% elif style == "indie" %}인디
+        {% elif style == "jazz" %}재즈
+        {% else %}{{ style }}
         {% endif %}
-      </small><br>
-      <small>{{ item.created_at|date:"Y-m-d H:i" }}</small>
+        스타일 가사와 <br> 이미지를 제작하였습니다.<br>
+        언어:
+        {% if language == "korean" %}한국어
+        {% elif language == "english" %}영어
+        {% elif language == "japanese" %}일본어
+        {% elif language == "chinese" %}중국어
+        {% elif language == "thai" %}태국어
+        {% else %}언어무관
+        {% endif %}
+        </p>
+      </div>
+  </div>
+  <div class="created_lyrics">
+    {% if request.GET.edit == 'true' %}
+    <form method="POST" action="{% url 'edit_lyrics' new_lyrics.id %}">
+      {% csrf_token %}
+      <textarea name="lyrics" class="lyrics-box lyrics-edit-box">{{ new_lyrics.lyrics }}</textarea>
+      <div class="lyrics-buttons">
+        <button type="submit" class="lyrics-btn">저장하기</button>
+      </div>
+    </form>
+    {% else %}
+    <pre class="lyrics-box">{{ new_lyrics.lyrics }}</pre>
+    <div class="lyrics-buttons">
+      <form method="GET" action="{% url 'lyrics_root' %}">
+        <input type="hidden" name="open_id" value="{{ new_lyrics.id }}">
+        <input type="hidden" name="edit" value="true">
+        <button type="submit" class="lyrics-btn">수정하기</button>
+      </form>
+      <form method="POST" action="{% url 'delete_lyrics' new_lyrics.id %}" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+        {% csrf_token %}
+        <button type="submit" class="lyrics-btn">삭제하기</button>
+      </form>
     </div>
-  </a>
-  {% endfor %}
+    {% endif %}
+  </div>
 </div>
 {% endif %}
 
+{% if user.is_authenticated and all_lyrics %}
+<div class="recent-lyrics">
+  <!-- ✅ 제목: 고정 -->
+  <div class="recent-title">
+    <h2 style="color: white;">My Lyrics</h2>
+  </div>
+
+  <!-- ✅ 가사 카드 목록: 스크롤 영역 -->
+  <div class="recent-scroll-box">
+    {% for item in all_lyrics %}
+    <a href="{% url 'lyrics_root' %}?open_id={{ item.id }}" class="mylyrics-card-link">
+      <div class="mylyrics-card">
+        <img src="{{ item.image_file.url }}" alt="앨범 이미지" class="mylyrics-img">
+        <strong>{{ item.prompt }}</strong><br>
+        <small>
+          {% if item.style|lower == "ballad" %}발라드
+          {% elif item.style|lower == "hip-hop" %}힙합
+          {% elif item.style|lower == "rock" %}록
+          {% elif item.style|lower == "pop" %}팝
+          {% elif item.style|lower == "indie" %}인디
+          {% elif item.style|lower == "jazz" %}재즈
+          {% else %}{{ item.style }}
+          {% endif %} /
+          
+          {% if item.language == "korean" %}🇰🇷 한국어
+          {% elif item.language == "english" %}🇺🇸 영어
+          {% elif item.language == "japanese" %}🇯🇵 일본어
+          {% elif item.language == "chinese" %}🇨🇳 중국어
+          {% elif item.language == "thai" %}🇹🇭 태국어
+          {% else %}🌍 언어무관
+          {% endif %}
+        </small><br>
+        <small>{{ item.created_at|date:"Y-m-d H:i" }}</small>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_script %}
 <script src="{% static 'js/base.js' %}"></script>
-<script src="{% static 'js/Lyrics.js' %}"></script>
+<script src="{% static 'js/lyrics.js' %}"></script>
 {% endblock %}
