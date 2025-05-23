@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from django.utils import timezone
 # Create your views here.
 from django.http import HttpResponse
 import random
@@ -387,26 +387,44 @@ def add_or_remove_like(request):
     artist = data.get("artist")
     cover_url = data.get("cover_url", "")
 
+    # 🎵 ChartSong 정보 조회
+    chart_song = ChartSong.objects.filter(title=title, artist=artist).first()
+
+    if not chart_song:
+        return JsonResponse({"error": "곡 정보 없음"}, status=404)
+
+    # ❤️ Lovelist에 존재하는지 확인
     obj, created = Lovelist.objects.get_or_create(
         user=request.user,
         title=title,
         artist=artist,
-        defaults={'cover_url': cover_url, 'is_liked': True}
+        defaults={
+            'cover_url': chart_song.album_cover_url or cover_url,
+            'genre': chart_song.normalized_genre,
+            'lyrics': chart_song.lylics,  # 오타 주의
+            'emotion_tags': chart_song.emotion_tags,
+            'keywords': chart_song.keywords,
+            'release_date': chart_song.release_date,
+            'genius_id': chart_song.genius_id,
+            'is_liked': True,
+        }
     )
 
-    # ✅ 이미 존재하면 좋아요 상태 반전
+    # 🔄 이미 존재하면 좋아요 상태만 반전 (삭제 아님)
     if not created:
         obj.is_liked = not obj.is_liked
         if not obj.cover_url and cover_url:
             obj.cover_url = cover_url
+        obj.updated_at = timezone.now()
         obj.save()
+
         count = Lovelist.objects.filter(title=title, artist=artist, is_liked=True).count()
         return JsonResponse({
             "status": "removed" if not obj.is_liked else "added",
             "count": count
         })
 
-    # ✅ 새로 생성된 경우
+    # ➕ 새로 추가된 경우
     count = Lovelist.objects.filter(title=title, artist=artist, is_liked=True).count()
     return JsonResponse({"status": "added", "count": count})
 

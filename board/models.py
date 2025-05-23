@@ -14,6 +14,7 @@ class Post(models.Model):
         null=True,
         default='thumbnails/default.png'
     )
+    view_count = models.PositiveIntegerField(default=0)  # ✅ 조회수 필드 추가
     created_at = models.DateTimeField(auto_now_add=True)
 
     # ✅ 사용자의 Lovelist 곡 중 선택하여 게시글에 연결

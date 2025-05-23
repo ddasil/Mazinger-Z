@@ -317,6 +317,7 @@ document.addEventListener("DOMContentLoaded", () => {
     likeButton.addEventListener("click", () => {
       const title = likeButton.dataset.title;
       const artist = likeButton.dataset.artist;
+      
   
       fetch("/check-auth/")
         .then(res => res.json())

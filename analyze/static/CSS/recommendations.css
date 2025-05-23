@@ -1,6 +1,11 @@
 /* ✅ 추천 결과 페이지 전용 CSS */
 /* 공통 배경 및 폰트는 base.css에서 적용됨 */
 
+.analyze-container {
+  height: 100vh;
+}
+
+
 /* ✅ 전체 감싸는 래퍼 */
 .recommendation-wrapper {
   background-color: transparent;

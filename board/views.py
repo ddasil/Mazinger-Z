@@ -6,24 +6,40 @@ from django.contrib import messages
 from .models import Post, PostLike, Comment, PostScrap, PostRecentView
 from .forms import PostForm, CommentForm
 from django.core.paginator import Paginator
-from django.db.models import Q, Case, When
+from django.db.models import Q, Case, When, F, Count
 from main.models import Lovelist
 from django.views.decorators.http import require_POST
+from chartsongs.models import ChartSong  
 
 # ✅ 게시글 목록
 def post_list(request):
     q = request.GET.get('q', '')
-    post_queryset = Post.objects.all().order_by('-created_at')
+    sort = request.GET.get('sort') or 'likes' 
 
+    # 🔍 검색 필터링
+    post_queryset = Post.objects.all()
     if q:
         post_queryset = post_queryset.filter(
             Q(title__icontains=q) | Q(description__icontains=q)
         )
 
+    # 🔽 정렬 조건
+    if sort == 'likes':
+        post_queryset = post_queryset.annotate(like_count_anno=Count('post_likes')).order_by('-like_count_anno')
+    elif sort == 'views':
+        post_queryset = post_queryset.order_by('-view_count')
+    elif sort == 'scraps':
+        post_queryset = post_queryset.annotate(scrap_count_anno=Count('scrap_set')).order_by('-scrap_count_anno')
+    else:
+        post_queryset = post_queryset.order_by('-created_at')
+
+
+    # 📄 페이지네이션
     paginator = Paginator(post_queryset, 4)
     page_number = request.GET.get('page')
     posts = paginator.get_page(page_number)
 
+    # 🧑‍ 사용자별 사이드바 데이터
     user = request.user
     scrapped_posts, recent_posts, my_posts = [], [], []
 
@@ -33,7 +49,6 @@ def post_list(request):
         recent_views = PostRecentView.objects.filter(user=user).order_by('-viewed_at')[:10]
         recent_ids = list(recent_views.values_list('post_id', flat=True))
 
-        # 순서 보장
         preserved = Case(*[When(id=pk, then=pos) for pos, pk in enumerate(recent_ids)])
         recent_posts = Post.objects.filter(id__in=recent_ids).order_by(preserved)
 
@@ -42,8 +57,6 @@ def post_list(request):
         if recent_ids:
             preserved = Case(*[When(id=pk, then=pos) for pos, pk in enumerate(recent_ids)])
             recent_posts = Post.objects.filter(id__in=recent_ids).order_by(preserved)
-        else:
-            recent_posts = []
 
     return render(request, 'post_list.html', {
         'posts': posts,
@@ -51,7 +64,9 @@ def post_list(request):
         'recent_posts': recent_posts,
         'my_posts': my_posts,
         'query': q,
+        'sort': sort,  # 📌 템플릿에서 선택 유지용
     })
+
 
 
 # ✅ 게시글 작성
@@ -79,9 +94,12 @@ def post_create(request):
 
 
 # ✅ 게시글 상세
-
 def post_detail(request, pk):
     post = get_object_or_404(Post, id=pk)
+
+    # ✅ 조회수 증가
+    Post.objects.filter(id=post.id).update(view_count=F('view_count') + 1)
+    post.refresh_from_db()
 
     if request.user.is_authenticated:
         PostRecentView.objects.update_or_create(
@@ -128,7 +146,6 @@ def post_detail(request, pk):
         'comment_form': form,
         'selected_songs': selected_songs,
     })
-
 
 # ✅ 게시글 수정
 @login_required
@@ -213,14 +230,18 @@ def scrap_post(request, pk):
         PostScrap.objects.create(post=post, user=user)
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
-
-# ✅ 좋아요한 곡 추가/삭제
 @require_POST
 @login_required
 def toggle_lovelist(request):
     title = request.POST['title']
     artist = request.POST['artist']
     cover_url = request.POST.get('cover_url')
+
+    # ✅ cover_url이 없으면 ChartSong에서 가져오기
+    if not cover_url:
+        chart_song = ChartSong.objects.filter(title=title, artist=artist).first()
+        if chart_song:
+            cover_url = chart_song.album_cover_url or ""
 
     song, created = Lovelist.objects.get_or_create(
         user=request.user,
@@ -231,7 +252,13 @@ def toggle_lovelist(request):
 
     if not created:
         song.is_liked = not song.is_liked
+
+        # ✅ 기존에 cover_url이 비어있고 새로운 값이 있다면 저장
+        if not song.cover_url and cover_url:
+            song.cover_url = cover_url
+
         song.save()
+
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 # 진섭 추가
