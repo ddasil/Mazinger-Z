@@ -3,6 +3,9 @@
   min-height: 100vh;
   overflow: hidden;
   padding-bottom: 20px;
+  position: relative; /* 또는 absolute가 아니라면 relative로! */
+  z-index: 1; /* 메뉴가 항상 위에 오게 */
+  transition: transform 0.3s ease;
 }
 
 /* 🎧 상단 검색 영역 */
@@ -351,7 +354,8 @@ textarea.lyrics-box-edit-box {
 .generate-btn:hover {
   color: white;
 }
-@media (max-width: 768px) {
+
+/* @media (max-width: 768px) {
   .lyrics-content {
     flex-direction: column;
     align-items: center;
@@ -410,4 +414,4 @@ textarea.lyrics-box-edit-box {
     width: 100%;
     margin-bottom: 10px;
   }
-}
+} */

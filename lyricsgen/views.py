@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from openai import OpenAI
 import os
 import requests
@@ -10,9 +10,7 @@ from .models import GeneratedLyrics
 from django.urls import reverse
 from django.contrib.auth import logout
 from django.views.decorators.http import require_POST
-from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 from django.conf import settings
 
 # ✅ 환경 변수 로딩 및 OpenAI 클라이언트 생성
@@ -27,26 +25,37 @@ def extract_title(lyrics_text):
 
 # ✅ 가사 보기 페이지 (GET)
 def lyrics_home(request):
+    print("🔥 세션 키:", request.session.session_key)  # ⭐️ 현재 세션 키 확인용
+
     open_id = request.GET.get('open_id')
 
+    # 🔍 로그인/비로그인 상태에 따른 My Lyrics 목록 처리
     if request.user.is_authenticated:
         user_filter = {'user': request.user}
+        all_lyrics = GeneratedLyrics.objects.filter(**user_filter).order_by('-is_favorite', '-created_at')
     else:
-        open_id = None  # 비로그인 상태에서는 open_id 무시
         temp_user_id = request.session.session_key
-        user_filter = {'temp_user_id': temp_user_id} if temp_user_id else {}
+        if temp_user_id is None:
+            # 🔥 세션이 아직 없으면 My Lyrics는 비활성화 (빈 배열)
+            all_lyrics = []
+        else:
+            user_filter = {'user': None, 'temp_user_id': temp_user_id}
+            all_lyrics = GeneratedLyrics.objects.filter(**user_filter).order_by('-is_favorite', '-created_at')
 
-    all_lyrics = GeneratedLyrics.objects.filter(**user_filter).order_by('-is_favorite', '-created_at')
-
+    # 🔍 선택된 가사 (가사 생성 결과 보기)
+    selected_lyrics = None
     if open_id:
         try:
-            selected_lyrics = GeneratedLyrics.objects.get(id=open_id)
+            if request.user.is_authenticated:
+                user_filter = {'user': request.user}
+            else:
+                temp_user_id = request.session.session_key
+                user_filter = {'user': None, 'temp_user_id': temp_user_id}
+            selected_lyrics = GeneratedLyrics.objects.get(id=open_id, **user_filter)
         except GeneratedLyrics.DoesNotExist:
             selected_lyrics = None
-    else:
-        selected_lyrics = None
 
-    # ✅ 기본 이미지 포함 여부 (파일명 기준, 경로 무시)
+    # 🔍 기본 이미지 여부 확인
     is_default_image = (
         selected_lyrics and
         selected_lyrics.image_file and
@@ -66,7 +75,6 @@ def lyrics_home(request):
         'is_default_image': is_default_image,
     })
 
-
 # ✅ 가사 생성 요청 (POST)
 def generate_lyrics(request):
     if request.method == 'POST':
@@ -76,7 +84,7 @@ def generate_lyrics(request):
         image_mode = request.POST.get('image_mode')
         fast_mode = (image_mode == 'skip')
 
-        # ✅ 세션 및 시간 측정
+        # 🔍 세션 및 시간 측정
         if not request.session.session_key:
             request.session.create()
         temp_user_id = request.session.session_key
@@ -90,7 +98,7 @@ def generate_lyrics(request):
             'thai': " in Thai"
         }.get(language, "")
 
-        # ✅ GPT 호출
+        # 🔍 GPT로 가사 생성 요청
         try:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -123,7 +131,7 @@ Respond only in the format:
             title = f"{prompt}의 노래"
             lyrics = "가사 생성에 실패했습니다. 다시 시도해주세요."
 
-        # ✅ 이미지 생성
+        # 🔍 이미지 생성
         dalle_prompt = f"A {style} style album cover for a song about {prompt.replace('\"', '').replace('\'', '')}"
         image_filename = f"{uuid.uuid4()}.png"
 
@@ -132,9 +140,7 @@ Respond only in the format:
             default_image_path = os.path.join(settings.BASE_DIR, 'lyricsgen', 'static', 'images', 'default_album.png')
             with open(default_image_path, 'rb') as f:
                 image_content = f.read()
-
-            image_filename = "default_album.png"  # ✅ 고정된 이름으로 저장
-
+            image_filename = "default_album.png"
         else:
             try:
                 image_response = client.images.generate(
@@ -153,7 +159,7 @@ Respond only in the format:
 
         elapsed_time = round(time.time() - start_time, 2)
 
-        # ✅ DB 저장
+        # 🔍 DB 저장
         new_lyrics = GeneratedLyrics(
             prompt=prompt,
             style=style,
@@ -171,12 +177,12 @@ Respond only in the format:
 
     return redirect('lyrics_home')
 
+# ✅ 가사 수정
 @require_POST
 def edit_lyrics(request, pk):
     lyrics_obj = get_object_or_404(GeneratedLyrics, pk=pk)
     new_lyrics = request.POST.get('lyrics', '').strip()
 
-    # 수정 권한 확인 (옵션)
     if request.user != lyrics_obj.user and not request.user.is_anonymous:
         return redirect('lyrics_root')
 
@@ -184,30 +190,33 @@ def edit_lyrics(request, pk):
     lyrics_obj.save()
     return redirect(f"{reverse('lyrics_root')}?open_id={pk}")
 
+# ✅ 가사 삭제
 @require_POST
 def delete_lyrics(request, pk):
     lyrics_obj = get_object_or_404(GeneratedLyrics, pk=pk)
 
-    # 삭제 권한 확인 (옵션)
     if request.user != lyrics_obj.user and not request.user.is_anonymous:
         return redirect('lyrics_root')
 
     lyrics_obj.delete()
     return redirect('lyrics_root')
 
+# ✅ 로그아웃 (세션 완전 초기화 + 새 세션 강제 발급)
 def logout_view(request):
     logout(request)
-    return redirect('lyrics_root')  # 👉 초기 페이지로 이동
+    request.session.flush()
+    request.session.create()
+    return redirect('lyrics_root')
 
-# 즐겨찾기
+# ✅ 즐겨찾기 토글
 @require_POST
 def toggle_favorite(request, pk):
     lyric = get_object_or_404(GeneratedLyrics, pk=pk, user=request.user)
     lyric.is_favorite = not lyric.is_favorite
     lyric.save()
-    return redirect(f"{reverse('lyrics_root')}?open_id={pk}")  # 🔁 JSON 응답 대신 리디렉션
+    return redirect(f"{reverse('lyrics_root')}?open_id={pk}")
 
-# 빠른 가사 생성 이미지
+# ✅ 이미지 다시 생성
 @require_POST
 def regenerate_image(request, pk):
     lyrics = get_object_or_404(GeneratedLyrics, pk=pk)

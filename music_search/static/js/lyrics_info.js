@@ -1,17 +1,25 @@
+// ✅ 추천어 번역 로직도 통합
+const translatedLyrics = {
+  original: "",
+  ko: "",
+  en: "",
+  ja: "",
+  zh: ""
+};
+
 window.onload = function () {
   const urlParams = new URLSearchParams(window.location.search);
   const artist = urlParams.get('artist');
   const title = urlParams.get('title');
   const videoId = urlParams.get('videoId');
 
-  // ✅ 1. 유튜브 영상 iframe 먼저 보이게
+  // ✅ 유튜브 영상 iframe
   const youtubePlayer = document.getElementById('youtubePlayer');
   youtubePlayer.style.display = 'block';
   if (videoId && videoId !== 'no-video') {
     setTimeout(() => {
       youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-    }, 10); // 10ms 뒤에 iframe src 세팅 (렌더링 우선)
-    // iframe 로딩되면 로딩 문구 제거
+    }, 10);
     document.getElementById("youtubePlayer").addEventListener("load", () => {
       const loader = document.getElementById("youtubeLoading");
       if (loader) loader.style.display = "none";
@@ -21,23 +29,45 @@ window.onload = function () {
     youtubePlayer.style.display = 'none';
   }
 
-  // ✅ 2. 앨범 정보: 먼저 로딩 시도 (DOM 먼저 보여진 상태에서)
+  // ✅ Apple Music 정보 로딩
   if (artist && title) {
     setTimeout(() => {
       fetchTrackFromApple(`${artist} ${title}`);
-    }, 20); // 미세한 delay로 우선 렌더링 유도
+    }, 20);
   }
 
-  // ✅ 3. 가사 및 감성 분석: 늦게 시작해도 무관
+  // ✅ 가사 및 태그 분석
   if (artist && title) {
     setTimeout(() => {
       fetchLyricsTranslateAndTag(artist, title);
-    }, 500); // UX 상 느껴지지 않을 정도로 뒤에 실행
+    }, 500);
   }
+
+  // ✅ 검색 입력 이벤트
+  const searchInput = document.getElementById('searchInput');
+  const suggestionsDiv = document.getElementById('suggestions');
+  const searchButton = document.querySelector('.search-btn');
+
+  searchInput.addEventListener('input', () => handleInputChange(searchInput, suggestionsDiv));
+  searchInput.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      hideSuggestions();
+      redirectSearch();
+    }
+  });
+
+  if (searchButton) {
+    searchButton.addEventListener('click', function () {
+      hideSuggestions();
+      redirectSearch();
+    });
+  }
+
+  hideSuggestions(); // 초기엔 추천어창 숨김
 };
 
-
-
+// ✅ 가사 및 태그 분석
 async function fetchLyricsTranslateAndTag(artist, title) {
   const lyricsContent = document.getElementById('lyricsContent');
 
@@ -53,35 +83,18 @@ async function fetchLyricsTranslateAndTag(artist, title) {
       return;
     }
 
-    const originalLyrics = data.lyrics.replace(/\n/g, '<br>');
-    translatedLyrics.original = data.lyrics ? data.lyrics.replace(/(\r\n|\r|\n)/g, '<br>') : '';
+    translatedLyrics.original = data.lyrics.replace(/(\r\n|\r|\n)/g, '<br>');
     translatedLyrics.ko = data.ko_lyrics ? data.ko_lyrics.replace(/(\r\n|\r|\n)/g, '<br>') : '';
     translatedLyrics.en = data.en_lyrics ? data.en_lyrics.replace(/(\r\n|\r|\n)/g, '<br>') : '';
     translatedLyrics.ja = data.ja_lyrics ? data.ja_lyrics.replace(/(\r\n|\r|\n)/g, '<br>') : '';
     translatedLyrics.zh = data.zh_lyrics ? data.zh_lyrics.replace(/(\r\n|\r|\n)/g, '<br>') : '';
 
-    //     // ✅ 이 줄 다음에 실제 저장 확인용 로그 추가!
-    // console.log("✅ 저장된 영어:", translatedLyrics.en);
-    // console.log("✅ 저장된 일본어:", translatedLyrics.ja);
-    // console.log("✅ 저장된 중국어:", translatedLyrics.zh);
-    console.log("🎯 응답 데이터 확인:", data);
-    console.log("🇰🇷 ko:", data.ko_lyrics);
-    console.log("🇺🇸 en:", data.en_lyrics);
-    console.log("🇯🇵 ja:", data.ja_lyrics);
-    console.log("🇨🇳 zh:", data.zh_lyrics);
-
-
     lyricsContent.innerHTML = translatedLyrics.original || "⚠️ 가사를 불러올 수 없습니다.";
 
-    // 번역이 끝난 후에 다음 코드 추가
     await fetch('/music/save-tagged-song/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title,
-        artist,
-        lyrics: data.lyrics
-      })
+      body: JSON.stringify({ title, artist, lyrics: data.lyrics })
     })
       .then(res => res.json())
       .then(response => {
@@ -91,7 +104,7 @@ async function fetchLyricsTranslateAndTag(artist, title) {
           console.warn("⚠️ 태그 저장 실패:", response.error);
         }
       })
-      .catch(err => console.error("🔥 저장 요청 실패:", err));
+      .catch(err => console.error("🔥 태그 저장 실패:", err));
 
   } catch (err) {
     console.error("🔥 가사 요청 또는 번역 실패:", err);
@@ -99,6 +112,7 @@ async function fetchLyricsTranslateAndTag(artist, title) {
   }
 }
 
+// ✅ Apple Music 검색
 function fetchTrackFromApple(query) {
   const infoContent = document.getElementById('infoContent');
   const albumCover = document.getElementById('albumCover');
@@ -118,7 +132,7 @@ function fetchTrackFromApple(query) {
           <p><strong>장르 :</strong> ${track.primaryGenreName}</p>
         `;
       } else {
-        infoContent.innerHTML = "🎵 유튜브에서 곡 정보를 찾을 수 없습니다.";
+        infoContent.innerHTML = "🎵 곡 정보를 찾을 수 없습니다.";
       }
     })
     .catch(err => {
@@ -127,23 +141,71 @@ function fetchTrackFromApple(query) {
     });
 }
 
-const translatedLyrics = {
-  original: "",
-  ko: "",
-  en: "",
-  ja: "",
-  zh: ""
-};
+// ✅ 추천어 자동완성
+function handleInputChange(input, suggestionsDiv) {
+  if (!suggestionsDiv) return;
 
+  if (!input.value.trim()) {
+    suggestionsDiv.style.display = 'none';
+    suggestionsDiv.innerHTML = '';
+    return;
+  }
+
+  if (document.activeElement !== input) return;
+
+  const query = input.value;
+  fetch(`/music/autocomplete/?q=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => handleSuggestions(data, suggestionsDiv, input))
+    .catch(err => console.error("🔥 자동완성 요청 실패:", err));
+}
+
+// ✅ 추천어 목록 렌더링
+function handleSuggestions(data, suggestionsDiv, input) {
+  if (!suggestionsDiv) return;
+
+  suggestionsDiv.innerHTML = '';
+  const suggestions = data.suggestions || [];
+
+  if (suggestions.length === 0) {
+    suggestionsDiv.style.display = 'none';
+    return;
+  }
+
+  suggestions.forEach(suggestion => {
+    const item = document.createElement('div');
+    item.textContent = suggestion;
+    item.onclick = () => {
+      input.value = suggestion;
+      suggestionsDiv.innerHTML = '';
+      suggestionsDiv.style.display = 'none';
+    };
+    suggestionsDiv.appendChild(item);
+  });
+
+  suggestionsDiv.style.display = 'block';
+}
+
+// ✅ 추천어 숨김
+function hideSuggestions() {
+  const suggestions = document.getElementById('suggestions');
+  if (suggestions) {
+    suggestions.style.display = 'none';
+    suggestions.innerHTML = '';
+  }
+}
+
+// ✅ 가사 번역 버튼 처리
 function translateLyrics(lang) {
   const lyricsContent = document.getElementById('lyricsContent');
   const selectedLyrics = translatedLyrics[lang] || `⚠️ 해당 언어 가사가 없습니다.`;
   lyricsContent.innerHTML = `<p>${selectedLyrics}</p>`;
 }
 
+// ✅ 검색창 입력값으로 검색 페이지 이동
 function redirectSearch() {
   const query = document.getElementById('searchInput').value;
   if (query) {
-    window.location.href = `/music/?q=${encodeURIComponent(query)}`;
+    window.location.href = `/music/search/?q=${encodeURIComponent(query)}`;
   }
 }

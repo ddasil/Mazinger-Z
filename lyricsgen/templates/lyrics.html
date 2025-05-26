@@ -9,13 +9,13 @@
 
 {% block content %}
 <div class="analyze-container">
-  <!-- 로딩 오버레이 -->
   <!-- 🔄 로딩 오버레이 -->
   <div id="loadingOverlay">
     <div class="loading-spinner"></div>
     <p id="loadingText"></p>
   </div>
 
+  <!-- 🔍 상단 입력 영역 -->
   <div class="header-center">
     <h1 class="fixed-title">Lyrics AI</h1>
     <form method="POST" action="{% url 'generate_lyrics' %}" class="header-form">
@@ -45,11 +45,11 @@
         <option value="generate" selected>앨범 이미지 자동 생성</option>
         <option value="skip">이미지 없이 빠르게 생성</option>
       </select>
-
       <button type="submit" class="generate-btn">가사 생성</button>
     </form>
   </div>
 
+  <!-- 🔍 가사 생성 결과 -->
   {% if new_lyrics %}
   <div class="lyrics-content">
     <div class="lyricsbox-created">
@@ -62,10 +62,8 @@
         </div>
       </div>
 
-      <!-- ✅ AI 이미지 생성 버튼 -->
       {% if user.is_authenticated and is_default_image %}
-      <form method="POST" action="{% url 'regenerate_image' new_lyrics.id %}" class="ai-image-form"
-        style="margin-top: 10px;">
+      <form method="POST" action="{% url 'regenerate_image' new_lyrics.id %}" class="ai-image-form" style="margin-top: 10px;">
         {% csrf_token %}
         <button type="submit" class="lyrics-btn">🎨 AI 이미지 생성</button>
       </form>
@@ -74,23 +72,12 @@
       <div class="lyrics-caption">
         <p><strong>🎤 "{{ selected_lyrics.title }}"</strong><br>
           {{ prompt }}라는 주제로
-          {% if style == "ballad" %}발라드
-          {% elif style == "hip-hop" %}힙합
-          {% elif style == "rock" %}록
-          {% elif style == "pop" %}팝
-          {% elif style == "indie" %}인디
-          {% elif style == "jazz" %}재즈
-          {% else %}{{ style }}
-          {% endif %}
-          스타일 가사와 <br> 이미지를 제작하였습니다.<br>
+          {% if style == "ballad" %}발라드{% elif style == "hip-hop" %}힙합{% elif style == "rock" %}록{% elif style == "pop" %}팝
+          {% elif style == "indie" %}인디{% elif style == "jazz" %}재즈{% else %}{{ style }}{% endif %}
+          스타일 가사와 이미지를 제작하였습니다.<br>
           언어:
-          {% if language == "korean" %}한국어
-          {% elif language == "english" %}영어
-          {% elif language == "japanese" %}일본어
-          {% elif language == "chinese" %}중국어
-          {% elif language == "thai" %}태국어
-          {% else %}언어무관
-          {% endif %}
+          {% if language == "korean" %}한국어{% elif language == "english" %}영어{% elif language == "japanese" %}일본어
+          {% elif language == "chinese" %}중국어{% elif language == "thai" %}태국어{% else %}언어무관{% endif %}
         </p>
       </div>
     </div>
@@ -112,18 +99,14 @@
           <input type="hidden" name="edit" value="true">
           <button type="submit" class="lyrics-btn">수정</button>
         </form>
-
         <form method="POST" action="{% url 'delete_lyrics' new_lyrics.id %}" onsubmit="return confirm('정말 삭제하시겠습니까?');">
           {% csrf_token %}
           <button type="submit" class="lyrics-btn">삭제</button>
         </form>
-
         {% if user.is_authenticated %}
         <form method="POST" action="{% url 'toggle_favorite' new_lyrics.id %}">
           {% csrf_token %}
-          <button type="submit" class="lyrics-btn">
-            {% if new_lyrics.is_favorite %}⭐{% else %}☆{% endif %}
-          </button>
+          <button type="submit" class="lyrics-btn">{% if new_lyrics.is_favorite %}⭐{% else %}☆{% endif %}</button>
         </form>
         {% endif %}
       </div>
@@ -132,43 +115,44 @@
   </div>
   {% endif %}
 
-  {% if user.is_authenticated and all_lyrics %}
+  <!-- 🔍 My Lyrics (항상 렌더링!) -->
   <div class="recent-lyrics">
     <div class="recent-title">
       <h2 style="color: white;">My Lyrics</h2>
     </div>
     <div class="recent-scroll-box">
-      {% for item in all_lyrics %}
-      <a href="{% url 'lyrics_root' %}?open_id={{ item.id }}" class="mylyrics-card-link">
-        <div class="mylyrics-card">
-          <img src="{{ item.image_file.url }}" alt="앨범 이미지" class="mylyrics-img">
-          <strong>{{ item.prompt }}</strong><br>
-          <small>
-            {% if item.style|lower == "ballad" %}발라드
-            {% elif item.style|lower == "hip-hop" %}힙합
-            {% elif item.style|lower == "rock" %}록
-            {% elif item.style|lower == "pop" %}팝
-            {% elif item.style|lower == "indie" %}인디
-            {% elif item.style|lower == "jazz" %}재즈
-            {% else %}{{ item.style }}
-            {% endif %} /
+      {% if all_lyrics %}
+        {% for item in all_lyrics %}
+        <a href="{% url 'lyrics_root' %}?open_id={{ item.id }}" class="mylyrics-card-link">
+          <div class="mylyrics-card">
+            <img src="{{ item.image_file.url }}" alt="앨범 이미지" class="mylyrics-img">
+            <strong>{{ item.prompt }}</strong><br>
+            <small>
+              {% if item.style|lower == "ballad" %}발라드
+              {% elif item.style|lower == "hip-hop" %}힙합
+              {% elif item.style|lower == "rock" %}록
+              {% elif item.style|lower == "pop" %}팝
+              {% elif item.style|lower == "indie" %}인디
+              {% elif item.style|lower == "jazz" %}재즈
+              {% else %}{{ item.style }}{% endif %} /
 
-            {% if item.language == "korean" %}🇰🇷 한국어
-            {% elif item.language == "english" %}🇺🇸 영어
-            {% elif item.language == "japanese" %}🇯🇵 일본어
-            {% elif item.language == "chinese" %}🇨🇳 중국어
-            {% elif item.language == "thai" %}🇹🇭 태국어
-            {% else %}🌍 언어무관
-            {% endif %}
-          </small><br>
-          <small>{{ item.created_at|date:"Y-m-d H:i" }}</small>
-        </div>
-      </a>
-      {% endfor %}
+              {% if item.language == "korean" %}🇰🇷 한국어
+              {% elif item.language == "english" %}🇺🇸 영어
+              {% elif item.language == "japanese" %}🇯🇵 일본어
+              {% elif item.language == "chinese" %}🇨🇳 중국어
+              {% elif item.language == "thai" %}🇹🇭 태국어
+              {% else %}🌍 언어무관{% endif %}
+            </small><br>
+            <small>{{ item.created_at|date:"Y-m-d H:i" }}</small>
+          </div>
+        </a>
+        {% endfor %}
+      {% else %}
+        <p class="no-lyrics-msg" style="color:white;">My Lyrics 목록이 없습니다.</p>
+      {% endif %}
     </div>
   </div>
 </div>
-{% endif %}
 
 {% endblock %}
 
