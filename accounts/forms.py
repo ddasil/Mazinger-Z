@@ -15,7 +15,7 @@ PROFILE_CHOICES = [
 
 class CustomUserCreationForm(UserCreationForm):
     birthday = forms.DateField(
-        widget=forms.SelectDateWidget(years=range(1920, 2023)),
+        widget=forms.SelectDateWidget(years=range(1950, 2024)),
         required=True
     )
     phone_number = forms.CharField(
@@ -52,7 +52,7 @@ class CustomUserChangeForm(UserChangeForm):
         widget=forms.TextInput(attrs={'placeholder': '닉네임 입력'})
     )
     birthday = forms.DateField(
-        widget=forms.SelectDateWidget(years=range(1920, 2023)),
+        widget=forms.SelectDateWidget(years=range(1950, 2024)),
         required=True
     )
     phone_number = forms.CharField(
@@ -95,6 +95,11 @@ class CustomAuthenticationForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         self.fields['username'].label = 'ID'
         self.fields['password'].label = 'PASSWORD'
+
+    error_messages = {
+        'invalid_login': "올바른 사용자 이름과 비밀번호를 입력하십시오.",
+        'inactive': "이 계정은 비활성화되어 있습니다.",
+    }
 
 
 class PasswordResetForm(forms.Form):

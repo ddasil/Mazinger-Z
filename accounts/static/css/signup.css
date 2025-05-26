@@ -1,0 +1,136 @@
+/* signup.css */
+
+/* 전체 페이지를 꽉 채우고, 중앙 정렬 */
+.signup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #000; /* 배경 색상 */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* 폼 영역 */
+.signup-form {
+  background-color: #111; /* 배경 */
+  color: #fff;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+}
+
+/* 제목 */
+.signup-form h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+/* 입력 필드 */
+.signup-form p {
+  margin-bottom: 15px;
+}
+
+.signup-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.signup-form input[type="text"],
+.signup-form input[type="password"],
+.signup-form input[type="date"],
+.signup-form input[type="file"],
+.signup-form select,
+.signup-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background-color: #222;
+  color: #fff;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.signup-form input[type="text"]:focus,
+.signup-form input[type="password"]:focus,
+.signup-form input[type="date"]:focus,
+.signup-form input[type="file"]:focus,
+.signup-form select:focus,
+.signup-form textarea:focus {
+  border-color: #999;
+  outline: none;
+}
+
+/* 에러/안내 메시지 */
+.signup-form span,
+.signup-form div,
+.signup-form ul {
+  font-size: 0.8rem;
+}
+
+.signup-form ul {
+  list-style-type: disc;
+  margin-left: 18px;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  color: #aaa;
+}
+
+.signup-form span[style*="red"],
+.signup-form div[style*="red"] {
+  color: red !important;
+}
+
+.signup-form span[style*="yellow"] {
+  color: yellow !important;
+}
+
+.signup-form span[style*="lightgreen"] {
+  color: lightgreen !important;
+}
+
+/* 전화번호 안내 문구 */
+.signup-form small {
+  display: block;
+  margin-top: 5px;
+  color: #aaa;
+}
+
+/* 제출 버튼 */
+.signup-form .btn-glitch {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background-color: #ffcc00;
+  color: #000;
+  font-weight: bold;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.signup-form .btn-glitch:hover {
+  background-color: #e9ba00;
+}
+
+/* 반응형 */
+@media (max-width: 480px) {
+  .signup-form {
+    padding: 30px 20px;
+  }
+
+  .signup-form h1 {
+    font-size: 1.5rem;
+  }
+}

@@ -22,7 +22,7 @@
 /* 제목 */
 .board-container h1 {
   font-size: 1.6rem;
-  margin-bottom: 30px;
+  margin-bottom: 0px;
   border-left: 6px solid #444;
   padding-left: 12px;
 }
@@ -98,4 +98,32 @@ form .sub-button {
 
 .form-group textarea {
   resize: none; /* 크기 조절 비활성화 */
+}
+
+/* 버튼 스타일 */
+.back-arrow {
+  display: inline-block;
+  background-color: #ffcc00;
+  color: rgb(0, 0, 0) !important;
+  font-size: 0.95rem;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  
+}
+
+.back-arrow:hover {
+  background-color: #e9ba00;
+  color: black !important;
+}
+
+
+.header-box {
+  display: flex;
+  justify-content: space-between; /* 제목 왼쪽, 버튼 오른쪽 */
+  align-items: center; /* 높이 맞추기 */
+  margin-bottom: 30px; /* 아래 여백 */
+  align-items: baseline; /* baseline으로 세로 기준 맞추기 */
 }
