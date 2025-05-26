@@ -31,6 +31,7 @@ YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
