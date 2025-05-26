@@ -14,16 +14,45 @@ window.onload = function () {
   document.getElementById('searchInput').addEventListener('input', handleInputChange);
 
   // ✅ Enter 키 입력 시 검색 실행 및 자동완성 닫기
-  document.getElementById('searchInput').addEventListener('keydown', function (event) {
-    if (event.key === 'Enter') {
+document.getElementById('searchInput').addEventListener('keydown', function (event) {
+  const suggestionsDiv = document.getElementById('suggestions');
+  if (suggestionsDiv.style.display === 'block' && suggestionItems.length > 0) {
+    if (event.key === 'ArrowDown') {
       event.preventDefault();
-      hideSuggestions(); // 자동완성 숨기기
-      document.getElementById('searchInput').addEventListener('focusout', () => {
-        setTimeout(() => hideSuggestions(), 100); // 포커스 해제 후 자동완성 숨김 처리
-      });
-      searchMusic(); // 유튜브 검색 실행
+      selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestionItems.length;
+      updateSuggestionActive();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      selectedSuggestionIndex = (selectedSuggestionIndex - 1 + suggestionItems.length) % suggestionItems.length;
+      updateSuggestionActive();
+    } else if (event.key === 'Enter') {
+      if (selectedSuggestionIndex >= 0 && suggestionItems[selectedSuggestionIndex]) {
+        event.preventDefault();
+        document.getElementById('searchInput').value = suggestionItems[selectedSuggestionIndex].textContent;
+        hideSuggestions();
+        searchMusic();
+        return;
+      }
+    }
+  }
+  // 엔터 기본 동작 (자동완성창 없을 때만 실행)
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    hideSuggestions();
+    searchMusic();
+  }
+});
+
+function updateSuggestionActive() {
+  suggestionItems.forEach((item, idx) => {
+    if (idx === selectedSuggestionIndex) {
+      item.classList.add('active');
+      item.scrollIntoView({ block: "nearest" });
+    } else {
+      item.classList.remove('active');
     }
   });
+}
     // ✅ 🔴 검색 버튼 클릭 시에도 검색 실행되도록 이벤트 바인딩 (이 부분을 반드시 추가!)
   const searchButton = document.querySelector('.search-btn');
   if (searchButton) {
@@ -42,9 +71,11 @@ function handleInputChange() {
   if (!suggestionsDiv) return;  // ✅ suggestions 요소 없으면 함수 종료
 
   if (!input.value.trim()) {
-    // 검색어가 없으면 추천어창도 무조건 닫음
+    // ✅ 이 부분이 반드시 필요!
     suggestionsDiv.style.display = 'none';
     suggestionsDiv.innerHTML = '';
+    suggestionItems = [];
+    selectedSuggestionIndex = -1;
     return;
   }
 
@@ -62,29 +93,38 @@ function handleInputChange() {
 // ✅ 3. 추천어 목록을 HTML로 표시하는 함수
 function handleSuggestions(data) {
   const suggestionsDiv = document.getElementById('suggestions');
-  if (!suggestionsDiv) return; // 🔴 안전검사 추가!
+  if (!suggestionsDiv) return;
 
   suggestionsDiv.innerHTML = '';
   const suggestions = data.suggestions || [];
 
   if (suggestions.length === 0) {
-    suggestionsDiv.style.display = 'none'; // 추천어가 없을 경우 숨김
+    suggestionsDiv.style.display = 'none';
+    suggestionItems = [];
+    selectedSuggestionIndex = -1;
     return;
   }
 
-  suggestions.forEach(suggestion => {
+  suggestionItems = [];
+
+  suggestions.forEach((suggestion, idx) => {
     const item = document.createElement('div');
     item.textContent = suggestion;
+    item.classList.add('suggestion-item');
     item.onclick = () => {
-      document.getElementById('searchInput').value = suggestion; // 추천어 클릭 시 검색창에 반영
+      document.getElementById('searchInput').value = suggestion;
       suggestionsDiv.innerHTML = '';
       suggestionsDiv.style.display = 'none';
+      searchMusic(); // ← 이 줄을 추가하면 클릭 후 바로 검색!
     };
     suggestionsDiv.appendChild(item);
+    suggestionItems.push(item);
   });
 
-  suggestionsDiv.style.display = 'block'; // 추천어 박스 보이기
+  selectedSuggestionIndex = -1;
+  suggestionsDiv.style.display = 'block';
 }
+
 
 let allResults = [];
 let currentPage = 1;
@@ -98,6 +138,13 @@ function searchMusic() {
 
   hideSuggestions(); // 검색 시 자동완성 닫기
   
+  // 혹시라도 suggestions 박스가 남아있는 현상 방지:
+  const suggestionsDiv = document.getElementById('suggestions');
+  if (suggestionsDiv) {
+    suggestionsDiv.style.display = 'none';
+    suggestionsDiv.innerHTML = '';
+  }
+
   // 🔥 YouTube Data API로 25개까지 검색
   fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&videoCategoryId=10&maxResults=25&key=${API_KEY}`)
     .then(res => res.json())
@@ -114,8 +161,13 @@ function searchMusic() {
       renderResultsPage(currentPage);
       document.querySelector('.results-box').style.display = 'block';
       document.getElementById('pagination').style.display = 'block';
+      document.getElementById('searchInput').value = '';
     })
-    .catch(err => console.error("🔥 유튜브 검색 실패:", err));
+    .catch(err => {
+      console.error("🔥 유튜브 검색 실패:", err);
+      document.getElementById('searchInput').value = '';
+      handleInputChange();
+    });
 }
 
 // ✅ 🔥 페이지별 결과 렌더링
@@ -259,3 +311,17 @@ function stopMicRecognitionUI() {
   stopBtn.style.display = "none";
 }
 
+// 자동완성창 닫기용 바디 클릭 리스너
+document.addEventListener('click', function (e) {
+  const searchInput = document.getElementById('searchInput');
+  const suggestionsDiv = document.getElementById('suggestions');
+  if (!suggestionsDiv) return;
+
+  // input, suggestions 영역 외 클릭시 닫기
+  if (
+    !searchInput.contains(e.target) &&
+    !suggestionsDiv.contains(e.target)
+  ) {
+    hideSuggestions();
+  }
+});

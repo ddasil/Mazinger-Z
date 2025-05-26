@@ -616,3 +616,8 @@ audio {
   background-color: #555;
   font-weight: bold;
 }
+
+.suggestion-item.active {
+  background: #222;
+  color: #fff;
+}
