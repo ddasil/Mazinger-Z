@@ -15,5 +15,7 @@ urlpatterns = [
     path('check_username/', views.check_username, name='check_username'),  # AJAX 용
     path('delete-lyrics/', delete_lyrics, name='delete_lyrics'),
     path('user-generated-lyrics/', user_generated_lyrics, name='user_generated_lyrics'),
+    path('send_verification_code/', views.send_verification_code, name='send_verification_code'),
+    path('verify_email_code/', views.verify_email_code, name='verify_email_code'),
 
 ]

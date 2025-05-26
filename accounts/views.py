@@ -15,7 +15,7 @@ from urllib.parse import urlencode
 from django.views.decorators.csrf import csrf_exempt
 import json
 from lyricsgen.models import GeneratedLyrics
-from django.views.decorators.csrf import csrf_exempt
+from .utils import generate_email_code, send_email_code
 
 def signup_view(request):
     if request.method == 'POST':
@@ -123,3 +123,47 @@ def delete_lyrics(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
+
+# 인증번호 발송
+@csrf_exempt
+def send_verification_code(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        if not email:
+            return JsonResponse({'success': False, 'error': '이메일을 입력하세요.'})
+        code = generate_email_code()
+        request.session['email_verification_code'] = code
+        request.session['email_for_verification'] = email
+        send_email_code(email, code)
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': '잘못된 요청입니다.'})
+
+# 인증번호 검증
+@csrf_exempt
+def verify_email_code(request):
+    if request.method == "POST":
+        input_code = request.POST.get('code')
+        saved_code = request.session.get('email_verification_code')
+        if input_code == saved_code:
+            return JsonResponse({'verified': True})
+        else:
+            return JsonResponse({'verified': False})
+    return JsonResponse({'verified': False, 'error': '잘못된 요청입니다.'})
+
+# 회원가입 최종 처리 시 이메일 인증 확인
+def signup_view(request):
+    if request.method == 'POST':
+        if not request.session.get('email_verification_code'):
+            messages.error(request, '이메일 인증을 완료해주세요.')
+            form = CustomUserCreationForm(request.POST, request.FILES)
+            return render(request, 'signup.html', {'form': form})
+
+        form = CustomUserCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('main')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'signup.html', {'form': form})
+

@@ -14,6 +14,9 @@ PROFILE_CHOICES = [
 ]
 
 class CustomUserCreationForm(UserCreationForm):
+
+    email = forms.EmailField(required=True, label="이메일") 
+
     birthday = forms.DateField(
         widget=forms.SelectDateWidget(years=range(1950, 2024)),
         required=True
@@ -31,7 +34,7 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'password1', 'password2', 'birthday', 'phone_number', 'profile_picture']
+        fields = ['username', 'email', 'password1', 'password2', 'birthday', 'phone_number', 'profile_picture']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -159,3 +159,13 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 브라우저 닫아도 유지
 SESSION_COOKIE_AGE = 60 * 60 * 24    # 1일간 유지 (초 단위)
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'mbcaca0007@gmail.com'       # Gmail 주소
+EMAIL_HOST_PASSWORD = 'mbcaca0007!@#'         # Gmail 앱 비밀번호
+
+# 이메일 설정 (개발용 - 콘솔 출력)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

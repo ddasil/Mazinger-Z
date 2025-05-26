@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const passwordCheck = document.getElementById("password-check");
   const phoneInput = document.getElementById("id_phone_number");
 
-  // ✅ 전화번호 자동 하이픈 및 유효성
+  // 전화번호 자동 하이픈 및 유효성
   function formatPhoneNumber(value) {
     const cleaned = value.replace(/\D/g, "").slice(0, 11);
     if (cleaned.length < 4) return cleaned;
@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", function () {
     return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7, 11)}`;
   }
 
-  function validatePhoneNumber(phone) {
-    return /^010-\d{4}-\d{4}$/.test(phone);
+  function validatePhoneNumber(number) {
+    return /^010-\d{4}-\d{4}$/.test(number);
   }
 
   if (phoneInput) {
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ✅ 아이디 중복 체크
+  // 아이디 중복 체크
   if (usernameInput) {
     usernameInput.addEventListener("input", function () {
       const username = usernameInput.value.trim();
@@ -49,14 +49,14 @@ document.addEventListener("DOMContentLoaded", function () {
             checkMessage.style.color = "red";
           }
         })
-        .catch(err => {
+        .catch(() => {
           checkMessage.textContent = "서버 오류";
           checkMessage.style.color = "orange";
         });
     });
   }
 
-  // ✅ 비밀번호 조건 검사 (JS 실시간 피드백)
+  // 비밀번호 조건 검사 (JS 실시간 피드백)
   if (passwordInput) {
     passwordInput.addEventListener("input", function () {
       const pw = passwordInput.value;
@@ -73,3 +73,65 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+// 인증번호 발송 및 확인
+document.addEventListener("DOMContentLoaded", function () {
+  const sendCodeBtn = document.getElementById('send-code-btn');
+  const verifyCodeBtn = document.getElementById('verify-code-btn');
+  const emailInput = document.getElementById('id_email');
+  const emailSendMsg = document.getElementById('email-send-msg');
+  const emailVerifyMsg = document.getElementById('email-verify-msg');
+  let verified = false;
+
+  sendCodeBtn.addEventListener('click', () => {
+    const email = emailInput.value.trim();
+    if (!email) {
+      emailSendMsg.textContent = '이메일을 입력하세요.';
+      emailSendMsg.style.color = 'red';
+      return;
+    }
+
+    fetch('/accounts/send_verification_code/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `email=${encodeURIComponent(email)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        emailSendMsg.textContent = '인증번호가 발송되었습니다.';
+        emailSendMsg.style.color = 'green';
+      } else {
+        emailSendMsg.textContent = data.error || '발송 실패';
+        emailSendMsg.style.color = 'red';
+      }
+    });
+  });
+
+  verifyCodeBtn.addEventListener('click', () => {
+    const code = document.getElementById('email-code-input').value.trim();
+    if (!code) {
+      emailVerifyMsg.textContent = '인증번호를 입력하세요.';
+      emailVerifyMsg.style.color = 'red';
+      return;
+    }
+
+    fetch('/accounts/verify_email_code/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `code=${encodeURIComponent(code)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.verified) {
+        emailVerifyMsg.textContent = '인증되었습니다.';
+        emailVerifyMsg.style.color = 'green';
+        verified = true;
+      } else {
+        emailVerifyMsg.textContent = '인증번호가 올바르지 않습니다.';
+        emailVerifyMsg.style.color = 'red';
+      }
+    });
+  });
+});
+
