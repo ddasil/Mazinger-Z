@@ -140,17 +140,21 @@
       </section>
 
       <section class="section" id="section2">
-        <h2 class="section2-title">랜덤 추천곡</h2> <!--동건 고침-->
-        <div class="card-container"> <!--동건 고침-->
+        {% if user.is_authenticated %}
+          <h2 class="section2-title">나만의 추천곡</h2>
+        {% else %}
+          <h2 class="section2-title">랜덤 추천곡</h2>
+        {% endif %}
+        <div class="card-container">
           {% for song in cover_songs %}
-          <div class="card" data-index="{{ forloop.counter0 }}"
-            data-link="/music-info/?title={{ song.title|urlencode }}&artist={{ song.artist|urlencode }}"
-            style="background-image: url('{{ song.album_cover_url }}');">
-            <div class="card-info">
-              <p class="card-title">{{ song.title }}</p>
-              <p class="card-artist">{{ song.artist }}</p>
+            <div class="card" data-index="{{ forloop.counter0 }}"
+              data-link="/music-info/?title={{ song.title|urlencode }}&artist={{ song.artist|urlencode }}"
+              style="background-image: url('{{ song.album_cover_url }}');">
+              <div class="card-info">
+                <p class="card-title">{{ song.title }}</p>
+                <p class="card-artist">{{ song.artist }}</p>
+              </div>
             </div>
-          </div>
           {% endfor %}
         </div>
       </section>
