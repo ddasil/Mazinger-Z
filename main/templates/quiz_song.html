@@ -17,16 +17,16 @@
     <h3 class="quiz-title">이 노래의 제목은 무엇일까요?</h3>
 
     <p id="lyricSnippet" class="quiz-snippet">
-      <!-- 용환 수정 -->
+      {% if show_gamecover %}
       <span class="game-cover" id="gameCover" onclick="startGame()">
         <i class="xi-gamepad"></i>&nbsp;Game Start
       </span>
-      <!--  -->
-
+      {% endif %}
     </p>
 
     <div class="form-row">
       <input type="text" id="answerInput" placeholder="노래 제목 입력" autocomplete="off">
+      <button id="retryButton">새로운 문제</button>
       <button id="submitAnswer">제출</button>
     </div>
 

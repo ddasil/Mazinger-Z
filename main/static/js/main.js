@@ -112,12 +112,14 @@ document.querySelectorAll('.content-menu button').forEach(button => {
           };
           document.body.appendChild(script3);
         });
-    } 
-    
-     // 노래퀴즈
+    }
+
+    // 노래퀴즈
     else if (type === 'quiz_song') {
-      function loadQuizContent() {
-        fetch('/quiz_song/')
+      function loadQuizContent(isNewQuiz = false) {
+        // ⭐ 새로운 문제면 no_cover=1 붙여서 요청!
+        const url = isNewQuiz ? '/quiz_song/?no_cover=1' : '/quiz_song/';
+        fetch(url)
           .then(res => res.text())
           .then(html => {
             container.innerHTML = html;
@@ -133,10 +135,10 @@ document.querySelectorAll('.content-menu button').forEach(button => {
             const correctAnswer = containerEl.getAttribute('data-answer');
             const originalLyrics = containerEl.getAttribute('data-lyrics');
             let attemptCount = 0;
-            // 용환수정
+
             function typeLyrics(text, element, i = 0) {
               if (i === 0 && submitButton) {
-                submitButton.disabled = true; // ✅ 시작 시 비활성화
+                submitButton.disabled = true;
                 submitButton.style.opacity = 0.5;
               }
               if (i < text.length) {
@@ -144,10 +146,9 @@ document.querySelectorAll('.content-menu button').forEach(button => {
                 setTimeout(() => typeLyrics(text, element, i + 1), 40);
               } else {
                 if (submitButton) {
-                  submitButton.disabled = false; // ✅ 완료 시 다시 활성화
+                  submitButton.disabled = false;
                   submitButton.style.opacity = 1;
                 }
-                if (typeof callback === "function") callback();
               }
             }
 
@@ -160,22 +161,16 @@ document.querySelectorAll('.content-menu button').forEach(button => {
                 typeLyrics(originalLyrics, lyricSnippet);
               }, 500);
             };
-            // 
 
-            function resetState() {
-              attemptCount = 0;
-              lyricSnippet.innerHTML = originalLyrics;
-              lyricSnippet.style.color = '';
-              answerInput.value = '';
-              answerInput.style.display = 'inline-block';
-              submitButton.style.display = 'inline-block';
-              retryButton.style.display = 'none';
+            // 새로운 문제면 gameCover가 아예 안 뜨므로 바로 타이핑!
+            if (isNewQuiz) {
+              lyricSnippet.innerHTML = '';
+              typeLyrics(originalLyrics, lyricSnippet);
             }
 
             submitButton?.addEventListener('click', () => {
               const userAnswer = answerInput.value.trim().toLowerCase();
               attemptCount++;
-
               if (userAnswer === correctAnswer) {
                 lyricSnippet.innerHTML = `${originalLyrics}<br><span style="color: lightgreen; font-size: 1rem; margin-top: 20px">✅ 정답입니다! (${correctAnswer})</span>`;
                 answerInput.style.display = 'none';
@@ -195,14 +190,13 @@ document.querySelectorAll('.content-menu button').forEach(button => {
 
             retryButton?.addEventListener('click', (event) => {
               event.preventDefault();
-              loadQuizContent();  // ✅ 새로 fetch해서 다시 로드
+              loadQuizContent(true); // 새로운 문제(no_cover=1)
             });
           });
       }
 
-      loadQuizContent(); // ✅ 최초 실행
+      loadQuizContent(false); // 최초만 Game Start
     }
-
     // 노래퀴즈 끝
   });
 });
@@ -312,13 +306,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // ✅ 좋아요 버튼
   const likeButton = document.getElementById("likeButton");
   const countSpan = document.getElementById("likeCountValue");
-  
+
   if (likeButton && countSpan) {
     likeButton.addEventListener("click", () => {
       const title = likeButton.dataset.title;
       const artist = likeButton.dataset.artist;
-      
-  
+
+
       fetch("/check-auth/")
         .then(res => res.json())
         .then(data => {
@@ -328,7 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "/accounts/login/?next=" + nextUrl;
             return;
           }
-  
+
           fetch("/toggle-like/", {
             method: "POST",
             headers: {
@@ -337,20 +331,20 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             body: JSON.stringify({ title, artist })
           })
-          .then(res => res.json())
-          .then(result => {
-            const isLiked = result.status === "added";
-            const newIcon = isLiked ? "❤️" : "🤍";
-            const count = result.count ?? 0;
-  
-            likeButton.innerText = newIcon;
-            countSpan.innerText = count;
-            updateLikedListInline();
-          });
+            .then(res => res.json())
+            .then(result => {
+              const isLiked = result.status === "added";
+              const newIcon = isLiked ? "❤️" : "🤍";
+              const count = result.count ?? 0;
+
+              likeButton.innerText = newIcon;
+              countSpan.innerText = count;
+              updateLikedListInline();
+            });
         });
     });
   }
-    
+
 });
 
 function getCSRFToken() {

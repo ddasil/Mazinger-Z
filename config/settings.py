@@ -169,3 +169,9 @@ EMAIL_HOST_PASSWORD = 'mbcaca0007!@#'         # Gmail 앱 비밀번호
 
 # 이메일 설정 (개발용 - 콘솔 출력)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}

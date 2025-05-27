@@ -15,7 +15,7 @@ PROFILE_CHOICES = [
 
 class CustomUserCreationForm(UserCreationForm):
 
-    email = forms.EmailField(required=True, label="이메일") 
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'})) 
 
     birthday = forms.DateField(
         widget=forms.SelectDateWidget(years=range(1950, 2024)),

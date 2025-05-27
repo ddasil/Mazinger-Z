@@ -1,13 +1,16 @@
+/* 오류 메시지 */
 .error-msg {
   font-size: 0.85em;
   color: red;
 }
 
+/* 확인 메시지 */
 .check-msg {
   font-size: 0.85em;
   color: yellowgreen;
 }
 
+/* 추가 입력 정보 안내 */
 .input-info {
   font-size: 0.8em;
   color: gray;
@@ -15,44 +18,81 @@
   margin-bottom: 10px;
 }
 
-/* 이메일 인증번호 발송/입력 영역 전체 */
-.email-verification-group p {
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-  margin-bottom: 15px !important; /* 줄 간격 */
+/* 이메일 입력칸 + 발송 버튼 2:1 비율 */
+.email-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-/* 이메일 인증번호 입력 라벨 */
 .email-verification-group label {
   min-width: 100px;
   color: white;
 }
 
-/* 인증번호 입력칸 */
-#email-code-input {
-  flex-grow: 1 !important;
-  padding: 8px;
-  font-size: 1rem;
-  min-width: 0 !important; /* flex-grow 정상 동작 위해 */
+/* 이메일 입력칸 + 인증번호 발송 버튼 컨테이너 */
+.email-input-group {
+  display: flex;
+  width: 100%;
+  gap: 10px;
 }
 
-/* 인증번호 발송 버튼, 인증 확인 버튼 스타일 (SIGN UP 버튼과 동일) */
-#send-code-btn,
-#verify-code-btn {
+/* 이메일 입력칸 */
+.email-input-group .signup-input {
+  flex: 2;
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #333;
+  color: #fff;
+}
+
+/* 인증번호 발송 버튼 */
+.email-input-group #send-code-btn {
+  flex: 1;
+  white-space: nowrap;
   padding: 10px 16px;
   cursor: pointer;
-  background-color: #222; /* btn-glitch 버튼 기본 배경 */
+  background-color: #222;
   color: white;
   border: none;
   font-weight: bold;
   font-size: 1rem;
   border-radius: 4px;
   transition: background-color 0.3s ease;
-  flex-shrink: 0 !important; /* 버튼 크기 줄어드는 것 방지 */
+  flex-shrink: 0;
 }
 
 #send-code-btn:hover,
 #verify-code-btn:hover {
-  background-color: #555; /* 호버 시 색상 변경 */
+  background-color: #555;
+}
+
+/* 인증번호 입력칸 */
+#email-code-input {
+  flex-grow: 1;
+  padding: 8px;
+  font-size: 1rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #333;
+  color: #fff;
+  min-width: 0; /* flex-grow 정상 동작 위해 */
+}
+
+/* 인증번호 확인 버튼 */
+#verify-code-btn {
+  padding: 10px 16px;
+  cursor: pointer;
+  background-color: #222;
+  color: white;
+  border: none;
+  font-weight: bold;
+  font-size: 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  flex-shrink: 0;
 }

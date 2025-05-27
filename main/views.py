@@ -234,10 +234,15 @@ def quiz_song_view(request):
     ))
 
     if not songs:
-        return render(request, 'quiz_song.html', {'quiz_song': None})
+        return render(request, 'quiz_song.html', {'quiz_song': None, 'show_gamecover': True})
 
     quiz_song = random.choice(songs)
-    return render(request, 'quiz_song.html', {'quiz_song': quiz_song})
+    show_gamecover = not request.GET.get("no_cover")  # 핵심!
+    return render(request, 'quiz_song.html', {
+        'quiz_song': quiz_song,
+        'show_gamecover': show_gamecover,
+    })
+
 
 def get_popular_tags(limit=5):
     tags = TagSearchLog.objects.values_list("tag", flat=True)
