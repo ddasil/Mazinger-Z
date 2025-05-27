@@ -97,8 +97,6 @@
 .label {
   text-align: left;
   /* ✅ 왼쪽으로 고정 정렬 */
-  font-family: monospace;
-  /* ✅ 글자폭 일정한 폰트 사용 */
   padding-left: 4px;
   /* ✅ 살짝 들여쓰기 */
   font-weight: 500;
