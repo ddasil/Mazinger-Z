@@ -25,6 +25,54 @@ document.addEventListener('click', (event) => {
 });
 
 // ----------------- CARD SLIDER -----------------
+// ---------------- TITLE ANIMATION -------------
+document.addEventListener('DOMContentLoaded', () => {
+  const section2Title = document.querySelector('.section2-title');
+  const section2 = document.querySelector('#section2');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        startCustomFlicker(section2Title);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  observer.observe(section2);
+
+  function startCustomFlicker(element) {
+    // 각각의 켜짐 상태와 꺼짐 상태 시간 배열
+    const onTimes = [150, 60, 80, 50, 170, 0];
+    const offTimes = [250, 100, 100, 50, 100, 450];
+
+    let flickerIndex = 0;
+
+    function flickerOn() {
+      element.classList.add('visible'); // 켜기
+      if (flickerIndex >= onTimes.length) {
+         // 마지막 켜짐은 부드럽게 켜지도록 트랜지션 활성화!
+        element.style.transition = 'opacity 0.3s, text-shadow 0.5s';
+        element.classList.add('visible'); // 마지막엔 부드럽게 켜짐
+        return;
+      }
+      setTimeout(() => {
+        flickerOff();
+      }, onTimes[flickerIndex]);
+    }
+
+    function flickerOff() {
+      element.classList.remove('visible'); // 끄기
+      setTimeout(() => {
+        flickerIndex++;
+        flickerOn();
+      }, offTimes[flickerIndex]);
+    }
+
+    flickerOn(); // 첫 깜빡임 시작
+  }
+});
+
+
 const cards = document.querySelectorAll('.card');
 let currentIndex = 0;
 
@@ -112,9 +160,9 @@ document.querySelectorAll('.content-menu button').forEach(button => {
           };
           document.body.appendChild(script3);
         });
-    } 
-    
-     // 노래퀴즈
+    }
+
+    // 노래퀴즈
     else if (type === 'quiz_song') {
       function loadQuizContent() {
         fetch('/quiz_song/')
@@ -312,12 +360,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // ✅ 좋아요 버튼
   const likeButton = document.getElementById("likeButton");
   const countSpan = document.getElementById("likeCountValue");
-  
+
   if (likeButton && countSpan) {
     likeButton.addEventListener("click", () => {
       const title = likeButton.dataset.title;
       const artist = likeButton.dataset.artist;
-  
+
       fetch("/check-auth/")
         .then(res => res.json())
         .then(data => {
@@ -327,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "/accounts/login/?next=" + nextUrl;
             return;
           }
-  
+
           fetch("/toggle-like/", {
             method: "POST",
             headers: {
@@ -336,20 +384,20 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             body: JSON.stringify({ title, artist })
           })
-          .then(res => res.json())
-          .then(result => {
-            const isLiked = result.status === "added";
-            const newIcon = isLiked ? "❤️" : "🤍";
-            const count = result.count ?? 0;
-  
-            likeButton.innerText = newIcon;
-            countSpan.innerText = count;
-            updateLikedListInline();
-          });
+            .then(res => res.json())
+            .then(result => {
+              const isLiked = result.status === "added";
+              const newIcon = isLiked ? "❤️" : "🤍";
+              const count = result.count ?? 0;
+
+              likeButton.innerText = newIcon;
+              countSpan.innerText = count;
+              updateLikedListInline();
+            });
         });
     });
   }
-    
+
 });
 
 function getCSRFToken() {
