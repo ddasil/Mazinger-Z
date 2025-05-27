@@ -28,7 +28,7 @@
   border-left: 6px solid #444;
   padding-left: 12px;
   font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .post-title {
@@ -186,4 +186,89 @@ form[action*="reply"] {
 .back-arrow:hover {
   background-color: #e9ba00;
   color: black !important;
+}
+
+@media (max-width: 900px) {
+  .board-container {
+    padding: 30px 14px;
+    max-width: 98vw;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .contact-container {
+    padding: 18px 3px;
+  }
+
+  .board-container {
+    margin-top: 15px;
+    padding: 12px 2vw;
+    border-radius: 6px;
+    box-shadow: none;
+  }
+
+  .board-container h1,
+  .post-title,
+  .user-post-box .post-title {
+    font-size: 1.12rem;
+    padding-left: 8px;
+    border-left-width: 3px;
+  }
+
+  .board-container p,
+  .user-post-box p,
+  .admin-reply-text {
+    font-size: 0.97rem;
+  }
+
+  .sub-button,
+  .ans-button {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 0;
+    margin-right: 0;
+    margin-top: 10px;
+    font-size: 0.97rem;
+    position: static !important;
+  }
+
+  form[action*="delete"] .sub-button,
+  form[action*="update"] .sub-button {
+    position: static !important;
+    width: 100%;
+    margin: 10px 0 0 0;
+    right: auto;
+    bottom: auto;
+  }
+
+  .user-post-box {
+    padding: 12px 8px;
+    border-radius: 4px;
+    margin-bottom: 18px;
+  }
+
+  .back-arrow {
+    padding: 7px 10px;
+    font-size: 0.93rem;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+
+  form[action*="reply"] {
+    position: static !important;
+    width: 100%;
+    margin: 10px 0 0 0;
+    right: auto;
+    bottom: auto;
+  }
+
+  form[action*="reply"] .ans-button {
+    position: static !important;
+    width: 100%;
+    margin: 10px 0 0 0;
+    right: auto;
+    bottom: auto;
+  }
+
 }

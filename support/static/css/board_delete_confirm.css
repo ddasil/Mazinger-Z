@@ -70,3 +70,42 @@ a.sub-button {
 a.sub-button:hover {
   background-color: #aaa;
 }
+
+
+/* --- 기존 CSS 생략 --- */
+
+@media (max-width: 700px) {
+  .contact-container {
+    padding: 50px 7px;
+  }
+  .board-container {
+    padding: 28px 5px;
+    border-radius: 8px;
+    box-shadow: none;
+  }
+  .contact-container h2 {
+    font-size: 1.14rem;
+  }
+  .contact-container p {
+    font-size: 1rem;
+  }
+  form {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+}
+@media (max-width: 480px) {
+  .contact-container {
+    padding: 18px 0;
+  }
+  .board-container {
+    padding: 10px 1px;
+  }
+  .sub-button {
+    padding: 10px 0;
+    font-size: 0.98rem;
+    border-radius: 6px;
+    width: 80%;
+  }
+}

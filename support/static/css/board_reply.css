@@ -94,3 +94,39 @@
   color: #4fc3f7; /* 하늘색 계열 */
   font-weight: bold;
 }
+
+@media (max-width: 900px) {
+  .board-container {
+    padding: 26px 7px;
+    max-width: 98vw;
+  }
+}
+@media (max-width: 600px) {
+  .contact-container {
+    padding: 18px 2px;
+  }
+  .board-container {
+    padding: 12px 1vw;
+    border-radius: 6px;
+    box-shadow: none;
+  }
+  .board-container h1 {
+    font-size: 1.09rem;
+    margin-bottom: 14px;
+  }
+  .board-container p,
+  .form-group label,
+  .form-group textarea {
+    font-size: 0.96rem;
+  }
+  .ans-button {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.97rem;
+    padding: 12px 0;
+    border-radius: 6px;
+  }
+  .form-group textarea {
+    padding: 8px 8px;
+  }
+}

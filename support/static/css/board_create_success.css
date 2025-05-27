@@ -13,6 +13,7 @@
   align-items: center;
   width: 100%;
   max-width: 700px;
+  z-index: 999;
 }
 
 .board-container {
@@ -54,4 +55,37 @@ form .back-button[type="submit"] {
 
 form .back-button[type="submit"]:hover {
   background-color: #444;
+}
+
+/* --- 기존 CSS 생략 --- */
+
+@media (max-width: 700px) {
+  .contact-container {
+    max-width: 98vw;
+    padding: 50px 5px;
+  }
+  .board-container {
+    padding: 24px 8px;
+    border-radius: 7px;
+  }
+  .board-container h1 {
+    font-size: 1.12rem;
+  }
+  .contact-message {
+    font-size: 0.96rem;
+    margin-bottom: 28px;
+  }
+}
+@media (max-width: 480px) {
+  .contact-wrapper {
+    padding: 15px 1px;
+  }
+  .board-container {
+    padding: 12px 2px;
+  }
+  form .back-button[type="submit"] {
+    padding: 10px 6px;
+    font-size: 0.95rem;
+    border-radius: 6px;
+  }
 }
