@@ -5,7 +5,10 @@
 /* 추천 입력 화면 */
 .recommend-container {
   min-height: 100vh;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   padding-top: var(--navbar-height);
 }
 
@@ -15,11 +18,7 @@
   -webkit-text-fill-color: transparent;
   font-size: 2.5rem;
   margin-bottom: 50px;
-  font-family: 'Raleway', sans-serif;
-}
-
-.icon-music {
-  margin-right: 10px;
+  text-align: center; /* 중앙 정렬 */
 }
 
 .recommend-form {
@@ -27,6 +26,10 @@
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.icon-music {
+  margin-right: 10px;
 }
 
 .input-wrapper {
@@ -123,7 +126,6 @@
 
 .result-title h1 {
   font-size: 2rem;
-  font-family: 'Raleway', sans-serif;
   background: linear-gradient(45deg, yellow, #9d5d18);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
