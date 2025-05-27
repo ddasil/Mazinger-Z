@@ -573,7 +573,7 @@ def process_row(row):
             'normalized_genre': normalized_genre,
             'album_cover_url': album_cover,
             'lylics': lyrics,
-            'release_date': release_date,
+            'release_date': release_date if release_date else None,   # 0526 동건 추가
             'genius_id': genius_id,
             'emotion_tags': emotion_tags,
             'keywords': keywords

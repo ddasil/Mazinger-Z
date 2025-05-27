@@ -18,33 +18,42 @@ from .models import TagSearchLog
 from collections import Counter
 from django.utils.http import urlencode
 
-def main(request):
-    songs = list(ChartSong.objects.filter(
-        lylics__isnull=False
-    ).exclude(
-        lylics=''
-    ).exclude(
-        lylics__exact='None'
-    ))
+#0526 동건 추가
+import os
+import numpy as np
+import tensorflow as tf
+import pickle
+from django.conf import settings
+import sys
 
-    if not songs:
-        return render(request, 'index.html', {
-            'quiz_song': None,
-            'cover_songs': [],
-            'popular_tags': get_popular_tags(),
-        })
 
-    first_song = random.choice(songs)
+# def main(request):
+#     songs = list(ChartSong.objects.filter(
+#         lylics__isnull=False
+#     ).exclude(
+#         lylics=''
+#     ).exclude(
+#         lylics__exact='None'
+#     ))
 
-    all_cover_songs = list(ChartSong.objects.exclude(album_cover_url=''))
-    random.shuffle(all_cover_songs)
-    top5 = all_cover_songs[:5]
+#     if not songs:
+#         return render(request, 'index.html', {
+#             'quiz_song': None,
+#             'cover_songs': [],
+#             'popular_tags': get_popular_tags(),
+#         })
 
-    return render(request, 'index.html', {
-        'quiz_song': first_song,
-        'cover_songs': top5,
-        'popular_tags': get_popular_tags(),  # ✅ 이 줄 꼭 포함!
-    })
+#     first_song = random.choice(songs)
+
+#     all_cover_songs = list(ChartSong.objects.exclude(album_cover_url=''))
+#     random.shuffle(all_cover_songs)
+#     top5 = all_cover_songs[:5]
+
+#     return render(request, 'index.html', {
+#         'quiz_song': first_song,
+#         'cover_songs': top5,
+#         'popular_tags': get_popular_tags(),  # ✅ 이 줄 꼭 포함!
+#     })
 
 def preference_view(request):
     return render(request, "preference.html") # 메인 음악 취향 검사
@@ -386,19 +395,22 @@ def add_or_remove_like(request):
     title = data.get("title")
     artist = data.get("artist")
     cover_url = data.get("cover_url", "")
+    song = ChartSong.objects.filter(title=title, artist=artist).first() # 0526 동건 추가
 
     obj, created = Lovelist.objects.get_or_create(
         user=request.user,
         title=title,
         artist=artist,
-        defaults={'cover_url': cover_url, 'is_liked': True}
+        defaults={'cover_url': cover_url, 'is_liked': True, 'song': song } # 0526 동건 수정 (아예 처음부터 chartsongs 정보 들어가게)
     )
 
     # ✅ 이미 존재하면 좋아요 상태 반전
     if not created:
         obj.is_liked = not obj.is_liked
-        if not obj.cover_url and cover_url:
+        if (not obj.cover_url or obj.cover_url == "") and cover_url: # 0526 동건 수정(url 빈 문자열로 저장 방지)
             obj.cover_url = cover_url
+        if obj.song is None and song: # 0526 동건 추가 ✅ song이 비어 있으면 지금 연결
+            obj.song = song
         obj.save()
         count = Lovelist.objects.filter(title=title, artist=artist, is_liked=True).count()
         return JsonResponse({
@@ -430,3 +442,154 @@ def liked_songs_html(request):
     if not liked_songs:
         html = "<li>좋아요한 곡이 없습니다.</li>"
     return HttpResponse(html)
+
+# 0526 동건 추가
+MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
+model = tf.keras.models.load_model(os.path.join(MODEL_DIR, 'final_model.h5'))
+with open(os.path.join(MODEL_DIR, 'tfidf_vectorizer.pkl'), 'rb') as f:
+    tfidf = pickle.load(f)
+
+# def main(request):
+#     # ✅ 랜덤 추천 퀴즈용 곡
+#     quiz_song = None
+#     songs = list(ChartSong.objects.filter(
+#         lylics__isnull=False
+#     ).exclude(lylics='').exclude(lylics__exact='None'))
+#     if songs:
+#         quiz_song = random.choice(songs)
+
+#     # ✅ 기본 추천 (랜덤 5개)
+#     all_cover_songs = list(ChartSong.objects.exclude(album_cover_url=''))
+#     random.shuffle(all_cover_songs)
+#     top5 = all_cover_songs[:5]
+
+#     # ✅ 로그인된 사용자라면 실제 추천곡 계산
+#     if request.user.is_authenticated:
+#         liked_songs_qs = Lovelist.objects.filter(user=request.user, is_liked=True)
+#         liked_song_ids = list(liked_songs_qs.values_list('song_id', flat=True))
+
+#         if liked_song_ids:
+#             liked_songs = ChartSong.objects.filter(id__in=liked_song_ids)
+#             liked_texts = [f"{s.normalized_genre} {s.emotion_tags} {s.keywords}" for s in liked_songs]
+
+#             if liked_texts:
+#                 liked_vecs = tfidf.transform(liked_texts)
+#                 song_vec_mean = np.asarray(liked_vecs.mean(axis=0)).flatten()
+
+#                 emotion_list = ' '.join([s.emotion_tags for s in liked_songs]).split()
+#                 keyword_list = ' '.join([s.keywords for s in liked_songs]).split()
+#                 def build_dist(items, vocab):
+#                     count = {w: items.count(w) for w in vocab}
+#                     total = sum(count.values()) or 1
+#                     return [count.get(w, 0) / total for w in vocab]
+#                 all_emotions = sorted(set(' '.join(ChartSong.objects.values_list('emotion_tags', flat=True)).split()))
+#                 all_keywords = sorted(set(' '.join(ChartSong.objects.values_list('keywords', flat=True)).split()))
+#                 emotion_dist = build_dist(emotion_list, all_emotions)
+#                 keyword_dist = build_dist(keyword_list, all_keywords)
+
+#                 user_meta = [request.user.age, 0 if request.user.gender == 'M' else 1] if hasattr(request.user, 'age') else [30, 0]
+#                 user_vector = np.hstack((song_vec_mean, user_meta, emotion_dist, keyword_dist))
+
+#                 not_liked_songs = ChartSong.objects.exclude(id__in=liked_song_ids)
+#                 scores = []
+#                 for song in not_liked_songs:
+#                     song_text = f"{song.normalized_genre} {song.emotion_tags} {song.keywords}"
+#                     song_vec = tfidf.transform([song_text]).toarray().flatten()
+#                     sample = np.hstack((user_vector, song_vec)).reshape(1, -1)
+#                     pred = model.predict(sample, verbose=0)[0][0]
+#                     scores.append((song, pred))
+
+#                 top5 = [s[0] for s in sorted(scores, key=lambda x: x[1], reverse=True)[:5]]
+
+#     # ✅ 인기 검색어 포함해서 렌더링
+#     return render(request, 'index.html', {
+#         'quiz_song': quiz_song,
+#         'cover_songs': top5,
+#         'popular_tags': get_popular_tags(),
+#     })
+
+def main(request):
+    print("💡 main 함수 진입!", flush=True)
+
+    quiz_song = None
+    songs = list(ChartSong.objects.filter(
+        lylics__isnull=False
+    ).exclude(lylics='').exclude(lylics__exact='None'))
+    if songs:
+        quiz_song = random.choice(songs)
+
+    all_cover_songs = list(ChartSong.objects.exclude(album_cover_url=''))
+    random.shuffle(all_cover_songs)
+    top5 = all_cover_songs[:5]
+
+    if request.user.is_authenticated:
+        print("✅ 유저 인증됨!", flush=True)
+        liked_songs_qs = Lovelist.objects.filter(user=request.user, is_liked=True)
+        liked_song_ids = list(liked_songs_qs.values_list('song_id', flat=True))
+        print(f"✅ 좋아요한 song_id: {liked_song_ids}", flush=True)
+
+        if liked_song_ids:
+            liked_songs = ChartSong.objects.filter(id__in=liked_song_ids)
+            liked_texts = [f"{s.normalized_genre} {s.emotion_tags} {s.keywords}" for s in liked_songs]
+
+            if liked_texts:
+                liked_vecs = tfidf.transform(liked_texts)
+                song_vec_mean = np.asarray(liked_vecs.mean(axis=0)).flatten()
+
+                # ✅ 평탄화 및 None 제거
+                def flatten(l):
+                    for el in l:
+                        if isinstance(el, list):
+                            yield from flatten(el)
+                        else:
+                            yield el
+
+                # ✅ liked 곡 태그/키워드 평탄화
+                emotion_list = [e for e in flatten([s.emotion_tags for s in liked_songs]) if e]
+                keyword_list = [k for k in flatten([s.keywords for s in liked_songs]) if k]
+
+                # ✅ 고정된 vocab 로드
+                with open(os.path.join(MODEL_DIR, 'trained_emotions.pkl'), 'rb') as f:
+                    all_emotions = pickle.load(f)
+                with open(os.path.join(MODEL_DIR, 'trained_keywords.pkl'), 'rb') as f:
+                    all_keywords = pickle.load(f)
+
+                # ✅ 분포 계산
+                def build_dist(items, vocab):
+                    count = {w: items.count(w) for w in vocab}
+                    total = sum(count.values()) or 1
+                    return [count.get(w, 0) / total for w in vocab]
+
+                emotion_dist = build_dist(emotion_list, all_emotions)
+                keyword_dist = build_dist(keyword_list, all_keywords)
+
+                user_meta = [request.user.age, 0 if request.user.gender == 'M' else 1] if hasattr(request.user, 'age') else [30, 0]
+                user_vector = np.hstack((song_vec_mean, user_meta, emotion_dist, keyword_dist))
+
+                # ✅ input shape 체크 로그
+                expected_input_shape = model.input_shape[1]
+                actual_input_shape = len(user_vector) + len(song_vec_mean)
+                print(f"🎯 모델 input shape: {expected_input_shape}, "
+                      f"현재 요청 input shape: {actual_input_shape}", flush=True)
+                print(f"🎯 (차이: {abs(expected_input_shape - actual_input_shape)})", flush=True)
+
+                not_liked_songs = ChartSong.objects.exclude(id__in=liked_song_ids)
+                scores = []
+                for song in not_liked_songs:
+                    song_text = f"{song.normalized_genre} {song.emotion_tags} {song.keywords}"
+                    song_vec = tfidf.transform([song_text]).toarray().flatten()
+                    sample = np.hstack((user_vector, song_vec)).reshape(1, -1)
+                    pred = model.predict(sample, verbose=0)[0][0]
+                    scores.append((song, pred))
+
+                top5 = [s[0] for s in sorted(scores, key=lambda x: x[1], reverse=True)[:5]]
+
+                print("🎵 [최종 추천곡 TOP5]:")
+                for s, score in sorted(scores, key=lambda x: x[1], reverse=True)[:5]:
+                    print(f"🎵 추천곡: {s.title} (점수: {score:.4f})", flush=True)
+
+    return render(request, 'index.html', {
+        'quiz_song': quiz_song,
+        'cover_songs': top5,
+        'popular_tags': get_popular_tags(),
+    })
