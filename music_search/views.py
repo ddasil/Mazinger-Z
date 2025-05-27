@@ -13,6 +13,8 @@ from .models import TaggedSong, FullLyrics
 from chartsongs.models import ChartSong
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import re
+import unicodedata
 
 # Spotify API 키 설정
 SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
@@ -22,7 +24,7 @@ spotify_client = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_id=SPOTIPY_CLIENT_ID,
     client_secret=SPOTIPY_CLIENT_SECRET
 ))
-
+print("✅ 확인:", os.environ.get("GENIUS_TOKEN"))
 
 load_dotenv()
 
@@ -32,6 +34,26 @@ genius = lyricsgenius.Genius(GENIUS_TOKEN, skip_non_songs=True, excluded_terms=[
 genius.timeout = 15
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+
+# ✅ genre를 한국어로 변환하는 함수
+GENRE_MAP = {
+    'k-pop': '댄스', 'k-rap': '랩/힙합', 'k-ballad': '발라드', 'k-rock': '록/메탈',
+    'soundtrack': 'OST', 'pop': '팝', 'r&b': '알앤비', 'hip hop': '랩/힙합',
+    'indie': '인디', 'edm': '일렉트로닉', 'electronic': '일렉트로닉', 'house': '하우스',
+    'techno': '테크노', 'jazz': '재즈', 'blues': '블루스', 'folk': '포크',
+    'classical': '클래식', 'reggae': '레게'
+}
+
+def normalize_genre(genre):
+    if not genre:
+        return '기타'
+    genre_parts = [g.strip().lower() for g in genre.split(',')]
+    for g in genre_parts:
+        if g in GENRE_MAP:
+            return GENRE_MAP[g]
+    return genre  # 못 찾으면 원문 그대로
+
 
 # 1. 메인 검색 페이지 렌더링
 def search_view(request):
@@ -103,7 +125,26 @@ def lyrics_info_view(request):
         'is_favorite': False,
     })
 
-# 5. Genius API + GPT로 다국어 가사 수집 및 저장
+
+# ✅ 제목 정제: 괄호 등 제거
+def clean_title(title: str) -> str:
+    return re.sub(r'\(.*?\)', '', title).strip()
+
+# ✅ 아티스트명 정제: 괄호 안 영문 우선, 없으면 괄호 제거
+def clean_artist_name(artist: str) -> str:
+    match = re.search(r'\(([A-Za-z0-9\- ]+)\)', artist)
+    if match:
+        return match.group(1).strip()
+    return re.sub(r'\s*\(.*?\)', '', artist).strip()
+
+# ✅ 유니코드 정규화 (혼합 문자 정리)
+def normalize_title(title: str) -> str:
+    return unicodedata.normalize("NFKC", title)
+
+# ✅ 아티스트명 유니코드 정규화 (혼합 문자 정리)
+def normalize_artist_name(artist: str) -> str:
+    return unicodedata.normalize("NFKC", artist)
+
 @csrf_exempt
 def get_lyrics(request):
     if request.method == "POST":
@@ -129,6 +170,10 @@ def get_lyrics(request):
         song = genius.search_song(title, artist)
         if not song or not song.lyrics:
             return JsonResponse({"error": "No song found on Genius"}, status=404)
+        
+        # 🔥 Genius가 아티스트/타이틀을 뒤바꿔 리턴할 경우 대비 → 강제로 입력값으로 덮어쓰기
+        song.title = title
+        song.artist = artist
 
         cleaned_lyrics = clean_lyrics(song.lyrics)
         ko = translate_to("한국어", cleaned_lyrics)
@@ -142,31 +187,76 @@ def get_lyrics(request):
         )
 
         try:
-            genius_id = song.id
+            # ✅ 정제: title, artist, 유니코드 + 괄호 제거
+            title = normalize_title(clean_title(title))
+            artist = normalize_artist_name(clean_artist_name(artist))
+
+            # ✅ 앨범커버
             album_cover_url = song.song_art_image_url
+
+            # ✅ 발매일
             release_str = getattr(song, 'release_date', None)
             release_date = parse_release_date(release_str)
 
-            if not ChartSong.objects.filter(genius_id=genius_id).exists():
-                ChartSong.objects.create(
-                    title=title,
-                    artist=artist,
-                    normalized_genre=get_combined_genre(title, artist),  # ✅ 필수 수정
-                    lylics=cleaned_lyrics,
-                    emotion_tags=extract_tags_from_lyrics(cleaned_lyrics),
-                    keywords=extract_tags_from_lyrics(cleaned_lyrics),
-                    album_cover_url=album_cover_url,
-                    release_date=release_date,
-                    genius_id=genius_id
-                )
-                print(f"✅ ChartSong 저장 완료: {artist} - {title}")
+            # ✅ 장르: Spotify → Last.fm → 한국어로 정규화!
+            genre = get_spotify_genre(title, artist) or get_lastfm_genre(title, artist)
+            normalized_genre = normalize_genre(genre) if genre else '기타'  # 🔥 여기서 한글로 변환!
+
+            # ✅ 감정태그/키워드 추출
+            emotion_tags = extract_tags_from_lyrics(cleaned_lyrics)
+            keywords = extract_tags_from_lyrics(cleaned_lyrics)
+
+            # ✅ ChartSong DB에 저장 (이미 있으면 업데이트만)
+            obj, created = ChartSong.objects.get_or_create(
+                title=title,
+                artist=artist,
+                defaults={
+                    'normalized_genre': normalized_genre,
+                    'album_cover_url': album_cover_url,
+                    'lylics': cleaned_lyrics,
+                    'release_date': release_date,
+                    'genius_id': song.id,
+                    'emotion_tags': [f"#{tag}" for tag in emotion_tags],
+                    'keywords': [f"#{kw}" for kw in keywords],
+                }
+            )
+
+            updated = False
+            if not obj.lylics and cleaned_lyrics:
+                obj.lylics = cleaned_lyrics
+                updated = True
+            if not obj.album_cover_url and album_cover_url:
+                obj.album_cover_url = album_cover_url
+                updated = True
+            if not obj.release_date and release_date:
+                obj.release_date = release_date
+                updated = True
+            if not obj.genius_id:
+                obj.genius_id = song.id
+                updated = True
+            if not obj.normalized_genre and normalized_genre:
+                obj.normalized_genre = normalized_genre
+                updated = True
+            if not obj.emotion_tags and emotion_tags:
+                obj.emotion_tags = [f"#{tag}" for tag in emotion_tags]
+                updated = True
+            if not obj.keywords and keywords:
+                obj.keywords = [f"#{kw}" for kw in keywords]
+                updated = True
+
+            if updated:
+                obj.save()
+                print(f"✅ ChartSong 업데이트됨: {artist} - {title}")
+            elif created:
+                print(f"✅ ChartSong 신규저장: {artist} - {title}")
             else:
-                print(f"ℹ️ 이미 존재함 (ChartSong): {artist} - {title}")
+                print(f"⏩ 이미 존재 (ChartSong): {artist} - {title}")
 
         except Exception as e:
             import traceback
             print("❌ ChartSong 저장 중 오류 발생")
             traceback.print_exc()
+
 
         return JsonResponse({
             "lyrics": cleaned_lyrics,
@@ -177,16 +267,25 @@ def get_lyrics(request):
         })
     return JsonResponse({'error': 'Only POST requests allowed'}, status=405)
 
+
 # 보조 함수: 가사 정제
-def clean_lyrics(raw):
-    skip_keywords = ["Contributors", "Translations", "Romanization"]
-    section_tags = ["[Chorus", "[Verse", "[Bridge"]
-    lines = raw.splitlines()
-    return "\n".join([
-        line.strip() for line in lines
-        if line.strip() and not any(kw in line for kw in skip_keywords)
-        and not any(line.startswith(tag) for tag in section_tags)
-    ])
+def clean_lyrics(raw_lyrics: str) -> str:
+    lines = raw_lyrics.strip().splitlines()
+
+    # ✅ 1. Contributor, Translations 등 정보 라인 제거
+    lines = [line for line in lines if not re.search(r'(contributor|translator|romanization|translations)', line.lower())]
+
+    # ✅ 2. 가사 외 영어 설명, 특수문자 라인 제거 (예: "To ma so special lady" 등)
+    lines = [line for line in lines if not re.match(r'^[a-zA-Z]', line.strip())]
+
+    # ✅ 3. 빈 줄 제거
+    lines = [line.strip() for line in lines if line.strip()]
+
+    # ✅ 4. 중복 공백 라인 최소화
+    cleaned = '\n'.join(lines)
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+
+    return cleaned.strip()
 
 # 보조 함수: 발매일 파싱
 def parse_release_date(release_str):

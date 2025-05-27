@@ -25,9 +25,13 @@ function closeModal() {
   editModal.classList.remove("show");
 }
 
-// 🧪 닉네임 유효성 검사 (한글, 영문, 숫자, 밑줄만 허용)
+// 🧪 닉네임 유효성 검사 (한글, 영문, 숫자, 밑줄만 허용 + 욕설 감지)
+const badWords = ["시발", "병신", "개새끼", "fuck", "shit", "asshole"];  // 🚀 추가
+
 function validateNickname(nickname) {
-  return /^[\w가-힣]+$/.test(nickname);
+  const basicValid = /^[\w가-힣]+$/.test(nickname);
+  const hasBadWord = badWords.some(word => nickname.includes(word));
+  return basicValid && !hasBadWord;  // 🚀 욕설 있으면 false 반환
 }
 
 // ✅ 닉네임 중복 검사 (백엔드 AJAX)
@@ -83,7 +87,11 @@ function updateSubmitState() {
   // ⚠️ 닉네임 오류 표시
   if (!nicknameValid) {
     nicknameInput.style.border = "2px solid red";
-    jsNicknameError.innerText = "한글, 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.";
+    if (badWords.some(word => nicknameInput.value.includes(word))) {
+      jsNicknameError.innerText = "닉네임에 부적절한 단어가 포함되었습니다.";
+    } else {
+      jsNicknameError.innerText = "한글, 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.";
+    }
   } else if (isDuplicate) {
     nicknameInput.style.border = "2px solid red";
     jsNicknameError.innerText = "이미 사용 중인 닉네임입니다.";
