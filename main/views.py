@@ -508,6 +508,7 @@ with open(os.path.join(MODEL_DIR, 'tfidf_vectorizer.pkl'), 'rb') as f:
 #         'popular_tags': get_popular_tags(),
 #     })
 
+# 0527 동건 수정
 def main(request):
     print("💡 main 함수 진입!", flush=True)
 
@@ -582,11 +583,32 @@ def main(request):
                     pred = model.predict(sample, verbose=0)[0][0]
                     scores.append((song, pred))
 
-                top5 = [s[0] for s in sorted(scores, key=lambda x: x[1], reverse=True)[:5]]
+                top20 = [s[0] for s in sorted(scores, key=lambda x: x[1], reverse=True)[:20]]
+                print(f"🎵 모델 추천 후보 개수: {len(top20)}", flush=True)
 
-                print("🎵 [최종 추천곡 TOP5]:")
-                for s, score in sorted(scores, key=lambda x: x[1], reverse=True)[:5]:
-                    print(f"🎵 추천곡: {s.title} (점수: {score:.4f})", flush=True)
+                # ✅ 모델 추천곡 3곡 랜덤 샘플링
+                model_top3 = random.sample(top20, 3) if len(top20) >= 3 else top20
+
+                print("\n🎯 [모델 추천곡 3곡 (랜덤 샘플링)]")
+                for song in model_top3:
+                    print(f"🎵 (모델추천) {song.title} by {song.artist}", flush=True)
+
+                # ✅ 전체 곡에서 완전 랜덤 2곡 뽑기 (이미 liked_songs 제외된 not_liked_songs 사용!)
+                all_songs_pool = list(not_liked_songs)
+                random2 = random.sample(all_songs_pool, 2) if len(all_songs_pool) >= 2 else all_songs_pool
+
+                print("\n🎯 [랜덤 추천곡 2곡 (완전 랜덤)]")
+                for song in random2:
+                    print(f"🎵 (랜덤) {song.title} by {song.artist}", flush=True)
+
+                # ✅ 최종 5곡 (섞어서) 
+                combined5 = model_top3 + random2
+                random.shuffle(combined5)  # 사용자에게 보여주는 순서도 랜덤!
+                top5 = combined5
+
+                print("🎵 [사용자에게 최종 추천될 5곡 (모델3 + 랜덤2, 랜덤순서)]")
+                for song in top5:
+                    print(f"🎵 (최종) {song.title} by {song.artist}", flush=True)
 
     return render(request, 'index.html', {
         'quiz_song': quiz_song,
