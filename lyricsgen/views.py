@@ -12,6 +12,7 @@ from django.contrib.auth import logout
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.conf import settings
+from django.contrib import messages
 
 # ✅ 환경 변수 로딩 및 OpenAI 클라이언트 생성
 load_dotenv()
@@ -132,7 +133,8 @@ Respond only in the format:
             lyrics = "가사 생성에 실패했습니다. 다시 시도해주세요."
 
         # 🔍 이미지 생성
-        dalle_prompt = f"A {style} style album cover for a song about {prompt.replace('\"', '').replace('\'', '')}"
+        cleaned_prompt = prompt.replace('"', '').replace("'", '')
+        dalle_prompt = f"A {style} style album cover for a song about {cleaned_prompt}"
         image_filename = f"{uuid.uuid4()}.png"
 
         if fast_mode:

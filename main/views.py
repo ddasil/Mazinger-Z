@@ -17,35 +17,175 @@ from .models import Lovelist
 from .models import TagSearchLog
 from collections import Counter
 from django.utils.http import urlencode
+#0526 동건 추가
+import os
+import numpy as np
+import tensorflow as tf
+import pickle
+from django.conf import settings
+import sys
+
+# 0528 동건 추가
+import datetime
+
+# 0526 동건 추가
+MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
+model = tf.keras.models.load_model(os.path.join(MODEL_DIR, 'final_model.h5'))
+with open(os.path.join(MODEL_DIR, 'tfidf_vectorizer.pkl'), 'rb') as f:
+    tfidf = pickle.load(f)
+
+# 0527 동건 수정
+def calculate_age(birthday):
+    """
+    생년월일(birthday)로부터 현재 나이를 계산하는 함수
+    """
+    today = datetime.date.today()
+    return today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
+
+def get_age_category(age):
+    """
+    나이를 받아서 나이대 카테고리(1~5)를 반환하는 함수
+    """
+    if age < 20:
+        return 1
+    elif age < 30:
+        return 2
+    elif age < 40:
+        return 3
+    elif age < 50:
+        return 4
+    else:
+        return 5
 
 def main(request):
+    print("💡 main 함수 진입!", flush=True)
+
+    # ✅ 퀴즈용 랜덤 곡 (가사 있는 곡 중 랜덤 1곡 선택)
+    quiz_song = None
     songs = list(ChartSong.objects.filter(
         lylics__isnull=False
-    ).exclude(
-        lylics=''
-    ).exclude(
-        lylics__exact='None'
-    ))
+    ).exclude(lylics='').exclude(lylics__exact='None'))
+    if songs:
+        quiz_song = random.choice(songs)
 
-    if not songs:
-        return render(request, 'index.html', {
-            'quiz_song': None,
-            'cover_songs': [],
-            'popular_tags': get_popular_tags(),
-        })
-
-    first_song = random.choice(songs)
-
+    # ✅ 비로그인 fallback 추천: 랜덤 5곡
     all_cover_songs = list(ChartSong.objects.exclude(album_cover_url=''))
     random.shuffle(all_cover_songs)
-    top5 = all_cover_songs[:5]
+    fallback_top5 = all_cover_songs[:5]
+    top5 = fallback_top5  # 기본 추천
 
+    if request.user.is_authenticated:
+        print("✅ 유저 인증됨!", flush=True)
+
+        # ✅ 사용자가 좋아요한 곡 ID 리스트
+        liked_songs_qs = Lovelist.objects.filter(user=request.user, is_liked=True)
+        liked_song_ids = list(liked_songs_qs.values_list('song_id', flat=True))
+        print(f"✅ 좋아요한 song_id: {liked_song_ids}", flush=True)
+
+        if liked_song_ids:
+            # ✅ 좋아요한 곡 정보
+            liked_songs = ChartSong.objects.filter(id__in=liked_song_ids)
+            liked_texts = [f"{s.normalized_genre} {s.emotion_tags} {s.keywords}" for s in liked_songs]
+
+            if liked_texts:
+                # ✅ 좋아요곡들의 평균 벡터 계산
+                liked_vecs = tfidf.transform(liked_texts)
+                song_vec_mean = np.asarray(liked_vecs.mean(axis=0)).flatten()
+
+                # ✅ 중첩 리스트를 평탄화하는 함수
+                def flatten(l):
+                    for el in l:
+                        if isinstance(el, list):
+                            yield from flatten(el)
+                        else:
+                            yield el
+
+                # ✅ 감정/키워드 리스트를 평탄화
+                emotion_list = [e for e in flatten([s.emotion_tags for s in liked_songs]) if e]
+                keyword_list = [k for k in flatten([s.keywords for s in liked_songs]) if k]
+
+                # ✅ 전체 감정/키워드 vocab 로드
+                with open(os.path.join(MODEL_DIR, 'trained_emotions.pkl'), 'rb') as f:
+                    all_emotions = pickle.load(f)
+                with open(os.path.join(MODEL_DIR, 'trained_keywords.pkl'), 'rb') as f:
+                    all_keywords = pickle.load(f)
+
+                # ✅ 분포 벡터 계산 함수
+                def build_dist(items, vocab):
+                    count = {w: items.count(w) for w in vocab}
+                    total = sum(count.values()) or 1
+                    return [count.get(w, 0) / total for w in vocab]
+
+                # ✅ 감정/키워드 분포 벡터 생성
+                emotion_dist = build_dist(emotion_list, all_emotions)
+                keyword_dist = build_dist(keyword_list, all_keywords)
+
+                # ✅ 사용자 나이 계산 (없으면 30으로 기본값)
+                if hasattr(request.user, 'birthday') and request.user.birthday:
+                    user_age = calculate_age(request.user.birthday)
+                else:
+                    user_age = 30
+
+                # ✅ 나이대 One-Hot 인코딩
+                age_category = get_age_category(user_age)
+                age_onehot = [1 if i == age_category else 0 for i in range(1, 6)]
+
+                # ✅ 성별 One-Hot (없으면 'M'으로 기본값)
+                user_gender = request.user.gender or 'M'
+                gender_onehot = [1, 0] if user_gender == 'M' else [0, 1]
+
+                # ✅ 최종 사용자 메타벡터 (나이대+성별)
+                user_meta = np.array(age_onehot + gender_onehot)
+
+                # ✅ 최종 사용자 벡터 (좋아요곡 평균벡터 + 사용자메타 + 감정 + 키워드)
+                user_vector = np.hstack((song_vec_mean, user_meta, emotion_dist, keyword_dist))
+
+                # ✅ 좋아요하지 않은 곡들로 추천 후보 리스트 생성
+                not_liked_songs = ChartSong.objects.exclude(id__in=liked_song_ids)
+                song_vectors_list = []
+                song_objs_list = []
+                for song in not_liked_songs:
+                    song_text = f"{song.normalized_genre} {song.emotion_tags} {song.keywords}"
+                    song_vec = tfidf.transform([song_text]).toarray().flatten()
+                    sample = np.hstack((user_vector, song_vec))
+                    song_vectors_list.append(sample)
+                    song_objs_list.append(song)
+
+                # ✅ 모델로 한 번에 배치 예측
+                samples_array = np.array(song_vectors_list)
+                preds = model.predict(samples_array, verbose=0).flatten()
+                scores = list(zip(song_objs_list, preds))
+
+                # ✅ 상위 20곡에서 3곡 랜덤으로 추출
+                top20 = [s[0] for s in sorted(scores, key=lambda x: x[1], reverse=True)[:20]]
+                print(f"🎵 모델 추천 후보 개수: {len(top20)}", flush=True)
+
+                model_top3 = random.sample(top20, 3) if len(top20) >= 3 else top20
+                print("\n🎯 [모델 추천곡 3곡 (랜덤 샘플링)]")
+                for song in model_top3:
+                    print(f"🎵 (모델추천) {song.title} by {song.artist}", flush=True)
+
+                # ✅ 완전 랜덤 2곡 (모델 무관)
+                all_songs_pool = list(not_liked_songs)
+                random2 = random.sample(all_songs_pool, 2) if len(all_songs_pool) >= 2 else all_songs_pool
+                print("\n🎯 [랜덤 추천곡 2곡 (완전 랜덤)]")
+                for song in random2:
+                    print(f"🎵 (랜덤) {song.title} by {song.artist}", flush=True)
+
+                # ✅ 최종 5곡을 섞어서 사용자에게 표시
+                combined5 = model_top3 + random2
+                random.shuffle(combined5)
+                top5 = combined5
+                print("\n🎵 [사용자에게 최종 추천될 5곡 (모델3+랜덤2, 랜덤순서)]")
+                for song in top5:
+                    print(f"🎵 (최종) {song.title} by {song.artist}", flush=True)
+
+    # ✅ 결과를 index.html로 렌더링
     return render(request, 'index.html', {
-        'quiz_song': first_song,
+        'quiz_song': quiz_song,
         'cover_songs': top5,
-        'popular_tags': get_popular_tags(),  # ✅ 이 줄 꼭 포함!
+        'popular_tags': get_popular_tags(),
     })
-
 def preference_view(request):
     return render(request, "preference.html") # 메인 음악 취향 검사
 
@@ -391,6 +531,7 @@ def add_or_remove_like(request):
     title = data.get("title")
     artist = data.get("artist")
     cover_url = data.get("cover_url", "")
+    song = ChartSong.objects.filter(title=title, artist=artist).first() # 0526 동건 추가
 
     # 🎵 ChartSong 정보 조회
     chart_song = ChartSong.objects.filter(title=title, artist=artist).first()
@@ -412,22 +553,24 @@ def add_or_remove_like(request):
             'release_date': chart_song.release_date,
             'genius_id': chart_song.genius_id,
             'is_liked': True,
+            'song': song,
         }
     )
 
     # 🔄 이미 존재하면 좋아요 상태만 반전 (삭제 아님)
     if not created:
         obj.is_liked = not obj.is_liked
-        if not obj.cover_url and cover_url:
+        if (not obj.cover_url or obj.cover_url == "") and cover_url: # 0526 동건 수정(url 빈 문자열로 저장 방지)
             obj.cover_url = cover_url
-        obj.updated_at = timezone.now()
+        if obj.song is None and song: # 0526 동건 추가 ✅ song이 비어 있으면 지금 연결
+            obj.song = song
         obj.save()
-
         count = Lovelist.objects.filter(title=title, artist=artist, is_liked=True).count()
         return JsonResponse({
             "status": "removed" if not obj.is_liked else "added",
             "count": count
         })
+
 
     # ➕ 새로 추가된 경우
     count = Lovelist.objects.filter(title=title, artist=artist, is_liked=True).count()
