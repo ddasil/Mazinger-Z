@@ -4,12 +4,18 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/recommend.css' %}">
+
+<div id="loadingOverlay">
+  <p id="loadingText"><i class="xi-spinner-3 xi-spin"></i><br><br>추천 고민 중..</p>
+</div>
+
+
 <div class="recommend-container">
     <h1 class="recommend-title">
         <i class="fa-solid fa-music icon-music"></i>
         What are you listening to?
     </h1>
-    <form method="get" action="/recommend/" class="recommend-form">
+    <form method="get" action="/recommend/" class="recommend-form" id="recommendForm">
         <div class="input-wrapper">
             <input type="text" name="q" id="prompt-input" placeholder="ex) 노래제목 - 가수" required>
             <button type="button" id="mic-btn" title="음성인식 시작">

@@ -291,3 +291,30 @@
   margin-bottom: 12px;
   color: #ffda6b;
 }
+
+#loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+}
+
+
+/* ✅ 로딩 텍스트 */
+#loadingText {
+  text-align: center;
+  color: white;
+  font-size: 18px;
+  margin-top: 20px;
+}
+
+#loadingText i {
+  font-size: 4vw;
+}

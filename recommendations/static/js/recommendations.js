@@ -71,3 +71,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const recommendForm = document.getElementById('recommendForm');
+  if (recommendForm) {
+    recommendForm.addEventListener('submit', () => {
+      document.getElementById('loadingOverlay').style.display = 'flex';
+    });
+  }
+});
+

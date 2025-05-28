@@ -1,3 +1,14 @@
+window.addEventListener("load", function() {
+  const overlay = document.getElementById("loading-overlay");
+  if (overlay) {
+    overlay.style.opacity = "0"; // fade-out
+    setTimeout(() => {
+      overlay.style.display = "none"; // 완전히 숨김
+    }, 500); // transition과 동일한 시간 (0.5초 후)
+  }
+});
+
+
 window.onload = function () {
   const urlParams = new URLSearchParams(window.location.search);
   const artist = urlParams.get('artist');
