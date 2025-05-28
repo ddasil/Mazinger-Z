@@ -70,7 +70,7 @@
     {% if posts.has_other_pages %}
     <div class="pagination">
       {% if posts.has_previous %}
-      <a href="?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ posts.previous_page_number }}">← 이전</a>
+      <a href="?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ posts.previous_page_number }}"><i class="fa-solid fa-chevron-left"></i> 이전</a>
       {% endif %}
       {% for num in posts.paginator.page_range %}
       {% if posts.number == num %}
@@ -80,7 +80,7 @@
       {% endif %}
       {% endfor %}
       {% if posts.has_next %}
-      <a href="?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ posts.next_page_number }}">다음 →</a>
+      <a href="?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ posts.next_page_number }}">다음 <i class="fa-solid fa-chevron-right"></i></a>
       {% endif %}
     </div>
     {% endif %}

@@ -10,7 +10,7 @@
   margin: 40px auto;
   background-color: #272727;
   padding: 30px;
-  border-radius: 20px;
+  border-radius: 5px;
   position: relative;
   z-index: 10;
 }
@@ -32,7 +32,7 @@
 .search-form select,
 .search-form input[type="text"],
 .search-form button {
-  border-radius: 8px;
+  border-radius: 5px;
   border: none;
   background-color: #444;
   color: white;
@@ -80,7 +80,7 @@
   padding: 8px 18px;
   background-color: #00000050;
   color: white;
-  border-radius: 20px;
+  border-radius: 5px;
   text-decoration: none;
   font-size: 1vw;
   transition: all 0.2s ease;
@@ -93,7 +93,7 @@
 }
 
 .category-filter a.active {
-  background-color: #ffcc00;
+  background-color: #ccc;
   color: #000;
   font-weight: 600;
 }
@@ -107,7 +107,7 @@
   background-color: #00000050;
   color: rgb(255, 255, 255);
   font-weight: 500;
-  border-radius: 10px;
+  border-radius: 5px;
   text-decoration: none;
   transition: 0.2s ease;
 }
@@ -128,7 +128,7 @@
   background: #1f1f1f;
   margin-bottom: 16px;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -166,7 +166,7 @@
   margin-left: auto;
   font-size: 0.8vw;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
 .reply-status.done {
@@ -192,9 +192,8 @@
 .pagination strong {
   min-width: 36px;
   padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: bold;
+  border-radius: 5px;
+  font-size: 1vw;
   background-color: #2a2a2a;
   color: #fff;
   text-decoration: none;
@@ -202,13 +201,13 @@
 }
 
 .pagination a:hover {
-  background-color: #ffcc00;
+  background-color: #ccc;
   color: black;
   transform: scale(1.05);
 }
 
 .pagination strong {
-  background-color: #ffcc00;
+  background-color: #ccc;
   color: #000;
   pointer-events: none;
 }
